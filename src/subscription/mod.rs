@@ -1,1 +1,1 @@
-pub mod subscription;
+pub mod model;

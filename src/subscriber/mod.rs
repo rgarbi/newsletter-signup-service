@@ -1,2 +1,2 @@
-pub mod subscriber;
+pub mod model;
 pub mod handlers;

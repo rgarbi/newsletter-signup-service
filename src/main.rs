@@ -11,7 +11,6 @@ async fn index() -> &'static str {
 
 #[rocket::main]
 async fn main() {
-
     rocket::build()
         .mount("/", routes![index])
         .mount("/subscribers", routes![subscriber::handlers::get_by_id])
