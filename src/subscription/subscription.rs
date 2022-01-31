@@ -19,6 +19,8 @@ struct Subscription {
     subscription_type: SubscriptionType,
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
 enum SubscriptionType {
     Electronic,
     Physical,

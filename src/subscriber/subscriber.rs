@@ -8,9 +8,4 @@ struct Subscriber {
     first_name: String,
     last_name: DateTime<Utc>,
     email_address: String,
-    amount_due: i8,
-    invoice_id: String,
-    description: String,
-    additional_data: String,
-    paid: bool,
 }
