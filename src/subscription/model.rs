@@ -1,5 +1,5 @@
-use rocket::serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]

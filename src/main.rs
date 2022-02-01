@@ -1,8 +1,10 @@
-mod subscriber;
-mod subscription;
-
 #[macro_use]
 extern crate rocket;
+
+mod db;
+mod models;
+mod routes;
+mod subscription;
 
 #[get("/")]
 async fn index() -> &'static str {
@@ -13,7 +15,8 @@ async fn index() -> &'static str {
 async fn main() {
     rocket::build()
         .mount("/", routes![index])
-        .mount("/subscribers", routes![subscriber::handlers::get_by_id])
+        .mount("/subscribers", routes![routes::subscribers::get_by_id])
         .launch()
-        .await.unwrap();
+        .await
+        .unwrap();
 }
