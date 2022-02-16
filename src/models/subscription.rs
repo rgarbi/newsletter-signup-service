@@ -6,8 +6,8 @@ use rocket::serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct Subscription {
-    id: Option<i32>,
-    subscriber_id: i32,
+    id: Option<i64>,
+    subscriber_id: i64,
     subscription_first_name: String,
     subscription_last_name: String,
     subscription_mailing_address_line_1: String,
