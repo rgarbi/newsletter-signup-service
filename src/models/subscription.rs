@@ -1,10 +1,9 @@
 use std::time::SystemTime;
 
 use chrono::{DateTime, Utc};
-use rocket::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
 pub struct Subscription {
     id: Option<i64>,
     subscriber_id: i64,
@@ -22,7 +21,6 @@ pub struct Subscription {
 }
 
 #[derive(Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
 enum SubscriptionType {
     Electronic,
     Physical,

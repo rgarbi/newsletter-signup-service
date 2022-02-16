@@ -1,7 +1,6 @@
-use rocket::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
 pub struct Subscriber {
     #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
