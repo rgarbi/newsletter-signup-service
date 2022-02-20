@@ -8,19 +8,3 @@ pub struct Subscriber {
     pub last_name: String,
     pub email_address: String,
 }
-
-impl Subscriber {
-    pub fn new_subscriber(
-        id: Option<i64>,
-        first_name: String,
-        last_name: String,
-        email_address: String,
-    ) -> Subscriber {
-        Subscriber {
-            id,
-            first_name,
-            last_name,
-            email_address,
-        }
-    }
-}
