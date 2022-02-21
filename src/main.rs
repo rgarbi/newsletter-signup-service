@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 
-use newsletter_signup_service::run;
+use newsletter_signup_service::startup::run;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {

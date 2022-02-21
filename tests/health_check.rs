@@ -1,8 +1,7 @@
 use std::net::TcpListener;
 
+use newsletter_signup_service::startup::run;
 use reqwest::Client;
-
-use newsletter_signup_service::run;
 
 #[tokio::test]
 async fn health_check_works() {
