@@ -26,6 +26,7 @@ sqlx = { version = "0.5.11", features = [
 serde = { version = "1.0.106", features = ["derive"] }
 serde_json = "1.0.51"
 uuid = { version = "0.8", features = ["serde", "v4"] }
+config = "0.12.0"
 
 [dev-dependencies]
 reqwest = "0.11"

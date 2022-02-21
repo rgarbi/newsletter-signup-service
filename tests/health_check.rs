@@ -1,7 +1,10 @@
 use std::net::TcpListener;
 
-use newsletter_signup_service::startup::run;
 use reqwest::Client;
+use sqlx::{Connection, PgConnection};
+
+use newsletter_signup_service::configuration::get_configuration;
+use newsletter_signup_service::startup::run;
 
 #[tokio::test]
 async fn health_check_works() {
@@ -19,9 +22,16 @@ async fn health_check_works() {
 }
 
 #[tokio::test]
-async fn subscribe_returns_a_200_for_valid_orm_data() {
+async fn subscribers_returns_a_200_for_valid_form_data() {
     let app_address = spawn_app();
     let client = Client::new();
+
+    let configuration = get_configuration().expect("Failed to read configuration");
+    let connection_string = configuration.database.connection_string();
+
+    let mut connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres.");
 
     let body = "last_name=le%20guin&first_name=ursila&email_address=ursula_le_guin%40gmail.com";
     let response = client
@@ -33,6 +43,13 @@ async fn subscribe_returns_a_200_for_valid_orm_data() {
         .expect("Failed to execute request.");
 
     assert_eq!(200, response.status().as_u16());
+
+    let saved = sqlx::query!("SELECT email_address, first_name, last_name, id FROM subscribers",)
+        .fetch_one(&mut connection)
+        .await
+        .expect("Failed to fetch saved subscription.");
+    assert_eq!(saved.email_address, "ursula_le_guin@gmail.com");
+    assert_eq!(saved.last_name, "le guin");
 }
 
 #[tokio::test]
