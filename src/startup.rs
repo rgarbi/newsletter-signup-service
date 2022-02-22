@@ -11,6 +11,7 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
     let connection = web::Data::new(connection);
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .route("/health_check", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::subscription))
             .route("/subscribers", web::post().to(routes::subscriber))
