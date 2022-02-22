@@ -1,12 +1,13 @@
+use std::str::FromStr;
+
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use sqlx::PgConnection;
+use sqlx::PgPool;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Subscriber {
-    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
-    pub id: Option<i64>,
+    pub id: String,
     pub first_name: String,
     pub last_name: String,
     pub email_address: String,
@@ -14,14 +15,21 @@ pub struct Subscriber {
 
 pub async fn subscriber(
     subscriber: web::Form<Subscriber>,
-    connection: web::Data<PgConnection>,
+    pool: web::Data<PgPool>,
 ) -> impl Responder {
-    sqlx::query!(
+    let result = sqlx::query!(
         r#"INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"#,
-        Uuid::new_v4(),
+        Uuid::from_str(&*subscriber.id).expect("Unable to parse the UUID"),
         subscriber.email_address,
         subscriber.first_name,
         subscriber.last_name
-    ).execute(connection.get_ref()).await;
-    HttpResponse::Ok()
+    ).execute(pool.get_ref()).await;
+
+    match result {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => {
+            println!("Failed to execute query: {}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }
