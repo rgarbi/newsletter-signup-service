@@ -1,6 +1,6 @@
 use std::net::TcpListener;
-use std::str::FromStr;
 
+use once_cell::sync::Lazy;
 use reqwest::Client;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
@@ -8,12 +8,26 @@ use uuid::Uuid;
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
 use newsletter_signup_service::routes::Subscriber;
 use newsletter_signup_service::startup::run;
+use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 #[derive(Clone)]
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
 }
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let default_filter_level = "info".to_string();
+    let subscriber_name = "test".to_string();
+
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::sink);
+        init_subscriber(subscriber);
+    };
+});
 
 #[tokio::test]
 async fn health_check_works() {
@@ -125,6 +139,8 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 }
 
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
     let mut configuration = get_configuration().expect("Failed to read configuration");
     configuration.database.database_name = Uuid::new_v4().to_string();
     let listener: TcpListener =
