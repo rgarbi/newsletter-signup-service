@@ -1,9 +1,9 @@
 use std::net::TcpListener;
 
-use env_logger::Env;
 use sqlx::PgPool;
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
+use tracing_log::LogTracer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
@@ -12,6 +12,7 @@ use newsletter_signup_service::startup::run;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    LogTracer::init().expect("Failed to set logger");
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     let formatting_layer =
         BunyanFormattingLayer::new("newsletter-signup-service".into(), std::io::stdout);
