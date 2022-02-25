@@ -39,13 +39,12 @@ impl SubscriptionType {
 }
 
 #[tracing::instrument(
-name = "Adding a new subscriber",
-skip(subscription, pool),
-fields(
-request_id = %Uuid::new_v4(),
-subscriber_id = %subscription.subscriber_id,
-subscription_email_address = %subscription.subscription_email_address,
-)
+    name = "Adding a new subscriber",
+    skip(subscription, pool),
+    fields(
+        subscriber_id = %subscription.subscriber_id,
+        subscription_email_address = %subscription.subscription_email_address,
+    )
 )]
 pub async fn post_subscription(
     subscription: web::Form<Subscription>,

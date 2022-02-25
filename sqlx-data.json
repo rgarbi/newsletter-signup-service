@@ -1,0 +1,42 @@
+{
+  "db": "PostgreSQL",
+  "d81905721214a5933ec1bbff832b73d6b19390dd6a8c7494bf29655f7f84606f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Bool",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
+  },
+  "f0aa9ab772ef8e41a088f47819e30a2a2e10ed61242bf439fa747790389ead56": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"
+  }
+}
