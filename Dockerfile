@@ -20,6 +20,7 @@ WORKDIR /newsletter-signup-service
 
 COPY ./ .
 
+ENV SQLX_OFFLINE true
 RUN cargo build --release
 
 ######################
@@ -33,9 +34,12 @@ WORKDIR /newsletter-signup-service
 
 # Copy our build
 COPY --from=builder /newsletter-signup-service/target/release/newsletter-signup-service ./
+COPY --from=builder /newsletter-signup-service/configuration ./configuration
 
 # Use an unprivileged user.
 USER newsletter-signup-service:newsletter-signup-service
 
 EXPOSE 8000
+ENV APP_ENVIRONMENT production
+
 CMD ["/newsletter-signup-service/newsletter-signup-service"]
