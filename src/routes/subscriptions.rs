@@ -38,18 +38,34 @@ impl SubscriptionType {
     }
 }
 
-pub async fn subscription(
+#[tracing::instrument(
+name = "Adding a new subscriber",
+skip(subscription, pool),
+fields(
+request_id = %Uuid::new_v4(),
+subscriber_id = %subscription.subscriber_id,
+subscription_email_address = %subscription.subscription_email_address,
+)
+)]
+pub async fn post_subscription(
     subscription: web::Form<Subscription>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    let request_id = Uuid::new_v4();
-    tracing::info!(
-        "request id {} - Adding a new subscription for the subscriber {} with a subscription type of {}",
-        request_id,
-        subscription.subscriber_id,
-        subscription.subscription_type.as_str()
-    );
-    let result = sqlx::query!(
+    match insert_subscription(&subscription, &pool).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Saving new subscription details in the database",
+    skip(subscription, pool)
+)]
+pub async fn insert_subscription(
+    subscription: &Subscription,
+    pool: &PgPool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
         r#"INSERT INTO subscriptions (
             id, 
             subscriber_id, 
@@ -79,24 +95,12 @@ pub async fn subscription(
         true,
         subscription.subscription_type.as_str()
     )
-    .execute(pool.get_ref())
-    .await;
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
 
-    match result {
-        Ok(_) => {
-            tracing::info!(
-                "request id {} - New subscription details have been saved",
-                request_id
-            );
-            HttpResponse::Ok().finish()
-        }
-        Err(e) => {
-            tracing::error!(
-                "request id {} - Failed to execute query: {:?}",
-                request_id,
-                e
-            );
-            HttpResponse::InternalServerError().finish()
-        }
-    }
+    Ok(())
 }
