@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
+  AWS_REGION: ap-northeast-1
+  AWS_LIGHTSAIL_SERVICE_NAME: us-east-2
 
 jobs:
   test:
@@ -20,7 +22,7 @@ jobs:
           - 5432:5432
     env:
       SQLX_VERSION: 0.5.11
-      SQLX_FEATURES: runtime-actix-rustls
+      SQLX_FEATURES: all
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -46,7 +48,7 @@ jobs:
         with:
           path: |
             ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
@@ -57,8 +59,6 @@ jobs:
             sqlx-cli
             --force
             --version=${{ env.SQLX_VERSION }}
-            --features=${{ env.SQLX_FEATURES }}
-            --no-default-features
             --locked
 
       - name: Migrate database
