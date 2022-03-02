@@ -19,7 +19,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      SQLX_VERSION: 0.5.5
+      SQLX_VERSION: 0.5.11
       SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
@@ -66,6 +66,10 @@ jobs:
           sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
 
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --check -- --bin newsletter-signup-service
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
@@ -99,7 +103,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      SQLX_VERSION: 0.5.5
+      SQLX_VERSION: 0.5.11
       SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
@@ -157,7 +161,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      SQLX_VERSION: 0.5.5
+      SQLX_VERSION: 0.5.11
       SQLX_FEATURES: postgres
     steps:
       - name: Checkout repository
@@ -194,10 +198,6 @@ jobs:
         run: |
           sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
-
-      - name: Check sqlx-data.json is up-to-date
-        run: |
-          cargo sqlx prepare --check -- --bin newsletter-signup-service
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
