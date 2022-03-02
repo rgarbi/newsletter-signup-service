@@ -1,4 +1,4 @@
-name: Rust
+name: Build
 
 on: [push, pull_request]
 
@@ -9,7 +9,7 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: Build And Test
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -26,6 +26,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt
+      - uses: actions-rs/toolchain@v1
+        with:
+          components: clippy
+          toolchain: stable
+          override: true
       - name: Cache dependencies
         id: cache-dependencies
         uses: actions/cache@v2
@@ -64,19 +74,15 @@ jobs:
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
+          command: build
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
           command: test
 
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
+      - name: Rustfmt
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
@@ -155,7 +161,6 @@ jobs:
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
-        if: steps.cache-sqlx.outputs.cache-hit == false
         with:
           command: install
           args: >
