@@ -1,0 +1,22 @@
+{
+  "containers": {
+    "newsletter-signup-service": {
+      "image": "",
+      "ports": {
+        "8000": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "newsletter-signup-service",
+    "containerPort": 8000,
+    "healthCheck": {
+      "healthyThreshold": 2,
+      "unhealthyThreshold": 2,
+      "timeoutSeconds": 5,
+      "intervalSeconds": 10,
+      "path": "/health_check",
+      "successCodes": "200-499"
+    }
+  }
+}
