@@ -1,8 +1,12 @@
+use std::env;
+
 use config::Config;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
+use tracing::log;
+use tracing::log::log;
 
 #[derive(serde::Deserialize)]
 pub struct Settings {
@@ -90,6 +94,14 @@ impl DatabaseSettings {
             PgSslMode::Prefer
         };
 
+        log::info!(
+            "Environment Var Host: {}",
+            env::var("APP_DATABASE__HOST").unwrap()
+        );
+        log::info!("Connection Host: {}", self.host);
+        log::info!("Connection Port: {}", self.port);
+        log::info!("Connection Username: {}", self.username);
+        log::info!("Connection SSL: {}", self.require_ssl);
         PgConnectOptions::new()
             .host(&self.host)
             .username(&self.username)

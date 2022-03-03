@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
 
     let configuration = get_configuration().expect("Failed to read configuration.");
     let connection = PgPoolOptions::new()
-        .connect_timeout(std::time::Duration::from_secs(2))
+        .connect_timeout(std::time::Duration::from_secs(10))
         .connect_lazy_with(configuration.database.with_db());
 
     let address = format!(
