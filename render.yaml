@@ -8,6 +8,8 @@ services:
     numInstances: 1
     healthCheckPath: /health_check
     envVars:
+      - key: TEST
+        value: atest
       - key: APP_DATABASE__USERNAME
         fromDatabse:
           name: newsletter-signup-service-db
@@ -26,8 +28,8 @@ services:
           property: port
       - key: APP_DATABASE__DATABASE_NAME
         fromDatabse:
-          name: database
-          property: port
+          name: newsletter-signup-service-db
+          property: database
 databases:
   - name: newsletter-signup-service-db
     region: oregon
