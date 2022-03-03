@@ -1,0 +1,40 @@
+services:
+  # A Docker web service
+  - type: web
+    name: newsletter-signup-service
+    env: docker
+    region: oregon
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /health_check
+    envVars:
+      - key: APP_DATABASE__USERNAME
+        fromDatabse:
+          name: newsletter-signup-service-db
+          type: pserv
+          property: user
+      - key: APP_DATABASE__PASSWORD
+        fromService:
+          name: newsletter-signup-service-db
+          type: pserv
+          property: password
+      - key: APP_DATABASE__HOST
+        fromService:
+          name: newsletter-signup-service-db
+          type: pserv
+          property: host
+      - key: APP_DATABASE__PORT
+        fromService:
+          name: newsletter-signup-service-db
+          type: pserv
+          property: port
+      - key: APP_DATABASE__DATABASE_NAME
+        fromService:
+          name: database
+          type: pserv
+          property: port
+      - fromGroup: conc-settings
+databases:
+  - name: newsletter-signup-service-db
+    region: oregon
+    databaseName: newsletter-signup-service
