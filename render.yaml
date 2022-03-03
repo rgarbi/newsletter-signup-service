@@ -30,5 +30,6 @@ services:
           property: database
 databases:
   - name: newsletter-signup-service-db
+    plan: starter
     region: oregon
     databaseName: gm_newsletter
