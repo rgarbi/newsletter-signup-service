@@ -95,7 +95,7 @@ impl DatabaseSettings {
 
         log::info!(
             "Environment Var Host: {}",
-            env::var("APP_DATABASE__HOST").unwrap()
+            env::var("APP_DATABASE__HOST").unwrap_or("DEFAULT!!!!!!".to_string())
         );
         log::info!("Connection Host: {}", self.host);
         log::info!("Connection Port: {}", self.port);
