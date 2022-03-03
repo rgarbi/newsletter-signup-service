@@ -138,6 +138,18 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     }
 }
 
+#[tokio::test]
+async fn config_override_in_prod_works() {
+    Lazy::force(&TRACING);
+
+    std::env::set_var("APP__DATABASE__HOST", "TEST");
+
+    let configuration = get_configuration().expect("Failed to read configuration");
+    assert_eq!("TEST", configuration.database.host);
+
+    std::env::remove_var("APP__DATABASE__HOST")
+}
+
 async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 

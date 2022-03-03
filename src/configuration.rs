@@ -45,7 +45,11 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .add_source(config::File::from(
             configuration_directory.join(environment.as_str()),
         ))
-        .add_source(config::Environment::with_prefix("app").separator("__"))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .try_parsing(true)
+                .separator("__"),
+        )
         .build()
         .unwrap();
     settings.try_deserialize::<Settings>()
@@ -95,11 +99,12 @@ impl DatabaseSettings {
 
         log::info!(
             "Environment Var Host: {}",
-            env::var("APP_DATABASE__HOST").unwrap_or("DEFAULT!!!!!!".to_string())
+            env::var("APP__DATABASE__HOST").unwrap_or("DEFAULT!!!!!!".to_string())
         );
         log::info!("Connection Host: {}", self.host);
         log::info!("Connection Port: {}", self.port);
         log::info!("Connection Username: {}", self.username);
+        log::info!("Connection DatabaseName: {}", self.database_name);
         log::info!("Connection SSL: {}", self.require_ssl);
         PgConnectOptions::new()
             .host(&self.host)
