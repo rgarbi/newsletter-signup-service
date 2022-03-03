@@ -8,26 +8,24 @@ services:
     numInstances: 1
     healthCheckPath: /health_check
     envVars:
-      - key: TEST
-        value: atest
       - key: APP_DATABASE__USERNAME
-        fromDatabse:
+        fromDatabase:
           name: newsletter-signup-service-db
           property: user
       - key: APP_DATABASE__PASSWORD
-        fromDatabse:
+        fromDatabase:
           name: newsletter-signup-service-db
           property: password
       - key: APP_DATABASE__HOST
-        fromDatabse:
+        fromDatabase:
           name: newsletter-signup-service-db
           property: host
       - key: APP_DATABASE__PORT
-        fromDatabse:
+        fromDatabase:
           name: newsletter-signup-service-db
           property: port
       - key: APP_DATABASE__DATABASE_NAME
-        fromDatabse:
+        fromDatabase:
           name: newsletter-signup-service-db
           property: database
 databases:
