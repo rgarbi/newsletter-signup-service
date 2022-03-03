@@ -97,15 +97,6 @@ impl DatabaseSettings {
             PgSslMode::Prefer
         };
 
-        log::info!(
-            "Environment Var Host: {}",
-            env::var("APP__DATABASE__HOST").unwrap_or("DEFAULT!!!!!!".to_string())
-        );
-        log::info!("Connection Host: {}", self.host);
-        log::info!("Connection Port: {}", self.port);
-        log::info!("Connection Username: {}", self.username);
-        log::info!("Connection DatabaseName: {}", self.database_name);
-        log::info!("Connection SSL: {}", self.require_ssl);
         PgConnectOptions::new()
             .host(&self.host)
             .username(&self.username)
