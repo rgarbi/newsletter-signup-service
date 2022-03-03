@@ -11,27 +11,22 @@ services:
       - key: APP_DATABASE__USERNAME
         fromDatabse:
           name: newsletter-signup-service-db
-          type: pserv
           property: user
       - key: APP_DATABASE__PASSWORD
         fromDatabse:
           name: newsletter-signup-service-db
-          type: pserv
           property: password
       - key: APP_DATABASE__HOST
         fromDatabse:
           name: newsletter-signup-service-db
-          type: pserv
           property: host
       - key: APP_DATABASE__PORT
         fromDatabse:
           name: newsletter-signup-service-db
-          type: pserv
           property: port
       - key: APP_DATABASE__DATABASE_NAME
         fromDatabse:
           name: database
-          type: pserv
           property: port
 databases:
   - name: newsletter-signup-service-db
