@@ -14,26 +14,25 @@ services:
           type: pserv
           property: user
       - key: APP_DATABASE__PASSWORD
-        fromService:
+        fromDatabse:
           name: newsletter-signup-service-db
           type: pserv
           property: password
       - key: APP_DATABASE__HOST
-        fromService:
+        fromDatabse:
           name: newsletter-signup-service-db
           type: pserv
           property: host
       - key: APP_DATABASE__PORT
-        fromService:
+        fromDatabse:
           name: newsletter-signup-service-db
           type: pserv
           property: port
       - key: APP_DATABASE__DATABASE_NAME
-        fromService:
+        fromDatabse:
           name: database
           type: pserv
           property: port
-      - fromGroup: conc-settings
 databases:
   - name: newsletter-signup-service-db
     region: oregon
