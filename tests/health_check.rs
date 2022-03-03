@@ -142,12 +142,15 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 async fn config_override_in_prod_works() {
     Lazy::force(&TRACING);
 
-    std::env::set_var("APP__DATABASE__HOST", "TEST");
+    std::env::set_var("APP__DATABASE__HOST", "localhost");
 
     let configuration = get_configuration().expect("Failed to read configuration");
-    assert_eq!("TEST", configuration.database.host);
+    assert_eq!("localhost", configuration.database.host);
 
-    std::env::remove_var("APP__DATABASE__HOST")
+    std::env::remove_var("APP__DATABASE__HOST");
+
+    let configuration = get_configuration().expect("Failed to read configuration");
+    assert_eq!("127.0.0.1", configuration.database.host);
 }
 
 async fn spawn_app() -> TestApp {
