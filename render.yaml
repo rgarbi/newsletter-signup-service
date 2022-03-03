@@ -37,4 +37,4 @@ services:
 databases:
   - name: newsletter-signup-service-db
     region: oregon
-    databaseName: newsletter-signup-service
+    databaseName: gm-newsletter
