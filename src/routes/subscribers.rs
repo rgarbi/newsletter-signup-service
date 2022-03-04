@@ -26,8 +26,10 @@ pub async fn post_subscriber(
     pool: web::Data<PgPool>,
 ) -> impl Responder {
     let new_subscriber = NewSubscriber {
-        first_name: SubscriberName::parse(subscriber.0.first_name),
-        last_name: SubscriberName::parse(subscriber.0.last_name),
+        first_name: SubscriberName::parse(subscriber.0.first_name)
+            .expect("Unable to validate the first name"),
+        last_name: SubscriberName::parse(subscriber.0.last_name)
+            .expect("Unable to validate the last name"),
         email_address: subscriber.0.email_address,
     };
 

@@ -112,7 +112,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     let test_cases = vec![
         ("first_name=ursila&last_name=le%20guin", "missing the email"),
         (
-            "first_name=ursila&email=ursula_le_guin%40gmail.com",
+            "first_name=ursila&last_name=%20&email=ursula_le_guin%40gmail.com",
             "missing the name",
         ),
         ("", "missing both name and email"),
@@ -130,7 +130,6 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         assert_eq!(
             400,
             response.status().as_u16(),
-            // Additional customised error message on test failure
             "The API did not fail with 400 Bad Request when the payload was {}.",
             error_message
         );
