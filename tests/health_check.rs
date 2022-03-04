@@ -153,6 +153,52 @@ async fn config_override_in_prod_works() {
     assert_eq!("127.0.0.1", configuration.database.host);
 }
 
+#[tokio::test]
+async fn subscribe_returns_a_200_when_fields_are_present_but_empty() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+    let test_cases = vec![
+        (
+            format!(
+                "id={}&last_name=&first_name=ursila&email_address=ursula_le_guin%40gmail.com",
+                Uuid::new_v4().to_string()
+            ),
+            "empty name",
+        ),
+        (
+            format!(
+                "id={}&last_name=bob&first_name=ursila&email_address=",
+                Uuid::new_v4().to_string()
+            ),
+            "empty email",
+        ),
+        (
+            format!(
+                "id={}&last_name=&first_name=ursila&email_address=not-an-email-address",
+                Uuid::new_v4().to_string()
+            ),
+            "invalid email",
+        ),
+    ];
+    for (body, description) in test_cases {
+        // Act
+        let response = client
+            .post(&format!("{}/subscriptions", &app.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+        // Assert
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not return a 200 OK when the payload was {}.",
+            description
+        );
+    }
+}
+
 async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 

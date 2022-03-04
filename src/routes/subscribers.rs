@@ -3,6 +3,7 @@ use std::str::FromStr;
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
 #[derive(Deserialize, Serialize)]
@@ -24,6 +25,9 @@ pub async fn post_subscriber(
     subscriber: web::Form<Subscriber>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
+    if !is_valid_name(&subscriber.first_name) && !is_valid_name(&subscriber.last_name) {
+        return HttpResponse::BadRequest().finish();
+    }
     match insert_subscriber(&subscriber, &pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
@@ -47,4 +51,12 @@ pub async fn insert_subscriber(subscriber: &Subscriber, pool: &PgPool) -> Result
     })?;
 
     Ok(())
+}
+
+pub fn is_valid_name(s: &str) -> bool {
+    let is_empty_or_whitespace = s.trim().is_empty();
+    let is_too_long = s.graphemes(true).count() > 256;
+    let forbidden_characters = ['/', '(', ')', '"', '<', '>', '\\', '{', '}'];
+    let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
+    !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
 }
