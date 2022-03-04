@@ -1,10 +1,10 @@
-use std::str::FromStr;
-
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
+
+use crate::domain::new_subscriber::{NewSubscriber, OverTheWireCreateSubscriber};
+use crate::domain::subscriber_name::SubscriberName;
 
 #[derive(Deserialize, Serialize)]
 pub struct Subscriber {
@@ -22,13 +22,16 @@ pub struct Subscriber {
     )
 )]
 pub async fn post_subscriber(
-    subscriber: web::Form<Subscriber>,
+    subscriber: web::Form<OverTheWireCreateSubscriber>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    if !is_valid_name(&subscriber.first_name) && !is_valid_name(&subscriber.last_name) {
-        return HttpResponse::BadRequest().finish();
-    }
-    match insert_subscriber(&subscriber, &pool).await {
+    let new_subscriber = NewSubscriber {
+        first_name: SubscriberName::parse(subscriber.0.first_name),
+        last_name: SubscriberName::parse(subscriber.0.last_name),
+        email_address: subscriber.0.email_address,
+    };
+
+    match insert_subscriber(&new_subscriber, &pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
@@ -38,25 +41,20 @@ pub async fn post_subscriber(
     name = "Saving new subscriber details in the database",
     skip(subscriber, pool)
 )]
-pub async fn insert_subscriber(subscriber: &Subscriber, pool: &PgPool) -> Result<(), sqlx::Error> {
+pub async fn insert_subscriber(
+    subscriber: &NewSubscriber,
+    pool: &PgPool,
+) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"#,
-        Uuid::from_str(&*subscriber.id).expect("Unable to parse the UUID"),
+        Uuid::new_v4(),
         subscriber.email_address,
-        subscriber.first_name,
-        subscriber.last_name
+        subscriber.first_name.as_ref(),
+        subscriber.last_name.as_ref()
     ).execute(pool).await.map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
 
     Ok(())
-}
-
-pub fn is_valid_name(s: &str) -> bool {
-    let is_empty_or_whitespace = s.trim().is_empty();
-    let is_too_long = s.graphemes(true).count() > 256;
-    let forbidden_characters = ['/', '(', ')', '"', '<', '>', '\\', '{', '}'];
-    let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
-    !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
 }

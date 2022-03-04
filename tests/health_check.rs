@@ -49,8 +49,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
     let client = Client::new();
 
-    let subscriber_id = Uuid::new_v4();
-    store_subscriber(subscriber_id, app.clone()).await;
+    let subscriber = store_subscriber(app.clone()).await;
 
     let body = format!(
         "id={}&subscriber_id={}&subscription_first_name=joe&\
@@ -58,7 +57,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
             subscription_city=Kansas%20City&subscription_state=MO&subscription_postal_code=64108&\
             subscription_email_address=ursula_le_guin%40gmail.com&subscription_type=Electronic",
         Uuid::new_v4().to_string(),
-        subscriber_id
+        subscriber.id
     );
     let response = client
         .post(&format!("{}/subscriptions", app.address))
@@ -238,14 +237,14 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     connection_pool
 }
 
-pub async fn store_subscriber(id: Uuid, app: TestApp) -> Subscriber {
+pub async fn store_subscriber(app: TestApp) -> Subscriber {
     let client = Client::new();
 
+    let first_name = Uuid::new_v4().to_string();
     let body = format!(
-        "id={}&last_name={}&first_name={}&email_address={}%40gmail.com",
-        id,
+        "last_name={}&first_name={}&email_address={}%40gmail.com",
         Uuid::new_v4().to_string(),
-        Uuid::new_v4().to_string(),
+        first_name,
         Uuid::new_v4().to_string()
     );
     let response = client
@@ -259,8 +258,8 @@ pub async fn store_subscriber(id: Uuid, app: TestApp) -> Subscriber {
     assert_eq!(200, response.status().as_u16());
 
     let saved = sqlx::query!(
-        "SELECT email_address, first_name, last_name, id FROM subscribers WHERE id = $1",
-        id
+        "SELECT email_address, first_name, last_name, id FROM subscribers WHERE first_name = $1",
+        first_name
     )
     .fetch_one(&app.db_pool)
     .await
