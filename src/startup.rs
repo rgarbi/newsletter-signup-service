@@ -16,8 +16,12 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
             .route("/subscriptions", web::post().to(routes::post_subscription))
             .route("/subscribers", web::post().to(routes::post_subscriber))
             .route(
-                "/subscribers/{email}",
+                "/subscribers",
                 web::get().to(routes::get_subscriber_by_email),
+            )
+            .route(
+                "/subscribers/{id}",
+                web::get().to(routes::get_subscriber_by_id),
             )
             .app_data(connection.clone())
     })

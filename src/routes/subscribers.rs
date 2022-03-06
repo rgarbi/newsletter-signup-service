@@ -1,4 +1,7 @@
+use std::str::FromStr;
+
 use actix_web::{web, HttpResponse, Responder};
+use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -7,6 +10,11 @@ use crate::domain::new_subscriber::{
 };
 use crate::domain::subscriber_email::SubscriberEmail;
 use crate::domain::subscriber_name::SubscriberName;
+
+#[derive(Debug, Deserialize)]
+pub struct EmailAddressQuery {
+    email: String,
+}
 
 impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
     type Error = String;
@@ -45,17 +53,42 @@ pub async fn post_subscriber(
 }
 
 #[tracing::instrument(
-name = "Getting a subscriber by email address",
-skip(email, pool),
-fields(
-subscriber_email = %email,
-)
+    name = "Getting a subscriber by email address",
+    skip(email_query, pool),
+    fields(
+        subscriber_email = %email_query.email,
+    )
 )]
 pub async fn get_subscriber_by_email(
-    email: web::Path<String>,
+    email_query: web::Query<EmailAddressQuery>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    match retrieve_subscriber_by_email(email.into_inner(), &pool).await {
+    match retrieve_subscriber_by_email(email_query.0.email, &pool).await {
+        Ok(subscriber) => HttpResponse::Ok().json(subscriber),
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Getting a subscriber by id",
+    skip(id, pool),
+    fields(
+        id = %id,
+    )
+)]
+pub async fn get_subscriber_by_id(
+    id: web::Path<String>,
+    pool: web::Data<PgPool>,
+) -> impl Responder {
+    let uuid = match Uuid::from_str(id.into_inner().as_str()) {
+        Ok(uuid) => uuid,
+        Err(_) => {
+            tracing::error!("Got a malformed UUID");
+            return HttpResponse::BadRequest().finish();
+        }
+    };
+
+    match retrieve_subscriber_by_id(uuid, &pool).await {
         Ok(subscriber) => HttpResponse::Ok().json(subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }
@@ -84,7 +117,7 @@ pub async fn insert_subscriber(
 }
 
 #[tracing::instrument(
-    name = "Retrieving a subscriber from the database",
+    name = "Retrieving a subscriber by email address from the database",
     skip(email_address, pool)
 )]
 pub async fn retrieve_subscriber_by_email(
@@ -92,9 +125,36 @@ pub async fn retrieve_subscriber_by_email(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name FROM subscribers WHERE  email_address = $1"#,
+        r#"SELECT id, email_address, first_name, last_name FROM subscribers WHERE email_address = $1"#,
         email_address
     ).fetch_one(pool).await.map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(OverTheWireSubscriber {
+        id: result.id.to_string(),
+        last_name: result.last_name,
+        email_address: result.email_address,
+        first_name: result.first_name,
+    })
+}
+
+#[tracing::instrument(
+    name = "Retrieving a subscriber by id from the database",
+    skip(id, pool)
+)]
+pub async fn retrieve_subscriber_by_id(
+    id: Uuid,
+    pool: &PgPool,
+) -> Result<OverTheWireSubscriber, sqlx::Error> {
+    let result = sqlx::query!(
+        r#"SELECT id, email_address, first_name, last_name FROM subscribers WHERE id = $1"#,
+        id
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;

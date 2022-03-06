@@ -1,5 +1,81 @@
 {
   "db": "PostgreSQL",
+  "17c358170d4c6c0b02a16f8084cc48588a4bfb0db6086288cce255cf62ec0520": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, first_name, last_name FROM subscribers WHERE id = $1"
+  },
+  "79b2ec2803678cf113c1c10d52071b30ff38b6cd1e04f4aff73e91622539d8b9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, first_name, last_name FROM subscribers WHERE email_address = $1"
+  },
   "d81905721214a5933ec1bbff832b73d6b19390dd6a8c7494bf29655f7f84606f": {
     "describe": {
       "columns": [],

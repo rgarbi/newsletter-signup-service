@@ -43,7 +43,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 
     let response = client
         .get(&format!(
-            "{}/subscribers/{}",
+            "{}/subscribers?email={}",
             app.address, subscriber.email_address
         ))
         .send()
@@ -76,7 +76,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     let saved_subscriber: OverTheWireSubscriber =
         serde_json::from_str(response_body.as_str()).unwrap();
 
-    assert_eq!(saved_subscriber.email_address, subscriber.email_address);
+    assert_eq!(saved_subscriber.id, subscriber.id);
 }
 
 #[tokio::test]
