@@ -1,7 +1,8 @@
-use crate::domain::valid_email::ValidEmail;
-use crate::domain::valid_name::ValidName;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::domain::valid_email::ValidEmail;
+use crate::domain::valid_name::ValidName;
 
 #[derive(Deserialize, Serialize)]
 pub struct OverTheWireCreateSubscription {
@@ -24,12 +25,12 @@ pub struct OverTheWireSubscription {
     pub subscription_first_name: String,
     pub subscription_last_name: String,
     pub subscription_mailing_address_line_1: String,
-    pub subscription_mailing_address_line_2: Option<String>,
+    pub subscription_mailing_address_line_2: String,
     pub subscription_city: String,
     pub subscription_state: String,
     pub subscription_postal_code: String,
     pub subscription_email_address: String,
-    pub subscription_creation_date: Option<DateTime<Utc>>,
+    pub subscription_creation_date: DateTime<Utc>,
     pub active: bool,
     pub subscription_type: SubscriptionType,
 }

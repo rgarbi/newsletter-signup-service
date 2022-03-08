@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use actix_web::{web, HttpResponse, Responder};
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -10,6 +8,7 @@ use crate::domain::new_subscriber::{
 };
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
+use crate::util::from_string_to_uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct EmailAddressQuery {
@@ -80,15 +79,7 @@ pub async fn get_subscriber_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    let uuid = match Uuid::from_str(id.into_inner().as_str()) {
-        Ok(uuid) => uuid,
-        Err(_) => {
-            tracing::error!("Got a malformed UUID");
-            return HttpResponse::BadRequest().finish();
-        }
-    };
-
-    match retrieve_subscriber_by_id(uuid, &pool).await {
+    match retrieve_subscriber_by_id(from_string_to_uuid(id).unwrap(), &pool).await {
         Ok(subscriber) => HttpResponse::Ok().json(subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }

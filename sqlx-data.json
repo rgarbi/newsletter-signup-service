@@ -38,6 +38,98 @@
     },
     "query": "SELECT id, email_address, first_name, last_name FROM subscribers WHERE id = $1"
   },
+  "1b2915bee45313f7134f1b43c9e7eb89f63a5251ed059014cfd47dcc29b59c58": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscriber_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscription_first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_1",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_2",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_city",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_state",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_postal_code",
+          "ordinal": 8,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_email_address",
+          "ordinal": 9,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_creation_date",
+          "ordinal": 10,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "active",
+          "ordinal": 11,
+          "type_info": "Bool"
+        },
+        {
+          "name": "subscription_type",
+          "ordinal": 12,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
+  },
   "79b2ec2803678cf113c1c10d52071b30ff38b6cd1e04f4aff73e91622539d8b9": {
     "describe": {
       "columns": [

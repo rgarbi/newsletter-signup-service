@@ -60,6 +60,10 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
                 "/subscribers/{id}",
                 web::get().to(routes::get_subscriber_by_id),
             )
+            .route(
+                "/subscribers/{id}/subscriptions",
+                web::get().to(routes::get_subscriptions_by_subscriber_id),
+            )
             .app_data(connection.clone())
     })
     .listen(listener)?

@@ -7,6 +7,9 @@ use newsletter_signup_service::configuration::{get_configuration, DatabaseSettin
 use newsletter_signup_service::domain::new_subscriber::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
+use newsletter_signup_service::domain::new_subscription::{
+    OverTheWireCreateSubscription, SubscriptionType,
+};
 use newsletter_signup_service::startup::{get_connection_pool, Application};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
@@ -64,6 +67,20 @@ impl TestApp {
             .send()
             .await
             .expect("Failed to execute request.")
+    }
+
+    pub async fn get_subscriptions_by_subscriber_id(
+        &self,
+        subscriber_id: String,
+    ) -> reqwest::Response {
+        reqwest::Client::new()
+            .get(&format!(
+                "{}/subscribers/{}/subscriptions",
+                &self.address, subscriber_id
+            ))
+            .send()
+            .await
+            .expect("Got a subscriber back")
     }
 
     pub async fn from_response_to_over_the_wire_subscriber(
@@ -136,5 +153,20 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
         first_name: Uuid::new_v4().to_string(),
         last_name: Uuid::new_v4().to_string(),
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
+    }
+}
+
+pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWireCreateSubscription {
+    OverTheWireCreateSubscription {
+        subscriber_id,
+        subscription_type: SubscriptionType::Electronic,
+        subscription_state: Uuid::new_v4().to_string(),
+        subscription_last_name: Uuid::new_v4().to_string(),
+        subscription_city: Uuid::new_v4().to_string(),
+        subscription_email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
+        subscription_postal_code: Uuid::new_v4().to_string(),
+        subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
+        subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
+        subscription_first_name: Uuid::new_v4().to_string(),
     }
 }
