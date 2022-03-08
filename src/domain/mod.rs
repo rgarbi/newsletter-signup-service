@@ -1,3 +1,4 @@
 pub mod new_subscriber;
-pub mod subscriber_email;
-pub mod subscriber_name;
+pub mod new_subscription;
+pub mod valid_email;
+pub mod valid_name;

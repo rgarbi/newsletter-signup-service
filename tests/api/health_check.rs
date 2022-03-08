@@ -3,9 +3,7 @@ use reqwest::Client;
 
 use newsletter_signup_service::configuration::get_configuration;
 
-use crate::util::{spawn_app, TRACING};
-
-pub mod util;
+use crate::helper::{spawn_app, TRACING};
 
 #[tokio::test]
 async fn health_check_works() {

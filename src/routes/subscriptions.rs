@@ -1,40 +1,35 @@
 use std::str::FromStr;
 
 use actix_web::{web, HttpResponse, Responder};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[derive(Deserialize, Serialize)]
-pub struct Subscription {
-    id: String,
-    subscriber_id: String,
-    subscription_first_name: String,
-    subscription_last_name: String,
-    subscription_mailing_address_line_1: String,
-    subscription_mailing_address_line_2: Option<String>,
-    subscription_city: String,
-    subscription_state: String,
-    subscription_postal_code: String,
-    subscription_email_address: String,
-    subscription_creation_date: Option<DateTime<Utc>>,
-    active: Option<bool>,
-    subscription_type: SubscriptionType,
-}
+use crate::domain::new_subscription::{NewSubscription, OverTheWireCreateSubscription};
+use crate::domain::valid_email::ValidEmail;
+use crate::domain::valid_name::ValidName;
 
-#[derive(Deserialize, Serialize)]
-enum SubscriptionType {
-    Electronic,
-    Physical,
-}
-
-impl SubscriptionType {
-    fn as_str(&self) -> &'static str {
-        match self {
-            SubscriptionType::Electronic => "Electronic",
-            SubscriptionType::Physical => "Physical",
-        }
+impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
+    type Error = String;
+    fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {
+        let subscription_first_name = ValidName::parse(subscription.subscription_first_name)?;
+        let subscription_last_name = ValidName::parse(subscription.subscription_last_name)?;
+        let subscription_email_address =
+            ValidEmail::parse(subscription.subscription_email_address)?;
+        Ok(NewSubscription {
+            subscriber_id: subscription.subscriber_id,
+            subscription_first_name,
+            subscription_last_name,
+            subscription_email_address,
+            subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,
+            subscription_mailing_address_line_2: subscription.subscription_mailing_address_line_2,
+            subscription_city: subscription.subscription_city,
+            subscription_state: subscription.subscription_state,
+            subscription_postal_code: subscription.subscription_postal_code,
+            subscription_type: subscription.subscription_type,
+            subscription_creation_date: Utc::now(),
+            active: true,
+        })
     }
 }
 
@@ -47,10 +42,14 @@ impl SubscriptionType {
     )
 )]
 pub async fn post_subscription(
-    subscription: web::Form<Subscription>,
+    subscription: web::Json<OverTheWireCreateSubscription>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    match insert_subscription(&subscription, &pool).await {
+    let new_subscription = match subscription.0.try_into() {
+        Ok(subscription) => subscription,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    match insert_subscription(&new_subscription, &pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
@@ -61,7 +60,7 @@ pub async fn post_subscription(
     skip(subscription, pool)
 )]
 pub async fn insert_subscription(
-    subscription: &Subscription,
+    subscription: &NewSubscription,
     pool: &PgPool,
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
@@ -80,16 +79,16 @@ pub async fn insert_subscription(
             active,
             subscription_type
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
-        Uuid::from_str(&*subscription.id).expect("Unable to parse the UUID"),
+        Uuid::new_v4(),
         Uuid::from_str(&*subscription.subscriber_id).expect("Unable to parse the UUID"),
-        subscription.subscription_first_name,
-        subscription.subscription_last_name,
+        subscription.subscription_first_name.as_ref(),
+        subscription.subscription_last_name.as_ref(),
         subscription.subscription_mailing_address_line_1,
         subscription.subscription_mailing_address_line_2,
         subscription.subscription_city,
         subscription.subscription_state,
         subscription.subscription_postal_code,
-        subscription.subscription_email_address,
+        subscription.subscription_email_address.as_ref(),
         Utc::now(),
         true,
         subscription.subscription_type.as_str()

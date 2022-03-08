@@ -1,0 +1,104 @@
+use uuid::Uuid;
+
+use newsletter_signup_service::domain::new_subscriber::{
+    OverTheWireCreateSubscriber, OverTheWireSubscriber,
+};
+
+use crate::helper::{generate_over_the_wire_subscriber, spawn_app, store_subscriber};
+
+#[tokio::test]
+async fn subscribers_returns_a_200_for_valid_form_data() {
+    let app = spawn_app().await;
+
+    let subscriber = generate_over_the_wire_subscriber();
+    let response = app.post_subscriber(subscriber.to_json()).await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let find_response = app
+        .get_subscriber_by_email(subscriber.email_address.clone())
+        .await;
+    assert_eq!(200, find_response.status().as_u16());
+
+    let saved: OverTheWireSubscriber = app
+        .from_response_to_over_the_wire_subscriber(find_response)
+        .await;
+    assert_eq!(saved.email_address, subscriber.email_address);
+    assert_eq!(saved.last_name, subscriber.last_name);
+}
+
+#[tokio::test]
+async fn given_a_stored_subscriber_i_can_get_it_by_email() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone()).await;
+
+    let response = app
+        .get_subscriber_by_email(subscriber.email_address.clone())
+        .await;
+    assert!(response.status().is_success());
+
+    let response_body = response.text().await.unwrap();
+    let saved_subscriber: OverTheWireSubscriber =
+        serde_json::from_str(response_body.as_str()).unwrap();
+
+    assert_eq!(saved_subscriber.email_address, subscriber.email_address);
+}
+
+#[tokio::test]
+async fn given_a_stored_subscriber_i_can_get_it_by_id() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone()).await;
+
+    let response = app.get_subscriber_by_id(subscriber.id.clone()).await;
+    assert!(response.status().is_success());
+
+    let saved_subscriber = app
+        .from_response_to_over_the_wire_subscriber(response)
+        .await;
+
+    assert_eq!(saved_subscriber.id, subscriber.id);
+}
+
+#[tokio::test]
+async fn subscribe_returns_a_400_when_data_is_missing() {
+    // Arrange
+    let app = spawn_app().await;
+    let test_cases = vec![
+        (
+            OverTheWireCreateSubscriber {
+                last_name: Uuid::new_v4().to_string(),
+                first_name: Uuid::new_v4().to_string(),
+                email_address: String::from(""),
+            },
+            "missing the email",
+        ),
+        (
+            OverTheWireCreateSubscriber {
+                last_name: String::from(""),
+                first_name: Uuid::new_v4().to_string(),
+                email_address: Uuid::new_v4().to_string(),
+            },
+            "missing the name",
+        ),
+        (
+            OverTheWireCreateSubscriber {
+                last_name: String::from(""),
+                first_name: Uuid::new_v4().to_string(),
+                email_address: String::from(""),
+            },
+            "missing both name and email",
+        ),
+    ];
+    for (invalid_body, error_message) in test_cases {
+        let response = app.post_subscriber(invalid_body.to_json()).await;
+
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not fail with 400 Bad Request when the payload was {}.",
+            error_message
+        );
+    }
+}

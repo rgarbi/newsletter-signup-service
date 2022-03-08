@@ -8,8 +8,8 @@ use uuid::Uuid;
 use crate::domain::new_subscriber::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
-use crate::domain::subscriber_email::SubscriberEmail;
-use crate::domain::subscriber_name::SubscriberName;
+use crate::domain::valid_email::ValidEmail;
+use crate::domain::valid_name::ValidName;
 
 #[derive(Debug, Deserialize)]
 pub struct EmailAddressQuery {
@@ -19,9 +19,9 @@ pub struct EmailAddressQuery {
 impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
     type Error = String;
     fn try_from(subscriber: OverTheWireCreateSubscriber) -> Result<Self, Self::Error> {
-        let first_name = SubscriberName::parse(subscriber.first_name)?;
-        let last_name = SubscriberName::parse(subscriber.last_name)?;
-        let email_address = SubscriberEmail::parse(subscriber.email_address)?;
+        let first_name = ValidName::parse(subscriber.first_name)?;
+        let last_name = ValidName::parse(subscriber.last_name)?;
+        let email_address = ValidEmail::parse(subscriber.email_address)?;
         Ok(NewSubscriber {
             first_name,
             last_name,
@@ -38,7 +38,7 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
     )
 )]
 pub async fn post_subscriber(
-    subscriber: web::Form<OverTheWireCreateSubscriber>,
+    subscriber: web::Json<OverTheWireCreateSubscriber>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
     let new_subscriber = match subscriber.0.try_into() {
