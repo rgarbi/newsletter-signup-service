@@ -83,6 +83,14 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
+    pub async fn get_subscription_by_id(&self, id: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .get(&format!("{}/subscriptions/{}", &self.address, id))
+            .send()
+            .await
+            .expect("Got a subscriber back")
+    }
+
     pub async fn from_response_to_over_the_wire_subscriber(
         &self,
         response: Response,

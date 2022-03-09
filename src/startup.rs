@@ -51,6 +51,10 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::post_subscription))
+            .route(
+                "/subscriptions/{id}",
+                web::get().to(routes::get_subscription_by_id),
+            )
             .route("/subscribers", web::post().to(routes::post_subscriber))
             .route(
                 "/subscribers",

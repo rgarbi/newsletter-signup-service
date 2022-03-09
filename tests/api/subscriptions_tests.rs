@@ -135,3 +135,31 @@ async fn get_subscriptions_by_subscriber_id_many() {
 
     assert_eq!(expected, subscriptions.len())
 }
+
+#[tokio::test]
+async fn get_subscriptions_by_id() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone()).await;
+    let body = generate_over_the_wire_subscription(subscriber.id.clone());
+    let response = app.post_subscription(body.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let response_body = response.text().await.unwrap();
+    let saved_subscription: OverTheWireSubscription =
+        serde_json::from_str(response_body.as_str()).unwrap();
+
+    let subscriptions_response = app
+        .get_subscription_by_id(saved_subscription.id.to_string())
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    let saved_subscription_response_body = subscriptions_response.text().await.unwrap();
+    let subscription: OverTheWireSubscription =
+        serde_json::from_str(saved_subscription_response_body.as_str()).unwrap();
+
+    assert_eq!(
+        body.subscriber_id.to_string(),
+        subscription.subscriber_id.to_string()
+    )
+}
