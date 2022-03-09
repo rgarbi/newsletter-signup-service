@@ -100,8 +100,11 @@ impl TestApp {
     }
 }
 
-pub async fn store_subscriber(app: TestApp) -> OverTheWireSubscriber {
-    let subscriber = generate_over_the_wire_subscriber();
+pub async fn store_subscriber(
+    app: TestApp,
+    subscriber: Option<OverTheWireCreateSubscriber>,
+) -> OverTheWireSubscriber {
+    let subscriber = subscriber.unwrap_or_else(|| generate_over_the_wire_subscriber());
     let response = app.post_subscriber(subscriber.to_json()).await;
     assert_eq!(200, response.status().as_u16());
 

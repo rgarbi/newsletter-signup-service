@@ -10,7 +10,7 @@ use crate::helper::{generate_over_the_wire_subscription, spawn_app};
 #[tokio::test]
 async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
     let app = spawn_app().await;
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
     let test_cases = vec![
         (
             OverTheWireCreateSubscription {
@@ -75,7 +75,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
 async fn subscriptions_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app.post_subscription(body.to_json()).await;
@@ -94,7 +94,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app.post_subscription(body.to_json()).await;
     assert_eq!(200, response.status().as_u16());
@@ -115,7 +115,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
 async fn get_subscriptions_by_subscriber_id_many() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
     let expected = 100;
 
     for _ in 0..expected {
@@ -140,7 +140,7 @@ async fn get_subscriptions_by_subscriber_id_many() {
 async fn get_subscriptions_by_id() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app.post_subscription(body.to_json()).await;
     assert_eq!(200, response.status().as_u16());

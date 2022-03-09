@@ -31,7 +31,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
 async fn given_a_stored_subscriber_i_can_get_it_by_email() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let response = app
         .get_subscriber_by_email(subscriber.email_address.clone())
@@ -49,7 +49,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone()).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let response = app.get_subscriber_by_id(subscriber.id.clone()).await;
     assert!(response.status().is_success());
