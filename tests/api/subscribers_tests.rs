@@ -46,6 +46,28 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 }
 
 #[tokio::test]
+async fn incorrect_email_returns_404() {
+    let app = spawn_app().await;
+
+    store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_email(Uuid::new_v4().to_string())
+        .await;
+    assert_eq!(response.status().as_u16(), 404);
+}
+
+#[tokio::test]
+async fn incorrect_id_returns_404() {
+    let app = spawn_app().await;
+
+    store_subscriber(app.clone(), Option::None).await;
+
+    let response = app.get_subscriber_by_id(Uuid::new_v4().to_string()).await;
+    assert_eq!(response.status().as_u16(), 404);
+}
+
+#[tokio::test]
 async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     let app = spawn_app().await;
 
@@ -101,4 +123,21 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
             error_message
         );
     }
+}
+
+#[tokio::test]
+async fn subscribe_fails_if_there_is_a_fatal_database_error() {
+    let app = spawn_app().await;
+
+    // Sabotage the database
+    sqlx::query!("ALTER TABLE subscribers DROP COLUMN last_name;",)
+        .execute(&app.db_pool)
+        .await
+        .unwrap();
+    // Act
+    let response = app
+        .post_subscriber(generate_over_the_wire_subscriber().to_json())
+        .await;
+    // Assert
+    assert_eq!(response.status().as_u16(), 500);
 }
