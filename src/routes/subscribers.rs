@@ -1,4 +1,6 @@
-use actix_web::{web, HttpResponse, Responder};
+use std::fmt::{Debug, Display};
+
+use actix_web::{web, HttpResponse, Responder, ResponseError};
 use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -92,7 +94,7 @@ pub async fn get_subscriber_by_id(
 pub async fn insert_subscriber(
     subscriber: &NewSubscriber,
     pool: &PgPool,
-) -> Result<(), sqlx::Error> {
+) -> Result<(), StoreSubscriberError> {
     sqlx::query!(
         r#"INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"#,
         Uuid::new_v4(),
@@ -100,8 +102,10 @@ pub async fn insert_subscriber(
         subscriber.first_name.as_ref(),
         subscriber.last_name.as_ref()
     ).execute(pool).await.map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
-        e
+        let err = StoreSubscriberError(e);
+        tracing::error!("{:?}", err);
+        err
+
     })?;
 
     Ok(())
@@ -157,3 +161,17 @@ pub async fn retrieve_subscriber_by_id(
         first_name: result.first_name,
     })
 }
+
+#[derive(Debug)]
+pub struct StoreSubscriberError(sqlx::Error);
+
+impl Display for StoreSubscriberError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A database error was encountered while trying to store a subscriber."
+        )
+    }
+}
+
+impl ResponseError for StoreSubscriberError {}
