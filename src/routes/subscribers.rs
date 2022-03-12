@@ -1,6 +1,9 @@
 use std::fmt::{Debug, Display};
 
-use actix_web::{web, HttpResponse, Responder, ResponseError};
+use actix_web::http::header::HeaderMap;
+use actix_web::http::Error;
+use actix_web::{web, HttpRequest, HttpResponse, Responder, ResponseError};
+use secrecy::Secret;
 use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -15,6 +18,42 @@ use crate::util::from_string_to_uuid;
 #[derive(Debug, Deserialize)]
 pub struct EmailAddressQuery {
     email: String,
+}
+
+struct Credentials {
+    username: String,
+    password: Secret<String>,
+}
+
+fn basic_authentication(headers: &HeaderMap) -> Result<Credentials, Error> {
+    let header_value = headers
+        .get("Authorization")
+        .ok_or_else(tracing::error!("The 'Authorization' header was missing"))
+        .to_str()
+        .expect("The 'Authorization' header was not a valid UTF8 string.");
+    let base64encoded_segment = header_value
+        .strip_prefix("Basic ")
+        .expect("The authorization scheme was not 'Basic'.");
+    let decoded_bytes = base64::decode_config(base64encoded_segment, base64::STANDARD)
+        .expect("Failed to base64-decode 'Basic' credentials.");
+    let decoded_credentials =
+        String::from_utf8(decoded_bytes).expect("The decoded credential string is not valid UTF8.");
+    // Split into two segments, using ':' as delimitator
+    let mut credentials = decoded_credentials.splitn(2, ':');
+    let username = credentials
+        .next()
+        .ok_or_else(|| tracing::error!("A username must be provided in 'Basic' auth."))
+        .unwrap()
+        .to_string();
+    let password = credentials
+        .next()
+        .ok_or_else(|| tracing::error!("A password must be provided in 'Basic' auth."))
+        .unwrap()
+        .to_string();
+    Ok(Credentials {
+        username,
+        password: Secret::new(password),
+    })
 }
 
 impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
@@ -41,7 +80,13 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
 pub async fn post_subscriber(
     subscriber: web::Json<OverTheWireCreateSubscriber>,
     pool: web::Data<PgPool>,
+    request: HttpRequest,
 ) -> impl Responder {
+    let _credentials = match basic_authentication(request.headers()) {
+        Ok(creds) => creds,
+        Err(_) => return HttpResponse::Unauthorized().finish(),
+    };
+
     let new_subscriber = match subscriber.0.try_into() {
         Ok(subscriber) => subscriber,
         Err(_) => return HttpResponse::BadRequest().finish(),

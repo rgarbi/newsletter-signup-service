@@ -141,3 +141,23 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     // Assert
     assert_eq!(response.status().as_u16(), 500);
 }
+
+#[tokio::test]
+async fn requests_missing_authorization_are_rejected() {
+    // Arrange
+    let app = spawn_app().await;
+    let response = reqwest::Client::new()
+        .post(&format!("{}/subscribers", app.address))
+        .header("Content-Type", "application/json")
+        .body(generate_over_the_wire_subscriber().to_json())
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    // Assert
+    assert_eq!(401, response.status().as_u16());
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        response.headers()["WWW-Authenticate"]
+    );
+}
