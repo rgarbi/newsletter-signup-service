@@ -1,6 +1,8 @@
 use std::net::TcpListener;
 
 use actix_web::dev::Server;
+use actix_web::http::header;
+use actix_web::middleware::DefaultHeaders;
 use actix_web::{web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
@@ -44,10 +46,32 @@ pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
         .connect_lazy_with(configuration.with_db())
 }
 
+pub fn security_headers() -> DefaultHeaders {
+    DefaultHeaders::new()
+        .add((header::X_XSS_PROTECTION, "0"))
+        .add((
+            header::STRICT_TRANSPORT_SECURITY,
+            "max-age=31536000; includeSubDomains",
+        ))
+        .add((header::X_FRAME_OPTIONS, "deny"))
+        .add((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+        .add((
+            header::CONTENT_SECURITY_POLICY,
+            "default-src 'self'; frame-ancestors 'none';",
+        ))
+        .add((
+            header::CACHE_CONTROL,
+            "no-cache, no-store, max-age=0, must-revalidate",
+        ))
+        .add((header::PRAGMA, "no-cache"))
+        .add((header::EXPIRES, "0"))
+}
+
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(security_headers())
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::post_subscription))

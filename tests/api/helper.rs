@@ -37,10 +37,7 @@ impl TestApp {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))
             .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                format!("Basic {}", base64::encode("username:password")),
-            )
+            .basic_auth(Uuid::new_v4().to_string(), Some(Uuid::new_v4().to_string()))
             .body(body)
             .send()
             .await
