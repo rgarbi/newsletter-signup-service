@@ -110,7 +110,7 @@ pub async fn insert_subscription(
         subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,
         subscription_mailing_address_line_2: subscription
             .subscription_mailing_address_line_2
-            .unwrap_or_else(String::new),
+            .unwrap_or_default(),
         subscription_city: subscription.subscription_city,
         subscription_state: subscription.subscription_state,
         subscription_postal_code: subscription.subscription_postal_code,
