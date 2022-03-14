@@ -135,7 +135,7 @@ impl FromRequest for User {
     }
 }
 
-#[once(time = 100)]
+#[once(time = 1000)]
 pub async fn get_jwks(config: Auth0Config) -> JwkSet {
     let domain = config.domain.as_str();
     println!("Started jwks call");

@@ -92,22 +92,6 @@
     },
     "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
-  "24c96ea6f95296d1ddd0de408cedd90e2c40c5dc2ed62cd86e194da25f3d321d": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Text",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5)"
-  },
   "b1e6dcace6616b238547443291b8197d507f2961f2547b20458dd0c4b917e25e": {
     "describe": {
       "columns": [
@@ -267,6 +251,22 @@
       }
     },
     "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
+  },
+  "f44c17bbd9831b94e530848a42137f1ae6c660ab2d287f509994fcc77891a1fa": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email_address) DO NOTHING"
   },
   "fa2c9ec0bfe8fde4a78c925dd453efda00b8426b0ff0107660ea2b2b62681725": {
     "describe": {
