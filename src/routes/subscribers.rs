@@ -1,11 +1,11 @@
 use std::fmt::{Debug, Display};
 
-use actix_web::{web, HttpRequest, HttpResponse, Responder, ResponseError};
+use actix_web::{web, HttpResponse, Responder, ResponseError};
 use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::auth::auth;
+use crate::auth::User;
 use crate::domain::new_subscriber::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
@@ -28,14 +28,14 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
             first_name,
             last_name,
             email_address,
-            user_id: subscriber.user_id,
+            user_id: "".to_string(),
         })
     }
 }
 
 #[tracing::instrument(
     name = "Adding a new subscriber",
-    skip(subscriber, pool, request),
+    skip(subscriber, pool, user),
     fields(
         subscriber_email = %subscriber.email_address,
     )
@@ -43,19 +43,14 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
 pub async fn post_subscriber(
     subscriber: web::Json<OverTheWireCreateSubscriber>,
     pool: web::Data<PgPool>,
-    request: HttpRequest,
+    user: User,
 ) -> impl Responder {
-    let _credentials = match auth(request) {
-        Ok(credentials) => credentials,
-        Err(response) => {
-            return response;
-        }
-    };
-
-    let new_subscriber = match subscriber.0.try_into() {
+    println!("GOT A USER!!! -> {:?}", user);
+    let mut new_subscriber: NewSubscriber = match subscriber.0.try_into() {
         Ok(subscriber) => subscriber,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
+    new_subscriber.user_id = user.user_id;
 
     match insert_subscriber(&new_subscriber, &pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
@@ -106,7 +101,7 @@ pub async fn insert_subscriber(
     pool: &PgPool,
 ) -> Result<(), StoreSubscriberError> {
     sqlx::query!(
-        r#"INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5)"#,
+        r#"INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email_address) DO NOTHING"#,
         Uuid::new_v4(),
         subscriber.email_address.as_ref(),
         subscriber.first_name.as_ref(),

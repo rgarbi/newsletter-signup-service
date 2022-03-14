@@ -93,7 +93,6 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: Uuid::new_v4().to_string(),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: String::from(""),
-                user_id: Uuid::new_v4().to_string(),
             },
             "missing the email",
         ),
@@ -102,7 +101,6 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: String::from(""),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: Uuid::new_v4().to_string(),
-                user_id: Uuid::new_v4().to_string(),
             },
             "missing the name",
         ),
@@ -111,7 +109,6 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: String::from(""),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: String::from(""),
-                user_id: Uuid::new_v4().to_string(),
             },
             "missing both name and email",
         ),
@@ -159,8 +156,4 @@ async fn requests_missing_authorization_are_rejected() {
 
     // Assert
     assert_eq!(401, response.status().as_u16());
-    assert_eq!(
-        r#"Basic realm="subscribe""#,
-        response.headers()["WWW-Authenticate"]
-    );
 }

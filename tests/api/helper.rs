@@ -1,5 +1,7 @@
+use cached::proc_macro::once;
 use once_cell::sync::Lazy;
 use reqwest::Response;
+use serde::Deserialize;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
@@ -37,7 +39,7 @@ impl TestApp {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))
             .header("Content-Type", "application/json")
-            .basic_auth(Uuid::new_v4().to_string(), Some(Uuid::new_v4().to_string()))
+            .bearer_auth(get_bearer_token().await)
             .body(body)
             .send()
             .await
@@ -165,7 +167,6 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
         first_name: Uuid::new_v4().to_string(),
         last_name: Uuid::new_v4().to_string(),
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
-        user_id: Uuid::new_v4().to_string(),
     }
 }
 
@@ -182,4 +183,41 @@ pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWire
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
         subscription_first_name: Uuid::new_v4().to_string(),
     }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct Token {
+    pub access_token: String,
+    pub token_type: String,
+}
+
+pub async fn get_bearer_token() -> String {
+    call_auth0().await.access_token
+}
+
+#[once(time = 100)]
+pub async fn call_auth0() -> Token {
+    let config = get_configuration()
+        .expect("Could not get the config")
+        .auth0config;
+    let url = format!("https://{}/oauth/token", config.domain);
+    let result = reqwest::Client::new()
+        .post(url)
+        .header("Content-Type", "application/json")
+        .body(format!(
+            r#"
+            {{
+                "client_id":"{}",
+                "client_secret":"{}",
+                "audience":"https://hello-world.example.com",
+                "grant_type":"client_credentials"
+              }}"#,
+            std::env::var("AUTH0_CLIENT_ID").unwrap(),
+            std::env::var("AUTH0_CLIENT_SECRET").unwrap()
+        ))
+        .send()
+        .await
+        .expect("Got a a token back");
+    let response_body = result.text().await.unwrap();
+    serde_json::from_str(response_body.as_str()).unwrap()
 }

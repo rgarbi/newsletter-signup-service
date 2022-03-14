@@ -8,6 +8,7 @@ use sqlx::ConnectOptions;
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub auth0config: Auth0Config,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -26,6 +27,12 @@ pub struct DatabaseSettings {
     pub host: String,
     pub database_name: String,
     pub require_ssl: bool,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct Auth0Config {
+    pub audience: String,
+    pub domain: String,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
@@ -49,6 +56,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         )
         .build()
         .unwrap();
+    println!("GOT CONFIG!!!!!!!!!!!!!!!!!!");
     settings.try_deserialize::<Settings>()
 }
 

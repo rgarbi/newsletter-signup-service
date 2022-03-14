@@ -1,11 +1,11 @@
 name: Build
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 env:
   CARGO_TERM_COLOR: always
-  AWS_REGION: us-east-2
-  AWS_LIGHTSAIL_SERVICE_NAME: newsletter-signup-service
+  AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+  AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
 
 jobs:
   build:

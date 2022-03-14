@@ -7,3 +7,6 @@ database:
   username: "postgres"
   password: "password"
   database_name: "newsletter-signup-service"
+auth0config:
+  audience: "https://hello-world.example.com"
+  domain: "dev-4iy59-im.us.auth0.com"
