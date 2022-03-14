@@ -28,6 +28,7 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
             first_name,
             last_name,
             email_address,
+            user_id: subscriber.user_id,
         })
     }
 }
@@ -105,11 +106,12 @@ pub async fn insert_subscriber(
     pool: &PgPool,
 ) -> Result<(), StoreSubscriberError> {
     sqlx::query!(
-        r#"INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"#,
+        r#"INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5)"#,
         Uuid::new_v4(),
         subscriber.email_address.as_ref(),
         subscriber.first_name.as_ref(),
-        subscriber.last_name.as_ref()
+        subscriber.last_name.as_ref(),
+        subscriber.user_id,
     ).execute(pool).await.map_err(|e| {
         let err = StoreSubscriberError(e);
         tracing::error!("{:?}", err);
@@ -129,7 +131,7 @@ pub async fn retrieve_subscriber_by_email(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name FROM subscribers WHERE email_address = $1"#,
+        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE email_address = $1"#,
         email_address
     ).fetch_one(pool).await.map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
@@ -141,6 +143,7 @@ pub async fn retrieve_subscriber_by_email(
         last_name: result.last_name,
         email_address: result.email_address,
         first_name: result.first_name,
+        user_id: result.user_id,
     })
 }
 
@@ -153,7 +156,7 @@ pub async fn retrieve_subscriber_by_id(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name FROM subscribers WHERE id = $1"#,
+        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE id = $1"#,
         id
     )
     .fetch_one(pool)
@@ -168,6 +171,7 @@ pub async fn retrieve_subscriber_by_id(
         last_name: result.last_name,
         email_address: result.email_address,
         first_name: result.first_name,
+        user_id: result.user_id,
     })
 }
 

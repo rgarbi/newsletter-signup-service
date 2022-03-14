@@ -8,6 +8,7 @@ pub struct OverTheWireCreateSubscriber {
     pub first_name: String,
     pub last_name: String,
     pub email_address: String,
+    pub user_id: String,
 }
 
 impl OverTheWireCreateSubscriber {
@@ -22,10 +23,12 @@ pub struct OverTheWireSubscriber {
     pub first_name: String,
     pub last_name: String,
     pub email_address: String,
+    pub user_id: String,
 }
 
 pub struct NewSubscriber {
     pub email_address: ValidEmail,
     pub first_name: ValidName,
     pub last_name: ValidName,
+    pub user_id: String,
 }

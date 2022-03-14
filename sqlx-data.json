@@ -1,43 +1,5 @@
 {
   "db": "PostgreSQL",
-  "17c358170d4c6c0b02a16f8084cc48588a4bfb0db6086288cce255cf62ec0520": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "first_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "SELECT id, email_address, first_name, last_name FROM subscribers WHERE id = $1"
-  },
   "1b2915bee45313f7134f1b43c9e7eb89f63a5251ed059014cfd47dcc29b59c58": {
     "describe": {
       "columns": [
@@ -130,7 +92,23 @@
     },
     "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
-  "79b2ec2803678cf113c1c10d52071b30ff38b6cd1e04f4aff73e91622539d8b9": {
+  "24c96ea6f95296d1ddd0de408cedd90e2c40c5dc2ed62cd86e194da25f3d321d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5)"
+  },
+  "b1e6dcace6616b238547443291b8197d507f2961f2547b20458dd0c4b917e25e": {
     "describe": {
       "columns": [
         {
@@ -152,9 +130,15 @@
           "name": "last_name",
           "ordinal": 3,
           "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 4,
+          "type_info": "Text"
         }
       ],
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -166,7 +150,7 @@
         ]
       }
     },
-    "query": "SELECT id, email_address, first_name, last_name FROM subscribers WHERE email_address = $1"
+    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE email_address = $1"
   },
   "ca5deb0efdd3d732bf91f6522e3221d167ae8696d36ece085749976de3d0dc5c": {
     "describe": {
@@ -284,19 +268,48 @@
     },
     "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
   },
-  "f0aa9ab772ef8e41a088f47819e30a2a2e10ed61242bf439fa747790389ead56": {
+  "fa2c9ec0bfe8fde4a78c925dd453efda00b8426b0ff0107660ea2b2b62681725": {
     "describe": {
-      "columns": [],
-      "nullable": [],
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
       "parameters": {
         "Left": [
-          "Uuid",
-          "Text",
-          "Text",
-          "Text"
+          "Uuid"
         ]
       }
     },
-    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name) VALUES ($1, $2, $3, $4)"
+    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE id = $1"
   }
 }

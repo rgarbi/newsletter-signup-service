@@ -165,6 +165,7 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
         first_name: Uuid::new_v4().to_string(),
         last_name: Uuid::new_v4().to_string(),
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
+        user_id: Uuid::new_v4().to_string(),
     }
 }
 
