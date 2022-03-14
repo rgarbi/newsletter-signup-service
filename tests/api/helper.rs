@@ -49,6 +49,7 @@ impl TestApp {
     pub async fn get_subscriber_by_id(&self, id: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers/{}", &self.address, id))
+            .bearer_auth(get_bearer_token().await)
             .send()
             .await
             .expect("Got a subscriber back")
@@ -57,6 +58,7 @@ impl TestApp {
     pub async fn get_subscriber_by_email(&self, email: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers?email={}", &self.address, email))
+            .bearer_auth(get_bearer_token().await)
             .send()
             .await
             .expect("Got a subscriber back")
@@ -66,6 +68,7 @@ impl TestApp {
         reqwest::Client::new()
             .post(&format!("{}/subscriptions", &self.address))
             .header("Content-Type", "application/json")
+            .bearer_auth(get_bearer_token().await)
             .body(body)
             .send()
             .await
@@ -81,6 +84,7 @@ impl TestApp {
                 "{}/subscribers/{}/subscriptions",
                 &self.address, subscriber_id
             ))
+            .bearer_auth(get_bearer_token().await)
             .send()
             .await
             .expect("Got a subscriber back")
@@ -89,6 +93,7 @@ impl TestApp {
     pub async fn get_subscription_by_id(&self, id: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscriptions/{}", &self.address, id))
+            .bearer_auth(get_bearer_token().await)
             .send()
             .await
             .expect("Got a subscriber back")
@@ -195,7 +200,7 @@ pub async fn get_bearer_token() -> String {
     call_auth0().await.access_token
 }
 
-#[once(time = 100)]
+#[once(time = 500)]
 pub async fn call_auth0() -> Token {
     let config = get_configuration()
         .expect("Could not get the config")

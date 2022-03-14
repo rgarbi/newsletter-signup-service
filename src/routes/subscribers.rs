@@ -45,7 +45,6 @@ pub async fn post_subscriber(
     pool: web::Data<PgPool>,
     user: User,
 ) -> impl Responder {
-    println!("GOT A USER!!! -> {:?}", user);
     let mut new_subscriber: NewSubscriber = match subscriber.0.try_into() {
         Ok(subscriber) => subscriber,
         Err(_) => return HttpResponse::BadRequest().finish(),
@@ -60,7 +59,7 @@ pub async fn post_subscriber(
 
 #[tracing::instrument(
     name = "Getting a subscriber by email address",
-    skip(email_query, pool),
+    skip(email_query, pool, user),
     fields(
         subscriber_email = %email_query.email,
     )
@@ -68,16 +67,17 @@ pub async fn post_subscriber(
 pub async fn get_subscriber_by_email(
     email_query: web::Query<EmailAddressQuery>,
     pool: web::Data<PgPool>,
+    user: User,
 ) -> impl Responder {
     match retrieve_subscriber_by_email(email_query.0.email, &pool).await {
-        Ok(subscriber) => HttpResponse::Ok().json(subscriber),
+        Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }
 }
 
 #[tracing::instrument(
     name = "Getting a subscriber by id",
-    skip(id, pool),
+    skip(id, pool, user),
     fields(
         id = %id,
     )
@@ -85,9 +85,10 @@ pub async fn get_subscriber_by_email(
 pub async fn get_subscriber_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
+    user: User,
 ) -> impl Responder {
     match retrieve_subscriber_by_id(from_string_to_uuid(id).unwrap(), &pool).await {
-        Ok(subscriber) => HttpResponse::Ok().json(subscriber),
+        Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }
 }
@@ -183,3 +184,18 @@ impl Display for StoreSubscriberError {
 }
 
 impl ResponseError for StoreSubscriberError {}
+
+pub fn check_user_is_the_owner_of_this_record(
+    user: User,
+    subscriber: OverTheWireSubscriber,
+) -> HttpResponse {
+    if subscriber.user_id == user.user_id {
+        return HttpResponse::Ok().json(subscriber);
+    }
+    tracing::error!(
+        "A user with id: {} does not have access to a user with id {}",
+        user.user_id,
+        subscriber.user_id
+    );
+    HttpResponse::Unauthorized().finish()
+}
