@@ -1,10 +1,9 @@
-use cached::proc_macro::once;
 use once_cell::sync::Lazy;
 use reqwest::Response;
-use serde::Deserialize;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
+use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
 use newsletter_signup_service::domain::new_subscriber::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
@@ -35,40 +34,40 @@ pub struct TestApp {
 }
 
 impl TestApp {
-    pub async fn post_subscriber(&self, body: String) -> reqwest::Response {
+    pub async fn post_subscriber(&self, body: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))
             .header("Content-Type", "application/json")
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .body(body)
             .send()
             .await
             .expect("Failed to execute request.")
     }
 
-    pub async fn get_subscriber_by_id(&self, id: String) -> reqwest::Response {
+    pub async fn get_subscriber_by_id(&self, id: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers/{}", &self.address, id))
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .send()
             .await
             .expect("Got a subscriber back")
     }
 
-    pub async fn get_subscriber_by_email(&self, email: String) -> reqwest::Response {
+    pub async fn get_subscriber_by_email(&self, email: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers?email={}", &self.address, email))
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .send()
             .await
             .expect("Got a subscriber back")
     }
 
-    pub async fn post_subscription(&self, body: String) -> reqwest::Response {
+    pub async fn post_subscription(&self, body: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/subscriptions", &self.address))
             .header("Content-Type", "application/json")
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .body(body)
             .send()
             .await
@@ -78,22 +77,23 @@ impl TestApp {
     pub async fn get_subscriptions_by_subscriber_id(
         &self,
         subscriber_id: String,
+        token: String,
     ) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!(
                 "{}/subscribers/{}/subscriptions",
                 &self.address, subscriber_id
             ))
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .send()
             .await
             .expect("Got a subscriber back")
     }
 
-    pub async fn get_subscription_by_id(&self, id: String) -> reqwest::Response {
+    pub async fn get_subscription_by_id(&self, id: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .get(&format!("{}/subscriptions/{}", &self.address, id))
-            .bearer_auth(get_bearer_token().await)
+            .bearer_auth(token)
             .send()
             .await
             .expect("Got a subscriber back")
@@ -113,12 +113,20 @@ pub async fn store_subscriber(
     subscriber: Option<OverTheWireCreateSubscriber>,
 ) -> OverTheWireSubscriber {
     let subscriber = subscriber.unwrap_or_else(|| generate_over_the_wire_subscriber());
-    let response = app.post_subscriber(subscriber.to_json()).await;
+    let response = app
+        .post_subscriber(
+            subscriber.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert_eq!(200, response.status().as_u16());
 
     app.from_response_to_over_the_wire_subscriber(
-        app.get_subscriber_by_email(subscriber.email_address.clone())
-            .await,
+        app.get_subscriber_by_email(
+            subscriber.email_address.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await,
     )
     .await
 }
@@ -172,6 +180,7 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
         first_name: Uuid::new_v4().to_string(),
         last_name: Uuid::new_v4().to_string(),
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
+        user_id: Uuid::new_v4().to_string(),
     }
 }
 
@@ -188,41 +197,4 @@ pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWire
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
         subscription_first_name: Uuid::new_v4().to_string(),
     }
-}
-
-#[derive(Clone, Deserialize)]
-pub struct Token {
-    pub access_token: String,
-    pub token_type: String,
-}
-
-pub async fn get_bearer_token() -> String {
-    call_auth0().await.access_token
-}
-
-#[once(time = 500)]
-pub async fn call_auth0() -> Token {
-    let config = get_configuration()
-        .expect("Could not get the config")
-        .auth0config;
-    let url = format!("https://{}/oauth/token", config.domain);
-    let result = reqwest::Client::new()
-        .post(url)
-        .header("Content-Type", "application/json")
-        .body(format!(
-            r#"
-            {{
-                "client_id":"{}",
-                "client_secret":"{}",
-                "audience":"https://hello-world.example.com",
-                "grant_type":"client_credentials"
-              }}"#,
-            std::env::var("AUTH0_CLIENT_ID").unwrap(),
-            std::env::var("AUTH0_CLIENT_SECRET").unwrap()
-        ))
-        .send()
-        .await
-        .expect("Got a a token back");
-    let response_body = result.text().await.unwrap();
-    serde_json::from_str(response_body.as_str()).unwrap()
 }

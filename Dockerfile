@@ -26,10 +26,6 @@ RUN cargo build --release
 ######################
 FROM ubuntu:latest as newsletter-signup-service
 
-RUN apt-get update
-RUN apt-get install openssl -y
-RUN apt-get clean
-
 # Import from builder.
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group

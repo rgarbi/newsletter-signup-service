@@ -1,5 +1,19 @@
 {
   "db": "PostgreSQL",
+  "14e402214dcdeb9a819201ad6620c297d75f4848b3c848f5834d987224165ead": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT \n            INTO users (user_id, username, password) \n            VALUES ($1, $2, $3) \n            ON CONFLICT (username) DO NOTHING"
+  },
   "1b2915bee45313f7134f1b43c9e7eb89f63a5251ed059014cfd47dcc29b59c58": {
     "describe": {
       "columns": [

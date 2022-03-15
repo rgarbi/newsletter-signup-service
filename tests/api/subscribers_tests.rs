@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::domain::new_subscriber::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
@@ -11,12 +12,20 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
 
     let subscriber = generate_over_the_wire_subscriber();
-    let response = app.post_subscriber(subscriber.to_json()).await;
+    let response = app
+        .post_subscriber(
+            subscriber.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
 
     assert_eq!(200, response.status().as_u16());
 
     let find_response = app
-        .get_subscriber_by_email(subscriber.email_address.clone())
+        .get_subscriber_by_email(
+            subscriber.email_address.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert_eq!(200, find_response.status().as_u16());
 
@@ -34,7 +43,10 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
     let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let response = app
-        .get_subscriber_by_email(subscriber.email_address.clone())
+        .get_subscriber_by_email(
+            subscriber.email_address.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert!(response.status().is_success());
 
@@ -49,10 +61,13 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 async fn incorrect_email_returns_404() {
     let app = spawn_app().await;
 
-    store_subscriber(app.clone(), Option::None).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let response = app
-        .get_subscriber_by_email(Uuid::new_v4().to_string())
+        .get_subscriber_by_email(
+            Uuid::new_v4().to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert_eq!(response.status().as_u16(), 404);
 }
@@ -61,9 +76,14 @@ async fn incorrect_email_returns_404() {
 async fn incorrect_id_returns_404() {
     let app = spawn_app().await;
 
-    store_subscriber(app.clone(), Option::None).await;
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
 
-    let response = app.get_subscriber_by_id(Uuid::new_v4().to_string()).await;
+    let response = app
+        .get_subscriber_by_id(
+            Uuid::new_v4().to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert_eq!(response.status().as_u16(), 404);
 }
 
@@ -73,7 +93,12 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
 
     let subscriber = store_subscriber(app.clone(), Option::None).await;
 
-    let response = app.get_subscriber_by_id(subscriber.id.clone()).await;
+    let response = app
+        .get_subscriber_by_id(
+            subscriber.id.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert!(response.status().is_success());
 
     let saved_subscriber = app
@@ -93,6 +118,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: Uuid::new_v4().to_string(),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: String::from(""),
+                user_id: Uuid::new_v4().to_string(),
             },
             "missing the email",
         ),
@@ -101,6 +127,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: String::from(""),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: Uuid::new_v4().to_string(),
+                user_id: Uuid::new_v4().to_string(),
             },
             "missing the name",
         ),
@@ -109,12 +136,18 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
                 last_name: String::from(""),
                 first_name: Uuid::new_v4().to_string(),
                 email_address: String::from(""),
+                user_id: Uuid::new_v4().to_string(),
             },
             "missing both name and email",
         ),
     ];
     for (invalid_body, error_message) in test_cases {
-        let response = app.post_subscriber(invalid_body.to_json()).await;
+        let response = app
+            .post_subscriber(
+                invalid_body.to_json(),
+                generate_token(invalid_body.user_id.clone()),
+            )
+            .await;
 
         assert_eq!(
             400,
@@ -135,8 +168,12 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
         .await
         .unwrap();
     // Act
+    let subscriber = generate_over_the_wire_subscriber();
     let response = app
-        .post_subscriber(generate_over_the_wire_subscriber().to_json())
+        .post_subscriber(
+            subscriber.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     // Assert
     assert_eq!(response.status().as_u16(), 500);

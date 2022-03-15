@@ -7,6 +7,7 @@ database:
   username: "postgres"
   password: "password"
   database_name: "newsletter-signup-service"
-auth0config:
+auth_config:
   audience: "https://hello-world.example.com"
-  domain: "dev-4iy59-im.us.auth0.com"
+  issuer: "dev-4iy59-im.us.auth0.com"
+  signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTHdBnvgbp99IE5HFHU2UxIr2vK9TnnchR4ubxzm8kh2kjsUubn6urj0Dwl0qOId8LYBNADg1ZujN64iRp3NO43oDegdxUY8fNr1eIFfClAYq0Jrqs9VBBjHrkMz11FYsu"

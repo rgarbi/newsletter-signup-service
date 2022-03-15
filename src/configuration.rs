@@ -1,3 +1,4 @@
+use cached::proc_macro::once;
 use config::Config;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
@@ -8,7 +9,7 @@ use sqlx::ConnectOptions;
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
-    pub auth0config: Auth0Config,
+    pub auth_config: AuthConfig,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -30,11 +31,13 @@ pub struct DatabaseSettings {
 }
 
 #[derive(serde::Deserialize, Clone)]
-pub struct Auth0Config {
+pub struct AuthConfig {
     pub audience: String,
-    pub domain: String,
+    pub issuer: String,
+    pub signing_key: String,
 }
 
+#[once(result = true)]
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");

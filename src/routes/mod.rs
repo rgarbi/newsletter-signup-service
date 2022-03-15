@@ -5,3 +5,4 @@ pub use subscriptions::*;
 pub mod health_check;
 pub mod subscribers;
 pub mod subscriptions;
+pub mod users;

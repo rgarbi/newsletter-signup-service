@@ -5,7 +5,7 @@ use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::auth::User;
+use crate::auth::token::Claims;
 use crate::domain::new_subscriber::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
@@ -28,7 +28,7 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
             first_name,
             last_name,
             email_address,
-            user_id: "".to_string(),
+            user_id: subscriber.user_id,
         })
     }
 }
@@ -43,13 +43,16 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
 pub async fn post_subscriber(
     subscriber: web::Json<OverTheWireCreateSubscriber>,
     pool: web::Data<PgPool>,
-    user: User,
+    user: Claims,
 ) -> impl Responder {
-    let mut new_subscriber: NewSubscriber = match subscriber.0.try_into() {
+    let new_subscriber: NewSubscriber = match subscriber.0.try_into() {
         Ok(subscriber) => subscriber,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    new_subscriber.user_id = user.user_id;
+
+    if new_subscriber.user_id.clone() != user.user_id {
+        return HttpResponse::Unauthorized().finish();
+    }
 
     match insert_subscriber(&new_subscriber, &pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
@@ -67,7 +70,7 @@ pub async fn post_subscriber(
 pub async fn get_subscriber_by_email(
     email_query: web::Query<EmailAddressQuery>,
     pool: web::Data<PgPool>,
-    user: User,
+    user: Claims,
 ) -> impl Responder {
     match retrieve_subscriber_by_email(email_query.0.email, &pool).await {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
@@ -85,7 +88,7 @@ pub async fn get_subscriber_by_email(
 pub async fn get_subscriber_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
-    user: User,
+    user: Claims,
 ) -> impl Responder {
     match retrieve_subscriber_by_id(from_string_to_uuid(id).unwrap(), &pool).await {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
@@ -186,7 +189,7 @@ impl Display for StoreSubscriberError {
 impl ResponseError for StoreSubscriberError {}
 
 pub fn check_user_is_the_owner_of_this_record(
-    user: User,
+    user: Claims,
     subscriber: OverTheWireSubscriber,
 ) -> HttpResponse {
     if subscriber.user_id == user.user_id {

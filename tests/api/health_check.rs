@@ -1,9 +1,6 @@
-use once_cell::sync::Lazy;
 use reqwest::Client;
 
-use newsletter_signup_service::configuration::get_configuration;
-
-use crate::helper::{spawn_app, TRACING};
+use crate::helper::spawn_app;
 
 #[tokio::test]
 async fn health_check_works() {
@@ -18,19 +15,4 @@ async fn health_check_works() {
     // Assert
     assert!(response.status().is_success());
     assert_eq!(Some(0), response.content_length());
-}
-
-#[tokio::test]
-async fn config_override_in_prod_works() {
-    Lazy::force(&TRACING);
-
-    std::env::set_var("APP__DATABASE__HOST", "localhost");
-
-    let configuration = get_configuration().expect("Failed to read configuration");
-    assert_eq!("localhost", configuration.database.host);
-
-    std::env::remove_var("APP__DATABASE__HOST");
-
-    let configuration = get_configuration().expect("Failed to read configuration");
-    assert_eq!("127.0.0.1", configuration.database.host);
 }

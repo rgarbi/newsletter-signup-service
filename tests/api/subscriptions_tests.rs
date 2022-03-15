@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::domain::new_subscription::{
     OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
@@ -60,7 +61,9 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
     ];
     for (body, description) in test_cases {
         // Act
-        let response = app.post_subscription(body.to_json()).await;
+        let response = app
+            .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
+            .await;
         // Assert
         assert_eq!(
             400,
@@ -78,7 +81,9 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     let subscriber = store_subscriber(app.clone(), Option::None).await;
 
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
-    let response = app.post_subscription(body.to_json()).await;
+    let response = app
+        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
+        .await;
 
     assert_eq!(200, response.status().as_u16());
 
@@ -96,11 +101,16 @@ async fn get_subscriptions_by_subscriber_id_one() {
 
     let subscriber = store_subscriber(app.clone(), Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
-    let response = app.post_subscription(body.to_json()).await;
+    let response = app
+        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
+        .await;
     assert_eq!(200, response.status().as_u16());
 
     let subscriptions_response = app
-        .get_subscriptions_by_subscriber_id(subscriber.id.clone())
+        .get_subscriptions_by_subscriber_id(
+            subscriber.id.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
@@ -116,7 +126,10 @@ async fn get_subscriptions_by_subscriber_id_not_found_returns_empty_list() {
     let app = spawn_app().await;
 
     let subscriptions_response = app
-        .get_subscriptions_by_subscriber_id(Uuid::new_v4().to_string())
+        .get_subscriptions_by_subscriber_id(
+            Uuid::new_v4().to_string(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
@@ -131,7 +144,12 @@ async fn get_subscriptions_by_subscriber_id_not_found_returns_empty_list() {
 async fn get_subscription_by_id_not_found() {
     let app = spawn_app().await;
 
-    let subscriptions_response = app.get_subscription_by_id(Uuid::new_v4().to_string()).await;
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            Uuid::new_v4().to_string(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
     assert_eq!(404, subscriptions_response.status().as_u16());
 }
 
@@ -144,12 +162,17 @@ async fn get_subscriptions_by_subscriber_id_many() {
 
     for _ in 0..expected {
         let body = generate_over_the_wire_subscription(subscriber.id.clone());
-        let response = app.post_subscription(body.to_json()).await;
+        let response = app
+            .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
+            .await;
         assert_eq!(200, response.status().as_u16());
     }
 
     let subscriptions_response = app
-        .get_subscriptions_by_subscriber_id(subscriber.id.clone())
+        .get_subscriptions_by_subscriber_id(
+            subscriber.id.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
@@ -166,7 +189,9 @@ async fn get_subscriptions_by_id() {
 
     let subscriber = store_subscriber(app.clone(), Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
-    let response = app.post_subscription(body.to_json()).await;
+    let response = app
+        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
+        .await;
     assert_eq!(200, response.status().as_u16());
 
     let response_body = response.text().await.unwrap();
@@ -174,7 +199,10 @@ async fn get_subscriptions_by_id() {
         serde_json::from_str(response_body.as_str()).unwrap();
 
     let subscriptions_response = app
-        .get_subscription_by_id(saved_subscription.id.to_string())
+        .get_subscription_by_id(
+            saved_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
