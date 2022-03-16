@@ -6,7 +6,6 @@ use actix_web::dev::Payload;
 use actix_web::http::StatusCode;
 use actix_web::{FromRequest, HttpRequest, ResponseError};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
-use derive_more::Display;
 use jsonwebtokens as jwt;
 use jsonwebtokens::encode;
 use jwt::{Algorithm, AlgorithmID, Verifier};
@@ -31,7 +30,7 @@ pub struct LoginResponse {
     pub token: String,
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug)]
 pub enum TokenError {
     AuthError,
     UnexpectedError,
@@ -43,6 +42,15 @@ impl ResponseError for TokenError {
             TokenError::UnexpectedError => StatusCode::INTERNAL_SERVER_ERROR,
             TokenError::AuthError => StatusCode::UNAUTHORIZED,
         }
+    }
+}
+
+impl std::fmt::Display for TokenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A an error was encountered while trying evaluate a user token."
+        )
     }
 }
 
