@@ -1,8 +1,8 @@
 use claim::{assert_err, assert_ok};
+use newsletter_signup_service::db::users::{count_users_with_username, insert_user};
 use uuid::Uuid;
 
 use newsletter_signup_service::domain::new_user::SignUp;
-use newsletter_signup_service::routes::users::{count_users_with_username, insert_user};
 
 use crate::helper::spawn_app;
 

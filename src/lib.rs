@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod configuration;
+pub mod db;
 pub mod domain;
 pub mod routes;
 pub mod startup;
