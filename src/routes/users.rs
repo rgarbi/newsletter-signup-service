@@ -49,7 +49,7 @@ pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl 
             }
 
             HttpResponse::Ok().json(LoginResponse {
-                user_id: user.user_id.to_string().clone(),
+                user_id: user.user_id.to_string(),
                 token: generate_token(user.user_id.to_string()),
             })
         }

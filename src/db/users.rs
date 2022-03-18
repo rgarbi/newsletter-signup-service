@@ -50,8 +50,8 @@ pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User,
     skip(username, hashed_password, pool)
 )]
 pub async fn insert_user(
-    username: &String,
-    hashed_password: &String,
+    username: &str,
+    hashed_password: &str,
     pool: &PgPool,
 ) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
