@@ -2,7 +2,7 @@ use actix_web::ResponseError;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::domain::new_user::SignUp;
+use crate::domain::new_user::User;
 
 #[tracing::instrument(name = "Count users with a given username", skip(username, pool))]
 pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<i64, Error> {
@@ -23,16 +23,45 @@ pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<
     Ok(count)
 }
 
-#[tracing::instrument(name = "Saving new user in the database", skip(sign_up, pool))]
-pub async fn insert_user(sign_up: &SignUp, pool: &PgPool) -> Result<String, Error> {
+#[tracing::instrument(name = "Get user by username", skip(username, pool))]
+pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User, Error> {
+    let result = sqlx::query!(
+        r#"SELECT user_id, username, password
+            FROM users 
+            WHERE username = $1"#,
+        username,
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("{:?}", e);
+        e
+    })?;
+
+    Ok(User {
+        user_id: result.user_id,
+        username: result.username,
+        password: result.password,
+    })
+}
+
+#[tracing::instrument(
+    name = "Saving new user in the database",
+    skip(username, hashed_password, pool)
+)]
+pub async fn insert_user(
+    username: &String,
+    hashed_password: &String,
+    pool: &PgPool,
+) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
     sqlx::query!(
         r#"INSERT 
             INTO users (user_id, username, password) 
             VALUES ($1, $2, $3)"#,
         user_id,
-        sign_up.username,
-        sign_up.password,
+        username,
+        hashed_password,
     )
     .execute(pool)
     .await

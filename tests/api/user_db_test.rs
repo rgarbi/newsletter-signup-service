@@ -1,7 +1,9 @@
 use claim::{assert_err, assert_ok};
-use newsletter_signup_service::db::users::{count_users_with_username, insert_user};
 use uuid::Uuid;
 
+use newsletter_signup_service::db::users::{
+    count_users_with_username, get_user_by_username, insert_user,
+};
 use newsletter_signup_service::domain::new_user::SignUp;
 
 use crate::helper::spawn_app;
@@ -15,7 +17,7 @@ async fn insert_user_works() {
         password: Uuid::new_v4().to_string(),
     };
 
-    let result = insert_user(&sign_up, &app.db_pool.clone()).await;
+    let result = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
     assert_ok!(result);
 }
 
@@ -28,10 +30,10 @@ async fn insert_user_two_times_does_not_work() {
         password: Uuid::new_v4().to_string(),
     };
 
-    let result = insert_user(&sign_up, &app.db_pool.clone()).await;
+    let result = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
     assert_ok!(result);
 
-    let err = insert_user(&sign_up, &app.db_pool.clone()).await;
+    let err = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
     assert_err!(&err);
     println!("{:?}", err);
 }
@@ -45,10 +47,40 @@ async fn count_users() {
         password: Uuid::new_v4().to_string(),
     };
 
-    let result = insert_user(&sign_up, &app.db_pool.clone()).await;
+    let result = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
     assert_ok!(result);
 
     let ok = count_users_with_username(&Uuid::new_v4().to_string(), &app.db_pool.clone()).await;
     assert_ok!(&ok);
     assert_eq!(0, ok.unwrap());
+}
+
+#[tokio::test]
+async fn get_user_by_username_test() {
+    let app = spawn_app().await;
+
+    let sign_up = SignUp {
+        username: Uuid::new_v4().to_string(),
+        password: Uuid::new_v4().to_string(),
+    };
+
+    let result = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
+    assert_ok!(result);
+
+    assert_ok!(get_user_by_username(&sign_up.username, &app.db_pool).await);
+}
+
+#[tokio::test]
+async fn get_user_by_username_not_found_test() {
+    let app = spawn_app().await;
+
+    let sign_up = SignUp {
+        username: Uuid::new_v4().to_string(),
+        password: Uuid::new_v4().to_string(),
+    };
+
+    let result = insert_user(&sign_up.username, &sign_up.password, &app.db_pool.clone()).await;
+    assert_ok!(result);
+
+    assert_err!(get_user_by_username(&Uuid::new_v4().to_string(), &app.db_pool).await);
 }

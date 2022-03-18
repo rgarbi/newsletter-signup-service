@@ -106,6 +106,38 @@
     },
     "query": "INSERT \n            INTO users (user_id, username, password) \n            VALUES ($1, $2, $3)"
   },
+  "89d8f469c400f607ba71a2db1fcd7c6f509bef4a3db824493c15be3bc75174ee": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 2,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT user_id, username, password\n            FROM users \n            WHERE username = $1"
+  },
   "9d09d7d33cda268e4582e8b9e21530216716a171fa1565670790c04b8fed7fea": {
     "describe": {
       "columns": [

@@ -11,6 +11,7 @@ use newsletter_signup_service::domain::new_subscriber::{
 use newsletter_signup_service::domain::new_subscription::{
     OverTheWireCreateSubscription, SubscriptionType,
 };
+use newsletter_signup_service::domain::new_user::SignUp;
 use newsletter_signup_service::startup::{get_connection_pool, Application};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
@@ -34,6 +35,26 @@ pub struct TestApp {
 }
 
 impl TestApp {
+    pub async fn user_signup(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/sign_up", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn login(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/login", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn post_subscriber(&self, body: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))
@@ -173,6 +194,13 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .await
         .expect("Failed to migrate the database");
     connection_pool
+}
+
+pub fn generate_signup() -> SignUp {
+    SignUp {
+        username: Uuid::new_v4().to_string(),
+        password: Uuid::new_v4().to_string(),
+    }
 }
 
 pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
