@@ -73,6 +73,29 @@ pub async fn insert_user(
     Ok(user_id.to_string())
 }
 
+#[tracing::instrument(name = "Update the password", skip(username, hashed_password, pool))]
+pub async fn update_password(
+    username: &str,
+    hashed_password: &str,
+    pool: &PgPool,
+) -> Result<(), Error> {
+    sqlx::query!(
+        r#"UPDATE users
+            SET password = $1
+            WHERE username = $2"#,
+        hashed_password,
+        username,
+    )
+    .execute(pool)
+    .await
+    .map_err(|e: sqlx::Error| {
+        tracing::error!("{:?}", e);
+        e
+    })?;
+
+    Ok(())
+}
+
 #[derive(Debug)]
 pub struct UserDatabaseError(sqlx::Error);
 

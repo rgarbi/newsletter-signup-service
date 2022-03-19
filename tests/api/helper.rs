@@ -11,7 +11,7 @@ use newsletter_signup_service::domain::new_subscriber::{
 use newsletter_signup_service::domain::new_subscription::{
     OverTheWireCreateSubscription, SubscriptionType,
 };
-use newsletter_signup_service::domain::new_user::SignUp;
+use newsletter_signup_service::domain::new_user::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::{get_connection_pool, Application};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
@@ -49,6 +49,17 @@ impl TestApp {
         reqwest::Client::new()
             .post(&format!("{}/login", &self.address))
             .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn reset_password(&self, body: String, token: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/reset_password", &self.address))
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
             .body(body)
             .send()
             .await
@@ -200,6 +211,14 @@ pub fn generate_signup() -> SignUp {
     SignUp {
         username: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
+    }
+}
+
+pub fn generate_reset_password(username: String, old_password: String) -> ResetPassword {
+    ResetPassword {
+        username,
+        old_password,
+        new_password: Uuid::new_v4().to_string(),
     }
 }
 

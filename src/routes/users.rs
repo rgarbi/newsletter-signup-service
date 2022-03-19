@@ -2,9 +2,11 @@ use actix_web::{web, HttpResponse, Responder};
 use sqlx::PgPool;
 
 use crate::auth::password_hashing::{hash_password, validate_password};
-use crate::auth::token::{generate_token, LoginResponse};
-use crate::db::users::{count_users_with_username, get_user_by_username, insert_user};
-use crate::domain::new_user::SignUp;
+use crate::auth::token::{generate_token, Claims, LoginResponse};
+use crate::db::users::{
+    count_users_with_username, get_user_by_username, insert_user, update_password,
+};
+use crate::domain::new_user::{ResetPassword, SignUp};
 
 #[tracing::instrument(
     name = "Singing up a new user",
@@ -52,6 +54,41 @@ pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl 
                 user_id: user.user_id.to_string(),
                 token: generate_token(user.user_id.to_string()),
             })
+        }
+        Err(_) => HttpResponse::BadRequest().finish(),
+    }
+}
+
+#[tracing::instrument(
+name = "Reset password",
+skip(reset_password, pool, user_claim),
+fields(
+user_username = %reset_password.username,
+)
+)]
+pub async fn reset_password(
+    reset_password: web::Json<ResetPassword>,
+    pool: web::Data<PgPool>,
+    user_claim: Claims,
+) -> impl Responder {
+    match get_user_by_username(&reset_password.username, &pool).await {
+        Ok(user) => {
+            if user_claim.user_id != user.user_id.to_string() {
+                return HttpResponse::Unauthorized().finish();
+            }
+
+            let hashed_passwords_match =
+                validate_password(reset_password.old_password.clone(), user.password);
+            if !hashed_passwords_match {
+                return HttpResponse::BadRequest().finish();
+            }
+
+            let new_hashed_password = hash_password(reset_password.new_password.clone());
+
+            match update_password(&reset_password.username, &new_hashed_password, &pool).await {
+                Ok(_) => HttpResponse::Ok().finish(),
+                Err(_) => HttpResponse::InternalServerError().finish(),
+            }
         }
         Err(_) => HttpResponse::BadRequest().finish(),
     }

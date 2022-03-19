@@ -92,6 +92,19 @@
     },
     "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
+  "4597065ec5154b565f17dd4cc2bf54d5d07f14c5c20e6a0a48341c6e9f641bcd": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE users\n            SET password = $1\n            WHERE username = $2"
+  },
   "46f2535b811672c2a88a6b28887c0168467c77441cc8a8daf356fde0aa0c31af": {
     "describe": {
       "columns": [],
