@@ -1,6 +1,6 @@
 ![example workflow](https://github.com/rgarbi/newsletter-signup-service/actions/workflows/general.yml/badge.svg)
 
-#News Letter Signup Service
+# News Letter Sign Up Service
 
 This service allows people to sign up for an email newsletter. 
 
