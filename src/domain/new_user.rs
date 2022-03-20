@@ -6,7 +6,6 @@ pub struct User {
     pub user_id: Uuid,
     pub username: String,
     pub password: String,
-    pub salt: String,
 }
 
 #[derive(Deserialize, Serialize)]

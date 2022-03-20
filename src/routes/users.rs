@@ -23,14 +23,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
             }
 
             let hashed_password = hash_password(sign_up.password.clone());
-            match insert_user(
-                &sign_up.username,
-                &hashed_password.0,
-                &hashed_password.1,
-                &pool,
-            )
-            .await
-            {
+            match insert_user(&sign_up.username, &hashed_password, &pool).await {
                 Ok(user_id) => HttpResponse::Ok().json(LoginResponse {
                     user_id: user_id.clone(),
                     token: generate_token(user_id),
@@ -52,8 +45,7 @@ user_username = %sign_up.username,
 pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl Responder {
     match get_user_by_username(&sign_up.username, &pool).await {
         Ok(user) => {
-            let hashed_passwords_match =
-                validate_password(sign_up.password.clone(), user.password, user.salt);
+            let hashed_passwords_match = validate_password(sign_up.password.clone(), user.password);
             if !hashed_passwords_match {
                 return HttpResponse::BadRequest().finish();
             }
@@ -85,24 +77,15 @@ pub async fn reset_password(
                 return HttpResponse::Unauthorized().finish();
             }
 
-            let hashed_passwords_match = validate_password(
-                reset_password.old_password.clone(),
-                user.password,
-                user.salt,
-            );
+            let hashed_passwords_match =
+                validate_password(reset_password.old_password.clone(), user.password);
             if !hashed_passwords_match {
                 return HttpResponse::BadRequest().finish();
             }
 
             let new_hashed_password = hash_password(reset_password.new_password.clone());
 
-            match update_password(
-                &reset_password.username,
-                &new_hashed_password.0,
-                &new_hashed_password.1 & pool,
-            )
-            .await
-            {
+            match update_password(&reset_password.username, &new_hashed_password, &pool).await {
                 Ok(_) => HttpResponse::Ok().finish(),
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
