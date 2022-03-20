@@ -26,7 +26,7 @@ pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<
 #[tracing::instrument(name = "Get user by username", skip(username, pool))]
 pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User, Error> {
     let result = sqlx::query!(
-        r#"SELECT user_id, username, password, salt
+        r#"SELECT user_id, username, password
             FROM users 
             WHERE username = $1"#,
         username,
@@ -81,8 +81,7 @@ pub async fn update_password(
 ) -> Result<(), Error> {
     sqlx::query!(
         r#"UPDATE users
-            SET 
-                password = $1
+            SET password = $1
             WHERE username = $2"#,
         hashed_password,
         username,
