@@ -26,7 +26,7 @@ pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<
 #[tracing::instrument(name = "Get user by username", skip(username, pool))]
 pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User, Error> {
     let result = sqlx::query!(
-        r#"SELECT user_id, username, password
+        r#"SELECT user_id, username, password, salt
             FROM users 
             WHERE username = $1"#,
         username,
@@ -42,26 +42,29 @@ pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User,
         user_id: result.user_id,
         username: result.username,
         password: result.password,
+        salt: result.salt,
     })
 }
 
 #[tracing::instrument(
     name = "Saving new user in the database",
-    skip(username, hashed_password, pool)
+    skip(username, hashed_password, salt, pool)
 )]
 pub async fn insert_user(
     username: &str,
     hashed_password: &str,
+    salt: &str,
     pool: &PgPool,
 ) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
     sqlx::query!(
         r#"INSERT 
-            INTO users (user_id, username, password) 
-            VALUES ($1, $2, $3)"#,
+            INTO users (user_id, username, password, salt) 
+            VALUES ($1, $2, $3, $4)"#,
         user_id,
         username,
         hashed_password,
+        salt,
     )
     .execute(pool)
     .await
@@ -73,17 +76,24 @@ pub async fn insert_user(
     Ok(user_id.to_string())
 }
 
-#[tracing::instrument(name = "Update the password", skip(username, hashed_password, pool))]
+#[tracing::instrument(
+    name = "Update the password",
+    skip(username, hashed_password, salt, pool)
+)]
 pub async fn update_password(
     username: &str,
     hashed_password: &str,
+    salt: &str,
     pool: &PgPool,
 ) -> Result<(), Error> {
     sqlx::query!(
         r#"UPDATE users
-            SET password = $1
-            WHERE username = $2"#,
+            SET 
+                password = $1,
+                salt = $2
+            WHERE username = $3"#,
         hashed_password,
+        salt,
         username,
     )
     .execute(pool)

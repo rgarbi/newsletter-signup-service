@@ -10,7 +10,7 @@ pub fn get_argon() -> Argon2<'static> {
     )
 }
 
-pub fn hash_password(password: String) -> String {
+pub fn hash_password(password: String) -> (String, String) {
     let salt = SaltString::generate(&mut OsRng);
 
     let argon2 = get_argon();
@@ -18,21 +18,25 @@ pub fn hash_password(password: String) -> String {
         .hash_password(password.as_bytes(), &salt)
         .unwrap()
         .to_string();
-    hash
+    (hash, String::from(salt.as_str()))
 }
 
-pub fn validate_password(password: String, hashed_password: String) -> bool {
-    let parsed_hash = PasswordHash::new(&hashed_password).unwrap();
-    get_argon()
-        .verify_password(password.as_bytes(), &parsed_hash)
-        .is_ok()
+pub fn validate_password(password: String, hashed_password: String, salt: String) -> bool {
+    let argon2 = get_argon();
+    let hash = argon2
+        .hash_password(password.as_bytes(), &salt)
+        .unwrap()
+        .to_string();
+
+    (hashed_password == hash)
 }
 
 #[cfg(test)]
 mod tests {
+    use std::time::Instant;
+
     use rand::distributions::Alphanumeric;
     use rand::{thread_rng, Rng};
-    use std::time::Instant;
     use uuid::Uuid;
 
     use crate::auth::password_hashing::{hash_password, validate_password};
@@ -46,9 +50,13 @@ mod tests {
             .collect();
         let hashed_password = hash_password(password.clone());
 
-        println!("Hashed: {}", hashed_password);
+        println!("Hashed: {}", hashed_password.0);
+        println!("Salt: {}", hashed_password.1);
 
-        assert_eq!(true, validate_password(password, hashed_password))
+        assert_eq!(
+            true,
+            validate_password(password, hashed_password.0, hashed_password.1)
+        )
     }
 
     #[test]
