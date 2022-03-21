@@ -3,11 +3,7 @@ use argon2::{Algorithm, Argon2, Params, PasswordHash, PasswordHasher, PasswordVe
 use rand_core::OsRng;
 
 pub fn get_argon() -> Argon2<'static> {
-    Argon2::new(
-        Algorithm::Argon2id,
-        Version::V0x13,
-        Params::new(15000, 2, 1, Option::from(64)).unwrap(),
-    )
+    Argon2::default()
 }
 
 pub async fn hash_password(password: String) -> String {
