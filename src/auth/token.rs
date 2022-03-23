@@ -111,7 +111,7 @@ pub fn get_now_in_seconds() -> u64 {
 }
 
 pub fn get_expires_at(now_in_seconds: Option<u64>) -> u64 {
-    let now = now_in_seconds.unwrap_or(get_now_in_seconds());
+    let now = now_in_seconds.unwrap_or_else(get_now_in_seconds);
     now + 3600
 }
 
