@@ -28,6 +28,7 @@ pub struct Claims {
 pub struct LoginResponse {
     pub user_id: String,
     pub token: String,
+    pub expires_on: i64,
 }
 
 #[derive(Debug)]
@@ -70,17 +71,14 @@ impl FromRequest for Claims {
 
 pub fn generate_token(user_id: String) -> String {
     let auth_config = get_configuration().unwrap().auth_config;
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+    let now = get_now_in_seconds();
     let claims: Claims = Claims {
         user_id: user_id.clone(),
         iss: auth_config.issuer,
         aud: auth_config.audience,
         sub: user_id,
         iat: now,
-        exp: now + 3600,
+        exp: get_expires_at(Option::Some(now)),
     };
     let alg = Algorithm::new_hmac(AlgorithmID::HS512, auth_config.signing_key).unwrap();
     let header = json!({ "alg": alg.name() });
@@ -103,6 +101,18 @@ pub fn validate_token(token: String) -> Result<Claims, TokenError> {
     };
     let claims: Claims = serde_json::from_value(value).unwrap();
     Ok(claims)
+}
+
+pub fn get_now_in_seconds() -> u64 {
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+pub fn get_expires_at(now_in_seconds: Option<u64>) -> u64 {
+    let now = now_in_seconds.unwrap_or(get_now_in_seconds());
+    now + 3600
 }
 
 #[cfg(test)]
