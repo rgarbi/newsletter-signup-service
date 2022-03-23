@@ -28,7 +28,7 @@ pub struct Claims {
 pub struct LoginResponse {
     pub user_id: String,
     pub token: String,
-    pub expires_on: i64,
+    pub expires_on: u64,
 }
 
 #[derive(Debug)]

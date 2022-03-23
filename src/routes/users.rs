@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse, Responder};
 use sqlx::PgPool;
 
 use crate::auth::password_hashing::{hash_password, validate_password};
-use crate::auth::token::{generate_token, Claims, LoginResponse};
+use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
 use crate::db::users::{
     count_users_with_username, get_user_by_username, insert_user, update_password,
 };
@@ -27,6 +27,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                 Ok(user_id) => HttpResponse::Ok().json(LoginResponse {
                     user_id: user_id.clone(),
                     token: generate_token(user_id),
+                    expires_on: get_expires_at(Option::None),
                 }),
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
@@ -54,6 +55,7 @@ pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl 
             HttpResponse::Ok().json(LoginResponse {
                 user_id: user.user_id.to_string(),
                 token: generate_token(user.user_id.to_string()),
+                expires_on: get_expires_at(Option::None),
             })
         }
         Err(_) => HttpResponse::BadRequest().finish(),
