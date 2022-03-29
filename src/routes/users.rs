@@ -84,9 +84,9 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
 
 #[tracing::instrument(
 name = "Login user",
-skip(sign_up, pool),
+skip(log_in, pool),
 fields(
-user_username = %sign_up.email_address,
+user_username = %log_in.email_address,
 )
 )]
 pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Responder {

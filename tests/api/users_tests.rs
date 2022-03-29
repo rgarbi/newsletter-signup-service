@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
-use newsletter_signup_service::domain::new_user::SignUp;
+use newsletter_signup_service::domain::new_user::{LogIn, SignUp};
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
 
@@ -45,7 +45,11 @@ async fn sign_up_then_login() {
 
     assert_eq!(200, response.status().as_u16());
 
-    let login_response = app.login(signup.to_json()).await;
+    let log_in = LogIn {
+        email_address: signup.email_address,
+        password: signup.password,
+    };
+    let login_response = app.login(log_in.to_json()).await;
     assert_eq!(200, login_response.status().as_u16());
 }
 
