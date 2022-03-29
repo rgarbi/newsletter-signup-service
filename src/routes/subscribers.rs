@@ -31,7 +31,7 @@ impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
             first_name,
             last_name,
             email_address,
-            user_id: String::new(),
+            user_id: subscriber.user_id,
         })
     }
 }
@@ -63,7 +63,12 @@ pub async fn post_subscriber(
     };
 
     match insert_subscriber(&new_subscriber, &mut transaction).await {
-        Ok(_) => HttpResponse::Ok().json(json!({})),
+        Ok(_) => {
+            if transaction.commit().await.is_err() {
+                HttpResponse::InternalServerError().finish();
+            }
+            HttpResponse::Ok().json(json!({}))
+        }
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }

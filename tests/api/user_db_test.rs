@@ -80,6 +80,7 @@ async fn get_user_by_username_test() {
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
     let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
     assert_ok!(result);
+    assert_ok!(transaction.commit().await);
 
     assert_ok!(get_user_by_email_address(&sign_up.email_address, &app.db_pool).await);
 }

@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
-use crate::db::subscribers::{insert_subscriber, retrieve_subscriber_by_email};
+use crate::db::subscribers::insert_subscriber;
 use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
 };
