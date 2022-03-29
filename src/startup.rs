@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 
+use actix_cors::Cors;
 use actix_web::dev::Server;
 use actix_web::http::header;
 use actix_web::middleware::DefaultHeaders;
@@ -67,10 +68,20 @@ pub fn security_headers() -> DefaultHeaders {
         .add((header::EXPIRES, "0"))
 }
 
+pub fn define_cors() -> Cors {
+    Cors::default()
+        .allow_any_origin()
+        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+        .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+        .allowed_header(header::CONTENT_TYPE)
+        .max_age(3600)
+}
+
 pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(define_cors())
             .wrap(security_headers())
             .wrap(TracingLogger::default())
             .route("/sign_up", web::post().to(routes::sign_up))

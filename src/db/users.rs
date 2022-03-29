@@ -1,5 +1,5 @@
 use actix_web::ResponseError;
-use sqlx::{Error, PgPool};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::domain::new_user::User;
@@ -40,19 +40,19 @@ pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User,
 
     Ok(User {
         user_id: result.user_id,
-        username: result.username,
+        email_address: result.username,
         password: result.password,
     })
 }
 
 #[tracing::instrument(
     name = "Saving new user in the database",
-    skip(username, hashed_password, pool)
+    skip(username, hashed_password, transaction)
 )]
 pub async fn insert_user(
     username: &str,
     hashed_password: &str,
-    pool: &PgPool,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
     sqlx::query!(
@@ -63,7 +63,7 @@ pub async fn insert_user(
         username,
         hashed_password,
     )
-    .execute(pool)
+    .execute(transaction)
     .await
     .map_err(|e: sqlx::Error| {
         tracing::error!("{:?}", e);

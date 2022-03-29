@@ -4,19 +4,21 @@ use uuid::Uuid;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct User {
     pub user_id: Uuid,
-    pub username: String,
+    pub email_address: String,
     pub password: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct SignUp {
-    pub username: String,
+    pub email_address: String,
     pub password: String,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct ResetPassword {
-    pub username: String,
+    pub email_address: String,
     pub old_password: String,
     pub new_password: String,
 }
