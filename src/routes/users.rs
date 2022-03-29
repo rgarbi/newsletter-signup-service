@@ -5,7 +5,7 @@ use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
 use crate::db::subscribers::{insert_subscriber, retrieve_subscriber_by_email};
 use crate::db::users::{
-    count_users_with_username, get_user_by_username, insert_user, update_password,
+    count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
 };
 use crate::domain::new_subscriber::NewSubscriber;
 use crate::domain::new_user::{ResetPassword, SignUp};
@@ -35,7 +35,7 @@ impl TryFrom<SignUp> for NewSubscriber {
     )
 )]
 pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl Responder {
-    match count_users_with_username(&sign_up.email_address, &pool).await {
+    match count_users_with_email_address(&sign_up.email_address, &pool).await {
         Ok(count) => {
             if count > 0 {
                 return HttpResponse::Conflict().finish();
@@ -69,7 +69,12 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
 
             new_subscriber.user_id = login_response.user_id.clone();
             match insert_subscriber(&new_subscriber, &mut transaction).await {
-                Ok(_) => HttpResponse::Ok().json(&login_response),
+                Ok(_) => {
+                    if transaction.commit().await.is_err() {
+                        HttpResponse::InternalServerError().finish();
+                    }
+                    HttpResponse::Ok().json(&login_response)
+                }
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }
@@ -85,7 +90,7 @@ user_username = %sign_up.email_address,
 )
 )]
 pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl Responder {
-    match get_user_by_username(&sign_up.email_address, &pool).await {
+    match get_user_by_email_address(&sign_up.email_address, &pool).await {
         Ok(user) => {
             let hashed_passwords_match =
                 validate_password(sign_up.password.clone(), user.password).await;
@@ -115,7 +120,7 @@ pub async fn reset_password(
     pool: web::Data<PgPool>,
     user_claim: Claims,
 ) -> impl Responder {
-    match get_user_by_username(&reset_password.email_address, &pool).await {
+    match get_user_by_email_address(&reset_password.email_address, &pool).await {
         Ok(user) => {
             if user_claim.user_id != user.user_id.to_string() {
                 return HttpResponse::Unauthorized().finish();

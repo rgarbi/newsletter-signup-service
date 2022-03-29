@@ -4,13 +4,16 @@ use uuid::Uuid;
 
 use crate::domain::new_user::User;
 
-#[tracing::instrument(name = "Count users with a given username", skip(username, pool))]
-pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<i64, Error> {
+#[tracing::instrument(name = "Count users with a given username", skip(email_address, pool))]
+pub async fn count_users_with_email_address(
+    email_address: &str,
+    pool: &PgPool,
+) -> Result<i64, Error> {
     let result = sqlx::query!(
-        r#"SELECT COUNT(username) 
+        r#"SELECT COUNT(email_address) 
             FROM users 
-            WHERE username = $1"#,
-        username,
+            WHERE email_address = $1"#,
+        email_address,
     )
     .fetch_one(pool)
     .await
@@ -23,13 +26,13 @@ pub async fn count_users_with_username(username: &str, pool: &PgPool) -> Result<
     Ok(count)
 }
 
-#[tracing::instrument(name = "Get user by username", skip(username, pool))]
-pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User, Error> {
+#[tracing::instrument(name = "Get user by email address", skip(email_address, pool))]
+pub async fn get_user_by_email_address(email_address: &str, pool: &PgPool) -> Result<User, Error> {
     let result = sqlx::query!(
-        r#"SELECT user_id, username, password
+        r#"SELECT user_id, email_address, password
             FROM users 
-            WHERE username = $1"#,
-        username,
+            WHERE email_address = $1"#,
+        email_address,
     )
     .fetch_one(pool)
     .await
@@ -40,27 +43,27 @@ pub async fn get_user_by_username(username: &str, pool: &PgPool) -> Result<User,
 
     Ok(User {
         user_id: result.user_id,
-        email_address: result.username,
+        email_address: result.email_address,
         password: result.password,
     })
 }
 
 #[tracing::instrument(
     name = "Saving new user in the database",
-    skip(username, hashed_password, transaction)
+    skip(email_address, hashed_password, transaction)
 )]
 pub async fn insert_user(
-    username: &str,
+    email_address: &str,
     hashed_password: &str,
     transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
     sqlx::query!(
         r#"INSERT 
-            INTO users (user_id, username, password) 
+            INTO users (user_id, email_address, password) 
             VALUES ($1, $2, $3)"#,
         user_id,
-        username,
+        email_address,
         hashed_password,
     )
     .execute(transaction)
@@ -73,18 +76,21 @@ pub async fn insert_user(
     Ok(user_id.to_string())
 }
 
-#[tracing::instrument(name = "Update the password", skip(username, hashed_password, pool))]
+#[tracing::instrument(
+    name = "Update the password",
+    skip(email_address, hashed_password, pool)
+)]
 pub async fn update_password(
-    username: &str,
+    email_address: &str,
     hashed_password: &str,
     pool: &PgPool,
 ) -> Result<(), Error> {
     sqlx::query!(
         r#"UPDATE users
             SET password = $1
-            WHERE username = $2"#,
+            WHERE email_address = $2"#,
         hashed_password,
-        username,
+        email_address,
     )
     .execute(pool)
     .await

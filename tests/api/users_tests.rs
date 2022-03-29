@@ -2,7 +2,7 @@ use claim::assert_ok;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
-use newsletter_signup_service::db::users::count_users_with_username;
+use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::new_user::SignUp;
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
@@ -16,7 +16,7 @@ async fn valid_users_can_create_an_account() {
 
     assert_eq!(200, response.status().as_u16());
 
-    let result = count_users_with_username(&signup.email_address, &app.db_pool).await;
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
     assert_ok!(&result);
     assert_eq!(1, result.unwrap());
 }
@@ -28,7 +28,7 @@ async fn signing_up_twice_results_in_conflict() {
     let signup = generate_signup();
     let response = app.user_signup(signup.to_json()).await;
     assert_eq!(200, response.status().as_u16());
-    let result = count_users_with_username(&signup.email_address, &app.db_pool).await;
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
     assert_ok!(&result);
     assert_eq!(1, result.unwrap());
 

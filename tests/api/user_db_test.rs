@@ -2,7 +2,7 @@ use claim::{assert_err, assert_ok};
 use uuid::Uuid;
 
 use newsletter_signup_service::db::users::{
-    count_users_with_username, get_user_by_username, insert_user,
+    count_users_with_email_address, get_user_by_email_address, insert_user,
 };
 use newsletter_signup_service::domain::new_user::SignUp;
 
@@ -60,7 +60,8 @@ async fn count_users() {
     let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
     assert_ok!(result);
 
-    let ok = count_users_with_username(&Uuid::new_v4().to_string(), &app.db_pool.clone()).await;
+    let ok =
+        count_users_with_email_address(&Uuid::new_v4().to_string(), &app.db_pool.clone()).await;
     assert_ok!(&ok);
     assert_eq!(0, ok.unwrap());
 }
@@ -80,7 +81,7 @@ async fn get_user_by_username_test() {
     let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
     assert_ok!(result);
 
-    assert_ok!(get_user_by_username(&sign_up.email_address, &app.db_pool).await);
+    assert_ok!(get_user_by_email_address(&sign_up.email_address, &app.db_pool).await);
 }
 
 #[tokio::test]
@@ -98,5 +99,5 @@ async fn get_user_by_username_not_found_test() {
     let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
     assert_ok!(result);
 
-    assert_err!(get_user_by_username(&Uuid::new_v4().to_string(), &app.db_pool).await);
+    assert_err!(get_user_by_email_address(&Uuid::new_v4().to_string(), &app.db_pool).await);
 }
