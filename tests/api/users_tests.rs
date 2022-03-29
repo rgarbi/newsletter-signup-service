@@ -70,6 +70,8 @@ async fn login_with_a_bad_password_gives_a_400() {
     let bad_password = SignUp {
         email_address: signup.email_address,
         password: Uuid::new_v4().to_string(),
+        first_name: Uuid::new_v4().to_string(),
+        last_name: Uuid::new_v4().to_string(),
     };
 
     let login_response = app.login(bad_password.to_json()).await;
