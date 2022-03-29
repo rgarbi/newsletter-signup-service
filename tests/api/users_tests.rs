@@ -149,3 +149,24 @@ async fn reset_password_with_wrong_token_gives_a_401() {
         .await;
     assert_eq!(401, reset_password_response.status().as_u16());
 }
+
+#[tokio::test]
+async fn given_a_valid_sign_up_when_i_sign_up_a_subscriber_is_also_created() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
+    assert_ok!(&result);
+    assert_eq!(1, result.unwrap());
+    let signup_response_body = response.text().await.unwrap();
+    let login: LoginResponse = serde_json::from_str(signup_response_body.as_str()).unwrap();
+
+    let subscriber_response = app
+        .get_subscriber_by_email(signup.email_address, login.token)
+        .await;
+    assert_eq!(200, subscriber_response.status().as_u16());
+}
