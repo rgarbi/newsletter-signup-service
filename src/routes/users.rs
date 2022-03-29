@@ -8,7 +8,7 @@ use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
 };
 use crate::domain::new_subscriber::NewSubscriber;
-use crate::domain::new_user::{ResetPassword, SignUp};
+use crate::domain::new_user::{LogIn, ResetPassword, SignUp};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 
@@ -89,11 +89,11 @@ fields(
 user_username = %sign_up.email_address,
 )
 )]
-pub async fn login(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl Responder {
-    match get_user_by_email_address(&sign_up.email_address, &pool).await {
+pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Responder {
+    match get_user_by_email_address(&log_in.email_address, &pool).await {
         Ok(user) => {
             let hashed_passwords_match =
-                validate_password(sign_up.password.clone(), user.password).await;
+                validate_password(log_in.password.clone(), user.password).await;
             if !hashed_passwords_match {
                 return HttpResponse::BadRequest().finish();
             }
