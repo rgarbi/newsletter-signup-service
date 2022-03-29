@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use actix_web::{web, HttpResponse, Responder};
 use serde::Deserialize;
+use serde_json::json;
 use sqlx::PgPool;
 
 use crate::auth::token::Claims;
@@ -56,8 +57,18 @@ pub async fn post_subscriber(
         return HttpResponse::Unauthorized().finish();
     }
 
-    match insert_subscriber(&new_subscriber, &pool).await {
-        Ok(_) => HttpResponse::Ok().finish(),
+    let mut transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    match insert_subscriber(&new_subscriber, &mut transaction).await {
+        Ok(_) => {
+            if transaction.commit().await.is_err() {
+                HttpResponse::InternalServerError().finish();
+            }
+            HttpResponse::Ok().json(json!({}))
+        }
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }

@@ -1,9 +1,9 @@
 -- Add migration script here
 CREATE TABLE users(
     user_id uuid PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
+    email_address TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX username_idx ON users (username);
+CREATE UNIQUE INDEX email_address_idx ON users (email_address);
 

@@ -209,14 +209,16 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
 
 pub fn generate_signup() -> SignUp {
     SignUp {
-        username: Uuid::new_v4().to_string(),
+        email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
         password: Uuid::new_v4().to_string(),
+        first_name: Uuid::new_v4().to_string(),
+        last_name: Uuid::new_v4().to_string(),
     }
 }
 
 pub fn generate_reset_password(username: String, old_password: String) -> ResetPassword {
     ResetPassword {
-        username,
+        email_address: username,
         old_password,
         new_password: Uuid::new_v4().to_string(),
     }

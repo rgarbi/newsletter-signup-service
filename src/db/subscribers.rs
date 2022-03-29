@@ -1,18 +1,18 @@
 use std::fmt::{Debug, Display};
 
 use actix_web::ResponseError;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::domain::new_subscriber::{NewSubscriber, OverTheWireSubscriber};
 
 #[tracing::instrument(
     name = "Saving new subscriber details in the database",
-    skip(subscriber, pool)
+    skip(subscriber, transaction)
 )]
 pub async fn insert_subscriber(
     subscriber: &NewSubscriber,
-    pool: &PgPool,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<(), StoreSubscriberError> {
     sqlx::query!(
         r#"INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email_address) DO NOTHING"#,
@@ -21,7 +21,7 @@ pub async fn insert_subscriber(
         subscriber.first_name.as_ref(),
         subscriber.last_name.as_ref(),
         subscriber.user_id,
-    ).execute(pool).await.map_err(|e| {
+    ).execute(transaction).await.map_err(|e| {
         let err = StoreSubscriberError(e);
         tracing::error!("{:?}", err);
         err

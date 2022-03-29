@@ -1,5 +1,37 @@
 {
   "db": "PostgreSQL",
+  "0604d03a719417dbcb24660b8663853e48910df6f895ff9024e47574c5274e4f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 2,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE email_address = $1"
+  },
   "1b2915bee45313f7134f1b43c9e7eb89f63a5251ed059014cfd47dcc29b59c58": {
     "describe": {
       "columns": [
@@ -92,66 +124,7 @@
     },
     "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
-  "4597065ec5154b565f17dd4cc2bf54d5d07f14c5c20e6a0a48341c6e9f641bcd": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "UPDATE users\n            SET password = $1\n            WHERE username = $2"
-  },
-  "46f2535b811672c2a88a6b28887c0168467c77441cc8a8daf356fde0aa0c31af": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT \n            INTO users (user_id, username, password) \n            VALUES ($1, $2, $3)"
-  },
-  "89d8f469c400f607ba71a2db1fcd7c6f509bef4a3db824493c15be3bc75174ee": {
-    "describe": {
-      "columns": [
-        {
-          "name": "user_id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "password",
-          "ordinal": 2,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "SELECT user_id, username, password\n            FROM users \n            WHERE username = $1"
-  },
-  "9d09d7d33cda268e4582e8b9e21530216716a171fa1565670790c04b8fed7fea": {
+  "6838f50a66a76ee062f685133371fe057795b4321cfc1eae0747575f44bead85": {
     "describe": {
       "columns": [
         {
@@ -169,7 +142,20 @@
         ]
       }
     },
-    "query": "SELECT COUNT(username) \n            FROM users \n            WHERE username = $1"
+    "query": "SELECT COUNT(email_address) \n            FROM users \n            WHERE email_address = $1"
+  },
+  "73e3660421fbc68ce837ef0b0de2c19d318843fd58394da31a07d43853864f39": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE users\n            SET password = $1\n            WHERE email_address = $2"
   },
   "b1e6dcace6616b238547443291b8197d507f2961f2547b20458dd0c4b917e25e": {
     "describe": {
@@ -214,6 +200,20 @@
       }
     },
     "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE email_address = $1"
+  },
+  "b240fa7ad0bf191778acef620998314c360c8c9b7bef1e042d3b321e2e5b29fa": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT \n            INTO users (user_id, email_address, password) \n            VALUES ($1, $2, $3)"
   },
   "ca5deb0efdd3d732bf91f6522e3221d167ae8696d36ece085749976de3d0dc5c": {
     "describe": {

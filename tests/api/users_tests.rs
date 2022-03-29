@@ -2,7 +2,7 @@ use claim::assert_ok;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
-use newsletter_signup_service::db::users::count_users_with_username;
+use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::new_user::SignUp;
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
@@ -16,7 +16,7 @@ async fn valid_users_can_create_an_account() {
 
     assert_eq!(200, response.status().as_u16());
 
-    let result = count_users_with_username(&signup.username, &app.db_pool).await;
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
     assert_ok!(&result);
     assert_eq!(1, result.unwrap());
 }
@@ -28,7 +28,7 @@ async fn signing_up_twice_results_in_conflict() {
     let signup = generate_signup();
     let response = app.user_signup(signup.to_json()).await;
     assert_eq!(200, response.status().as_u16());
-    let result = count_users_with_username(&signup.username, &app.db_pool).await;
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
     assert_ok!(&result);
     assert_eq!(1, result.unwrap());
 
@@ -68,8 +68,10 @@ async fn login_with_a_bad_password_gives_a_400() {
     assert_eq!(200, response.status().as_u16());
 
     let bad_password = SignUp {
-        username: signup.username,
+        email_address: signup.email_address,
         password: Uuid::new_v4().to_string(),
+        first_name: Uuid::new_v4().to_string(),
+        last_name: Uuid::new_v4().to_string(),
     };
 
     let login_response = app.login(bad_password.to_json()).await;
@@ -89,7 +91,7 @@ async fn sign_up_then_reset_password() {
     let login_response_body = login_response.text().await.unwrap();
     let login: LoginResponse = serde_json::from_str(login_response_body.as_str()).unwrap();
 
-    let reset_password = generate_reset_password(signup.username, signup.password);
+    let reset_password = generate_reset_password(signup.email_address, signup.password);
     let reset_password_response = app
         .reset_password(reset_password.to_json(), generate_token(login.user_id))
         .await;
@@ -123,7 +125,7 @@ async fn reset_password_with_wrong_password_gives_a_400() {
     let signup_response_body = response.text().await.unwrap();
     let login: LoginResponse = serde_json::from_str(signup_response_body.as_str()).unwrap();
 
-    let reset_password = generate_reset_password(signup.username, Uuid::new_v4().to_string());
+    let reset_password = generate_reset_password(signup.email_address, Uuid::new_v4().to_string());
     let reset_password_response = app
         .reset_password(reset_password.to_json(), generate_token(login.user_id))
         .await;
@@ -138,7 +140,7 @@ async fn reset_password_with_wrong_token_gives_a_401() {
     let response = app.user_signup(signup.to_json()).await;
     assert_eq!(200, response.status().as_u16());
 
-    let reset_password = generate_reset_password(signup.username, Uuid::new_v4().to_string());
+    let reset_password = generate_reset_password(signup.email_address, Uuid::new_v4().to_string());
     let reset_password_response = app
         .reset_password(
             reset_password.to_json(),
@@ -146,4 +148,25 @@ async fn reset_password_with_wrong_token_gives_a_401() {
         )
         .await;
     assert_eq!(401, reset_password_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn given_a_valid_sign_up_when_i_sign_up_a_subscriber_is_also_created() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
+    assert_ok!(&result);
+    assert_eq!(1, result.unwrap());
+    let signup_response_body = response.text().await.unwrap();
+    let login: LoginResponse = serde_json::from_str(signup_response_body.as_str()).unwrap();
+
+    let subscriber_response = app
+        .get_subscriber_by_email(signup.email_address, login.token)
+        .await;
+    assert_eq!(200, subscriber_response.status().as_u16());
 }
