@@ -8,7 +8,7 @@ use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
 };
 use crate::domain::new_subscriber::NewSubscriber;
-use crate::domain::new_user::{LogIn, ResetPassword, SignUp};
+use crate::domain::new_user::{ForgotPassword, LogIn, ResetPassword, SignUp};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 
@@ -83,11 +83,11 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
 }
 
 #[tracing::instrument(
-name = "Login user",
-skip(log_in, pool),
-fields(
-user_username = %log_in.email_address,
-)
+    name = "Login user",
+    skip(log_in, pool),
+    fields(
+        user_username = %log_in.email_address,
+    )
 )]
 pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Responder {
     match get_user_by_email_address(&log_in.email_address, &pool).await {
@@ -109,11 +109,11 @@ pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Re
 }
 
 #[tracing::instrument(
-name = "Reset password",
-skip(reset_password, pool, user_claim),
-fields(
-user_username = %reset_password.email_address,
-)
+    name = "Reset password",
+    skip(reset_password, pool, user_claim),
+    fields(
+        user_username = %reset_password.email_address,
+    )
 )]
 pub async fn reset_password(
     reset_password: web::Json<ResetPassword>,
@@ -139,6 +139,25 @@ pub async fn reset_password(
                 Ok(_) => HttpResponse::Ok().finish(),
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
+        }
+        Err(_) => HttpResponse::BadRequest().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Forgot password",
+    skip(forgot_password, pool),
+    fields(
+        user_username = %forgot_password.email_address,
+    )
+)]
+pub async fn forgot_password(
+    forgot_password: web::Json<ForgotPassword>,
+    pool: web::Data<PgPool>,
+) -> impl Responder {
+    match get_user_by_email_address(&forgot_password.email_address, &pool).await {
+        Ok(_user) => {
+            todo!()
         }
         Err(_) => HttpResponse::BadRequest().finish(),
     }
