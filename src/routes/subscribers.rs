@@ -8,6 +8,7 @@ use sqlx::PgPool;
 use crate::auth::token::Claims;
 use crate::db::subscribers::{
     insert_subscriber, retrieve_subscriber_by_email, retrieve_subscriber_by_id,
+    retrieve_subscriber_by_user_id, retrieve_subscriber_by_user_id_and_email_address,
 };
 use crate::domain::new_subscriber::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
@@ -17,7 +18,10 @@ use crate::domain::valid_name::ValidName;
 use crate::util::from_string_to_uuid;
 
 #[derive(Debug, Deserialize)]
-pub struct EmailAddressQuery {
+pub struct SubscriberQueries {
+    #[serde(default)]
+    user_id: String,
+    #[serde(default)]
     email: String,
 }
 
@@ -74,18 +78,48 @@ pub async fn post_subscriber(
 }
 
 #[tracing::instrument(
-    name = "Getting a subscriber by email address",
-    skip(email_query, pool, user),
-    fields(
-        subscriber_email = %email_query.email,
-    )
+    name = "Getting a subscriber either by email address or by user id",
+    skip(query, pool, user)
 )]
-pub async fn get_subscriber_by_email(
-    email_query: web::Query<EmailAddressQuery>,
+pub async fn get_subscriber_by_query(
+    query: web::Query<SubscriberQueries>,
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
-    match retrieve_subscriber_by_email(email_query.0.email, &pool).await {
+    if query.user_id.is_empty() && query.email.is_empty() {
+        return HttpResponse::NotFound().finish();
+    }
+
+    if !query.user_id.is_empty() && !query.email.is_empty() {
+        return get_subscriber_by_email_and_user_id(query.0.email, query.0.user_id, pool, user)
+            .await;
+    }
+
+    if !query.user_id.is_empty() && query.email.is_empty() {
+        return get_subscriber_by_user_id(query.0.user_id, pool, user).await;
+    }
+
+    if query.user_id.is_empty() && !query.email.is_empty() {
+        return get_subscriber_by_email(query.0.email, pool, user).await;
+    }
+
+    tracing::error!("Could not handle the query params given. {:?}", query);
+    HttpResponse::InternalServerError().finish()
+}
+
+#[tracing::instrument(
+    name = "Getting a subscriber by email address",
+    skip(email, pool, user),
+    fields(
+        subscriber_email = %email,
+    )
+)]
+async fn get_subscriber_by_email(
+    email: String,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> HttpResponse {
+    match retrieve_subscriber_by_email(email, &pool).await {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }
@@ -104,6 +138,46 @@ pub async fn get_subscriber_by_id(
     user: Claims,
 ) -> impl Responder {
     match retrieve_subscriber_by_id(from_string_to_uuid(id).unwrap(), &pool).await {
+        Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Getting a subscriber by user id",
+    skip(user_id, pool, user),
+    fields(
+        user_id = %user_id,
+    )
+)]
+async fn get_subscriber_by_user_id(
+    user_id: String,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> HttpResponse {
+    match retrieve_subscriber_by_user_id(user_id.as_str(), &pool).await {
+        Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Getting a subscriber by email address",
+    skip(email, user_id, pool, user),
+    fields(
+        subscriber_email = %email,
+        subscriber_user_id = %user_id
+    )
+)]
+async fn get_subscriber_by_email_and_user_id(
+    email: String,
+    user_id: String,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> HttpResponse {
+    match retrieve_subscriber_by_user_id_and_email_address(user_id.as_str(), email.as_str(), &pool)
+        .await
+    {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }

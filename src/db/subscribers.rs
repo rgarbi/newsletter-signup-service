@@ -84,6 +84,64 @@ pub async fn retrieve_subscriber_by_id(
     })
 }
 
+#[tracing::instrument(
+    name = "Retrieving a subscriber by user id from the database",
+    skip(user_id, pool)
+)]
+pub async fn retrieve_subscriber_by_user_id(
+    user_id: &str,
+    pool: &PgPool,
+) -> Result<OverTheWireSubscriber, sqlx::Error> {
+    let result = sqlx::query!(
+        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1"#,
+        user_id
+    )
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
+
+    Ok(OverTheWireSubscriber {
+        id: result.id.to_string(),
+        last_name: result.last_name,
+        email_address: result.email_address,
+        first_name: result.first_name,
+        user_id: result.user_id,
+    })
+}
+
+#[tracing::instrument(
+    name = "Retrieving a subscriber by user id and email address from the database",
+    skip(user_id, email_address, pool)
+)]
+pub async fn retrieve_subscriber_by_user_id_and_email_address(
+    user_id: &str,
+    email_address: &str,
+    pool: &PgPool,
+) -> Result<OverTheWireSubscriber, sqlx::Error> {
+    let result = sqlx::query!(
+        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"#,
+        user_id,
+        email_address
+    )
+        .fetch_one(pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
+
+    Ok(OverTheWireSubscriber {
+        id: result.id.to_string(),
+        last_name: result.last_name,
+        email_address: result.email_address,
+        first_name: result.first_name,
+        user_id: result.user_id,
+    })
+}
+
 #[derive(Debug)]
 pub struct StoreSubscriberError(sqlx::Error);
 

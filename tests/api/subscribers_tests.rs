@@ -58,6 +58,113 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 }
 
 #[tokio::test]
+async fn given_a_stored_subscriber_i_can_get_it_by_user_id() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id(
+            subscriber.user_id.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert!(response.status().is_success());
+
+    let response_body = response.text().await.unwrap();
+    let saved_subscriber: OverTheWireSubscriber =
+        serde_json::from_str(response_body.as_str()).unwrap();
+
+    assert_eq!(saved_subscriber.user_id, subscriber.user_id);
+}
+
+#[tokio::test]
+async fn given_a_stored_subscriber_i_can_get_it_by_user_id_and_email() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            subscriber.user_id.clone(),
+            subscriber.email_address.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert!(response.status().is_success());
+
+    let response_body = response.text().await.unwrap();
+    let saved_subscriber: OverTheWireSubscriber =
+        serde_json::from_str(response_body.as_str()).unwrap();
+
+    assert_eq!(saved_subscriber.user_id, subscriber.user_id);
+}
+
+#[tokio::test]
+async fn empty_user_id_and_email_gives_404() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            String::new(),
+            String::new(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(404, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn bad_user_id_and_email_gives_404() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            Uuid::new_v4().to_string(),
+            Uuid::new_v4().to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(404, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn bad_user_id_gives_404() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            Uuid::new_v4().to_string(),
+            subscriber.email_address.clone(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(404, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn bad_email_gives_404() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            subscriber.user_id.clone(),
+            Uuid::new_v4().to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(404, response.status().as_u16());
+}
+
+#[tokio::test]
 async fn incorrect_email_returns_404() {
     let app = spawn_app().await;
 

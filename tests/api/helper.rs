@@ -95,6 +95,39 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
+    pub async fn get_subscriber_by_user_id(
+        &self,
+        user_id: String,
+        token: String,
+    ) -> reqwest::Response {
+        reqwest::Client::new()
+            .get(&format!(
+                "{}/subscribers?user_id={}",
+                &self.address, user_id
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Got a subscriber back")
+    }
+
+    pub async fn get_subscriber_by_user_id_and_email(
+        &self,
+        user_id: String,
+        email: String,
+        token: String,
+    ) -> reqwest::Response {
+        reqwest::Client::new()
+            .get(&format!(
+                "{}/subscribers?user_id={}&email={}",
+                &self.address, user_id, email
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Got a subscriber back")
+    }
+
     pub async fn post_subscription(&self, body: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/subscriptions", &self.address))
