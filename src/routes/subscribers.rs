@@ -19,10 +19,8 @@ use crate::util::from_string_to_uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct SubscriberQueries {
-    #[serde(default)]
-    user_id: String,
-    #[serde(default)]
-    email: String,
+    user_id: Option<String>,
+    email: Option<String>,
 }
 
 impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
@@ -86,21 +84,26 @@ pub async fn get_subscriber_by_query(
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
-    if query.user_id.is_empty() && query.email.is_empty() {
+    if query.user_id.is_none() && query.email.is_none() {
         return HttpResponse::NotFound().finish();
     }
 
-    if !query.user_id.is_empty() && !query.email.is_empty() {
-        return get_subscriber_by_email_and_user_id(query.0.email, query.0.user_id, pool, user)
-            .await;
+    if query.user_id.is_some() && query.email.is_some() {
+        return get_subscriber_by_email_and_user_id(
+            query.0.email.unwrap(),
+            query.0.user_id.unwrap(),
+            pool,
+            user,
+        )
+        .await;
     }
 
-    if !query.user_id.is_empty() && query.email.is_empty() {
-        return get_subscriber_by_user_id(query.0.user_id, pool, user).await;
+    if query.user_id.is_some() && query.email.is_none() {
+        return get_subscriber_by_user_id(query.0.user_id.unwrap(), pool, user).await;
     }
 
-    if query.user_id.is_empty() && !query.email.is_empty() {
-        return get_subscriber_by_email(query.0.email, pool, user).await;
+    if query.user_id.is_none() && query.email.is_some() {
+        return get_subscriber_by_email(query.0.email.unwrap(), pool, user).await;
     }
 
     tracing::error!("Could not handle the query params given. {:?}", query);
