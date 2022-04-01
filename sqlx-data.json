@@ -124,6 +124,95 @@
     },
     "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
+  "1d93b4aadd335366529a6a9bb62a0315f5a875d35f1a505b6f0093f39ae519e8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1"
+  },
+  "669e782822de3d00f299dd2fae4bce9d0e0165032e6c40b7cb037cf858e64910": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"
+  },
   "6838f50a66a76ee062f685133371fe057795b4321cfc1eae0747575f44bead85": {
     "describe": {
       "columns": [
