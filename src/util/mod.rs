@@ -13,6 +13,10 @@ pub fn from_string_to_uuid(id: web::Path<String>) -> Result<Uuid, HttpResponse> 
     }
 }
 
+pub fn standardize_email(email: &String) -> String {
+    email.clone().to_lowercase()
+}
+
 #[cfg(test)]
 mod tests {
     use actix_web::web::Path;

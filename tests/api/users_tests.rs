@@ -22,6 +22,29 @@ async fn valid_users_can_create_an_account() {
 }
 
 #[tokio::test]
+async fn upper_and_lower_case_email_addresses_are_the_same() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
+    assert_ok!(&result);
+    assert_eq!(1, result.unwrap());
+
+    let other_signup = SignUp {
+        first_name: signup.first_name.clone(),
+        last_name: signup.last_name.clone(),
+        email_address: signup.email_address.to_uppercase(),
+        password: Uuid::new_v4().to_string(),
+    };
+
+    let other_response = app.user_signup(other_signup.to_json()).await;
+    assert_eq!(409, other_response.status().as_u16());
+}
+
+#[tokio::test]
 async fn signing_up_twice_results_in_conflict() {
     let app = spawn_app().await;
 

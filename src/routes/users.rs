@@ -11,13 +11,14 @@ use crate::domain::new_subscriber::NewSubscriber;
 use crate::domain::new_user::{ForgotPassword, LogIn, ResetPassword, SignUp};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
+use crate::util::standardize_email;
 
 impl TryFrom<SignUp> for NewSubscriber {
     type Error = String;
     fn try_from(sign_up: SignUp) -> Result<Self, Self::Error> {
         let first_name = ValidName::parse(sign_up.first_name)?;
         let last_name = ValidName::parse(sign_up.last_name)?;
-        let email_address = ValidEmail::parse(sign_up.email_address)?;
+        let email_address = ValidEmail::parse(standardize_email(&sign_up.email_address))?;
         Ok(NewSubscriber {
             first_name,
             last_name,
@@ -35,7 +36,8 @@ impl TryFrom<SignUp> for NewSubscriber {
     )
 )]
 pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> impl Responder {
-    match count_users_with_email_address(&sign_up.email_address, &pool).await {
+    let transformed_email = standardize_email(&sign_up.email_address.clone());
+    match count_users_with_email_address(&transformed_email, &pool).await {
         Ok(count) => {
             if count > 0 {
                 return HttpResponse::Conflict().finish();
@@ -52,20 +54,15 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
             };
 
             let hashed_password = hash_password(sign_up.clone().password).await;
-            let login_response = match insert_user(
-                &sign_up.email_address.clone(),
-                &hashed_password,
-                &mut transaction,
-            )
-            .await
-            {
-                Ok(user_id) => LoginResponse {
-                    user_id: user_id.clone(),
-                    token: generate_token(user_id),
-                    expires_on: get_expires_at(Option::None),
-                },
-                Err(_) => return HttpResponse::InternalServerError().finish(),
-            };
+            let login_response =
+                match insert_user(&transformed_email, &hashed_password, &mut transaction).await {
+                    Ok(user_id) => LoginResponse {
+                        user_id: user_id.clone(),
+                        token: generate_token(user_id),
+                        expires_on: get_expires_at(Option::None),
+                    },
+                    Err(_) => return HttpResponse::InternalServerError().finish(),
+                };
 
             new_subscriber.user_id = login_response.user_id.clone();
             match insert_subscriber(&new_subscriber, &mut transaction).await {
@@ -90,7 +87,8 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
     )
 )]
 pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Responder {
-    match get_user_by_email_address(&log_in.email_address, &pool).await {
+    let transformed_email = standardize_email(&log_in.email_address.clone());
+    match get_user_by_email_address(&transformed_email, &pool).await {
         Ok(user) => {
             let hashed_passwords_match =
                 validate_password(log_in.password.clone(), user.password).await;

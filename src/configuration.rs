@@ -59,7 +59,6 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         )
         .build()
         .unwrap();
-    println!("GOT CONFIG!!!!!!!!!!!!!!!!!!");
     settings.try_deserialize::<Settings>()
 }
 
