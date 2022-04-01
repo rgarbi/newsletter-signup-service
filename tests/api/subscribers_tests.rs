@@ -165,6 +165,22 @@ async fn bad_email_gives_404() {
 }
 
 #[tokio::test]
+async fn bad_token_gives_401() {
+    let app = spawn_app().await;
+
+    let subscriber = store_subscriber(app.clone(), Option::None).await;
+
+    let response = app
+        .get_subscriber_by_user_id_and_email(
+            subscriber.user_id.clone(),
+            subscriber.email_address.clone(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
 async fn incorrect_email_returns_404() {
     let app = spawn_app().await;
 
