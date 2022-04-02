@@ -86,6 +86,7 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
             .wrap(TracingLogger::default())
             .route("/sign_up", web::post().to(routes::sign_up))
             .route("/login", web::post().to(routes::login))
+            .route("/forgot_password", web::post().to(routes::forgot_password))
             .route("/reset_password", web::post().to(routes::reset_password))
             .route("/health_check", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::post_subscription))
