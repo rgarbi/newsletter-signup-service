@@ -13,8 +13,8 @@ pub fn from_string_to_uuid(id: web::Path<String>) -> Result<Uuid, HttpResponse> 
     }
 }
 
-pub fn standardize_email(email: &String) -> String {
-    email.clone().to_lowercase()
+pub fn standardize_email(email: &str) -> String {
+    email.to_string().to_lowercase()
 }
 
 #[cfg(test)]
