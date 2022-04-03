@@ -246,6 +246,73 @@
     },
     "query": "UPDATE users\n            SET password = $1\n            WHERE email_address = $2"
   },
+  "7d1ede762b32132048d895a5456da48245ce3fb2f428d1a17ec4d124cebbda06": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Timestamptz",
+          "Bool"
+        ]
+      }
+    },
+    "query": "INSERT \n            INTO otp (id, user_id, one_time_passcode, issued_on, expires_on, used) \n            VALUES ($1, $2, $3, $4, $5, $6)"
+  },
+  "a2a08aa828ddea78a11b97f832ba0394a63178e8d3d0c9a5ad3e143c5e66d10e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "one_time_passcode",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "issued_on",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "expires_on",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "used",
+          "ordinal": 5,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, user_id, one_time_passcode, issued_on, expires_on, used\n            FROM otp\n            WHERE one_time_passcode = $1"
+  },
   "b1e6dcace6616b238547443291b8197d507f2961f2547b20458dd0c4b917e25e": {
     "describe": {
       "columns": [
