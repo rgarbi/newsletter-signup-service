@@ -213,3 +213,34 @@ async fn forgot_password_works() {
     let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
     assert_eq!(200, forgot_password_response.status().as_u16());
 }
+
+#[tokio::test]
+async fn forgot_password_no_user_still_gives_200() {
+    let app = spawn_app().await;
+
+    let forgot_password = ForgotPassword {
+        email_address: format!("{}@GMAIL.COM", Uuid::new_v4().to_string()),
+    };
+
+    let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn forgot_password_many_times_works() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let forgot_password = ForgotPassword {
+        email_address: signup.email_address,
+    };
+
+    let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response.status().as_u16());
+
+    let forgot_password_response2 = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response2.status().as_u16());
+}
