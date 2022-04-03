@@ -51,3 +51,9 @@ impl LogIn {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+impl ForgotPassword {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}

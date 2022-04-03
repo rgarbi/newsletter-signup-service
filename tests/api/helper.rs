@@ -66,6 +66,16 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn forgot_password(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/forgot_password", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn post_subscriber(&self, body: String, token: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))

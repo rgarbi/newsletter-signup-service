@@ -1,14 +1,19 @@
 use actix_web::{web, HttpResponse, Responder};
+use chrono::{Duration, Utc};
+use serde_json::json;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
+use crate::db::otp_db_broker::insert_otp;
 use crate::db::subscribers::insert_subscriber;
 use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
 };
 use crate::domain::new_subscriber::NewSubscriber;
 use crate::domain::new_user::{ForgotPassword, LogIn, ResetPassword, SignUp};
+use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 use crate::util::standardize_email;
@@ -153,10 +158,28 @@ pub async fn forgot_password(
     forgot_password: web::Json<ForgotPassword>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    match get_user_by_email_address(&forgot_password.email_address, &pool).await {
-        Ok(_user) => {
-            todo!()
+    let email = standardize_email(&forgot_password.email_address);
+    match get_user_by_email_address(email.as_str(), &pool).await {
+        Ok(user) => {
+            let otp = OneTimePasscode {
+                id: Uuid::new_v4(),
+                user_id: user.user_id.to_string(),
+                one_time_passcode: Uuid::new_v4().to_string(),
+                issued_on: Utc::now(),
+                expires_on: Utc::now() + Duration::days(1),
+                used: false,
+            };
+            match insert_otp(otp, &pool).await {
+                Ok(_) => HttpResponse::Ok().json(json!({})),
+                Err(err) => {
+                    tracing::error!(
+                        "Something happened while saving the one time passcode. {:?}",
+                        err
+                    );
+                    HttpResponse::Ok().json(json!({}))
+                }
+            }
         }
-        Err(_) => HttpResponse::BadRequest().finish(),
+        Err(_) => HttpResponse::Ok().json(json!({})),
     }
 }

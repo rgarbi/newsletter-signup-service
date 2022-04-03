@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
-use newsletter_signup_service::domain::new_user::{LogIn, SignUp};
+use newsletter_signup_service::domain::new_user::{ForgotPassword, LogIn, SignUp};
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
 
@@ -196,4 +196,20 @@ async fn given_a_valid_sign_up_when_i_sign_up_a_subscriber_is_also_created() {
         .get_subscriber_by_email(signup.email_address, login.token)
         .await;
     assert_eq!(200, subscriber_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn forgot_password_works() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let forgot_password = ForgotPassword {
+        email_address: signup.email_address,
+    };
+
+    let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response.status().as_u16());
 }
