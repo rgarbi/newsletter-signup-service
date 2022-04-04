@@ -1,3 +1,4 @@
+use crate::domain::valid_email::ValidEmail;
 use cached::proc_macro::once;
 use config::Config;
 use secrecy::{ExposeSecret, Secret};
@@ -10,6 +11,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub auth_config: AuthConfig,
+    pub email_client: EmailClientSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -35,6 +37,18 @@ pub struct AuthConfig {
     pub audience: String,
     pub issuer: String,
     pub signing_key: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct EmailClientSettings {
+    pub base_url: String,
+    pub sender_email: String,
+    pub api_key: Secret<String>,
+}
+impl EmailClientSettings {
+    pub fn sender(&self) -> Result<ValidEmail, String> {
+        ValidEmail::parse(self.sender_email.clone())
+    }
 }
 
 #[once(result = true)]

@@ -10,4 +10,8 @@ database:
 auth_config:
   audience: "https://hello-world.example.com"
   issuer: "dev-4iy59-im.us.auth0.com"
-  signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTHdBnvgbp99IE5HFHU2UxIr2vK9TnnchR4ubxzm8kh2kjsUubn6urj0Dwl0qOId8LYBNADg1ZujN64iRp3NO43oDegdxUY8fNr1eIFfClAYq0Jrqs9VBBjHrkMz11FYsu"
+  signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTH"
+email_client:
+  base_url: "localhost"
+  sender_email: "test@gmail.com"
+  api_key: "something"

@@ -4,12 +4,14 @@ use actix_cors::Cors;
 use actix_web::dev::Server;
 use actix_web::http::header;
 use actix_web::middleware::DefaultHeaders;
+use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::{DatabaseSettings, Settings};
+use crate::email_client::EmailClient;
 use crate::routes;
 
 pub struct Application {
@@ -23,13 +25,24 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
+        let sender_email = configuration
+            .email_client
+            .sender()
+            .expect("Invalid sender email address.");
+        let email_client = EmailClient::new(
+            configuration.email_client.base_url,
+            sender_email,
+            configuration.email_client.api_key,
+        );
+
         let address = format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
-        let server = run(listener, connection_pool)?;
+
+        let server = run(listener, connection_pool, email_client)?;
         Ok(Self { port, server })
     }
     pub fn port(&self) -> u16 {
@@ -77,8 +90,13 @@ pub fn define_cors() -> Cors {
         .max_age(3600)
 }
 
-pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io::Error> {
+pub fn run(
+    listener: TcpListener,
+    connection: PgPool,
+    email_client: EmailClient,
+) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
+    let email_client = Data::new(email_client);
     let server = HttpServer::new(move || {
         App::new()
             .wrap(define_cors())
@@ -108,6 +126,7 @@ pub fn run(listener: TcpListener, connection: PgPool) -> Result<Server, std::io:
                 web::get().to(routes::get_subscriptions_by_subscriber_id),
             )
             .app_data(connection.clone())
+            .app_data(email_client.clone())
     })
     .listen(listener)?
     .run();
