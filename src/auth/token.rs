@@ -1,3 +1,4 @@
+use std::fmt;
 use std::future::Future;
 use std::pin::Pin;
 use std::time::SystemTime;
@@ -9,6 +10,7 @@ use actix_web_httpauth::extractors::bearer::BearerAuth;
 use jsonwebtokens as jwt;
 use jsonwebtokens::encode;
 use jwt::{Algorithm, AlgorithmID, Verifier};
+use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -31,10 +33,19 @@ pub struct LoginResponse {
     pub expires_on: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenError {
     AuthError,
     UnexpectedError,
+}
+
+impl fmt::Display for TokenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "A an error was encountered while trying evaluate a user token."
+        )
+    }
 }
 
 impl ResponseError for TokenError {
@@ -43,15 +54,6 @@ impl ResponseError for TokenError {
             TokenError::UnexpectedError => StatusCode::INTERNAL_SERVER_ERROR,
             TokenError::AuthError => StatusCode::UNAUTHORIZED,
         }
-    }
-}
-
-impl std::fmt::Display for TokenError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "A an error was encountered while trying evaluate a user token."
-        )
     }
 }
 
@@ -80,7 +82,11 @@ pub fn generate_token(user_id: String) -> String {
         iat: now,
         exp: get_expires_at(Option::Some(now)),
     };
-    let alg = Algorithm::new_hmac(AlgorithmID::HS512, auth_config.signing_key).unwrap();
+    let alg = Algorithm::new_hmac(
+        AlgorithmID::HS512,
+        auth_config.signing_key.expose_secret().as_bytes(),
+    )
+    .unwrap();
     let header = json!({ "alg": alg.name() });
     let claims = serde_json::to_value(claims).unwrap();
     encode(&header, &claims, &alg).unwrap()
@@ -88,7 +94,11 @@ pub fn generate_token(user_id: String) -> String {
 
 pub fn validate_token(token: String) -> Result<Claims, TokenError> {
     let auth_config = get_configuration().unwrap().auth_config;
-    let alg = Algorithm::new_hmac(AlgorithmID::HS512, auth_config.signing_key).unwrap();
+    let alg = Algorithm::new_hmac(
+        AlgorithmID::HS512,
+        auth_config.signing_key.expose_secret().as_bytes(),
+    )
+    .unwrap();
     let verifier = Verifier::create()
         .issuer(auth_config.issuer)
         .audience(auth_config.audience)

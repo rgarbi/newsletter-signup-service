@@ -1,10 +1,11 @@
-use crate::domain::valid_email::ValidEmail;
 use cached::proc_macro::once;
 use config::Config;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
+
+use crate::domain::valid_email::ValidEmail;
 
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
@@ -36,7 +37,7 @@ pub struct DatabaseSettings {
 pub struct AuthConfig {
     pub audience: String,
     pub issuer: String,
-    pub signing_key: String,
+    pub signing_key: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Clone)]
