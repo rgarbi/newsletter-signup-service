@@ -26,7 +26,7 @@ impl EmailClient {
         subject: &str,
         _html_content: &str,
         text_content: &str,
-    ) -> Result<(), ()> {
+    ) -> Result<(), reqwest::Error> {
         let auth_header = format!("Bearer {}", self.api_key.expose_secret());
 
         let contents: [Personalization; 1] = [Personalization {
@@ -58,7 +58,7 @@ impl EmailClient {
 
         match result {
             Ok(_) => Ok(()),
-            Err(_) => Err(()),
+            Err(err) => Err(err),
         }
     }
 }
