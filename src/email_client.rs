@@ -1,7 +1,6 @@
 use reqwest::Client;
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::domain::valid_email::ValidEmail;
 
@@ -27,21 +26,21 @@ impl EmailClient {
         subject: &str,
         _html_content: &str,
         text_content: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), ()> {
         let auth_header = format!("Bearer {}", self.api_key.expose_secret());
 
-        let contents: [Personalization] = [Personalization {
-            to: *[SendTo {
+        let contents: [Personalization; 1] = [Personalization {
+            to: [SendTo {
                 email: recipient.to_string(),
-            }],
+            }; 1],
             from: SendFrom {
                 email: self.sender.to_string(),
             },
             subject: String::from(subject),
-            content: *[EmailContent {
+            content: [EmailContent {
                 content_type: "text/plain".to_string(),
                 value: text_content.to_string(),
-            }],
+            }; 1],
         }];
 
         let email_content = SendEmailRequest {
@@ -50,7 +49,7 @@ impl EmailClient {
 
         let result = self
             .http_client
-            .post(self.base_url)
+            .post(&self.base_url)
             .header("Authorization", auth_header)
             .header("Content-Type", "application/json")
             .json(&email_content)
@@ -59,22 +58,22 @@ impl EmailClient {
 
         match result {
             Ok(_) => Ok(()),
-            Err(_) => format!("Something happened!"),
+            Err(_) => Err(()),
         }
     }
 }
 
 #[derive(Deserialize, Serialize)]
 struct SendEmailRequest {
-    pub personalizations: [Personalization],
+    pub personalizations: [Personalization; 1],
 }
 
 #[derive(Deserialize, Serialize)]
 struct Personalization {
-    pub to: [SendTo],
+    pub to: [SendTo; 1],
     pub from: SendFrom,
     pub subject: String,
-    pub content: [EmailContent],
+    pub content: [EmailContent; 1],
 }
 
 #[derive(Deserialize, Serialize)]
