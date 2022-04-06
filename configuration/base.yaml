@@ -15,3 +15,4 @@ email_client:
   base_url: "localhost"
   sender_email: "test@gmail.com"
   api_key: "something"
+  timeout_milliseconds: 10000

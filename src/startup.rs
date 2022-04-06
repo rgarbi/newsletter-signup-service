@@ -25,6 +25,7 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
+        let timeout = configuration.email_client.timeout();
         let sender_email = configuration
             .email_client
             .sender()
@@ -33,6 +34,7 @@ impl Application {
             configuration.email_client.base_url,
             sender_email,
             configuration.email_client.api_key,
+            timeout,
         );
 
         let address = format!(

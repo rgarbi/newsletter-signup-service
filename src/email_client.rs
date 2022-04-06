@@ -11,12 +11,14 @@ pub struct EmailClient {
     api_key: Secret<String>,
 }
 impl EmailClient {
-    pub fn new(base_url: String, sender: ValidEmail, api_key: Secret<String>) -> Self {
+    pub fn new(
+        base_url: String,
+        sender: ValidEmail,
+        api_key: Secret<String>,
+        timeout: std::time::Duration,
+    ) -> Self {
         Self {
-            http_client: Client::builder()
-                .timeout(std::time::Duration::from_secs(10))
-                .build()
-                .unwrap(),
+            http_client: Client::builder().timeout(timeout).build().unwrap(),
             base_url,
             sender,
             api_key,
@@ -146,7 +148,12 @@ mod tests {
     }
 
     fn email_client(base_url: String) -> EmailClient {
-        EmailClient::new(base_url, email(), Secret::new(Faker.fake()))
+        EmailClient::new(
+            base_url,
+            email(),
+            Secret::new(Faker.fake()),
+            std::time::Duration::from_secs(1),
+        )
     }
 
     #[tokio::test]
