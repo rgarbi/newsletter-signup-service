@@ -16,6 +16,7 @@ use crate::domain::new_user::{ForgotPassword, LogIn, ResetPassword, SignUp};
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
+use crate::email_client::EmailClient;
 use crate::util::standardize_email;
 
 impl TryFrom<SignUp> for NewSubscriber {
@@ -149,7 +150,7 @@ pub async fn reset_password(
 
 #[tracing::instrument(
     name = "Forgot password",
-    skip(forgot_password, pool),
+    skip(forgot_password, pool, email_client),
     fields(
         user_username = %forgot_password.email_address,
     )
@@ -157,6 +158,7 @@ pub async fn reset_password(
 pub async fn forgot_password(
     forgot_password: web::Json<ForgotPassword>,
     pool: web::Data<PgPool>,
+    email_client: web::Data<EmailClient>,
 ) -> impl Responder {
     let email = standardize_email(&forgot_password.email_address);
     match get_user_by_email_address(email.as_str(), &pool).await {
@@ -170,7 +172,21 @@ pub async fn forgot_password(
                 used: false,
             };
             match insert_otp(otp, &pool).await {
-                Ok(_) => HttpResponse::Ok().json(json!({})),
+                Ok(_) => {
+                    if email_client
+                        .send_email(
+                            ValidEmail::parse(email).unwrap(),
+                            "Password Reset",
+                            "",
+                            "Here is a link that will enable you to reset your password!",
+                        )
+                        .await
+                        .is_err()
+                    {
+                        return HttpResponse::InternalServerError().finish();
+                    }
+                    HttpResponse::Ok().json(json!({}))
+                }
                 Err(err) => {
                     tracing::error!(
                         "Something happened while saving the one time passcode. {:?}",

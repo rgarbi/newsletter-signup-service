@@ -152,7 +152,7 @@ mod tests {
             base_url,
             email(),
             Secret::new(Faker.fake()),
-            std::time::Duration::from_secs(1),
+            std::time::Duration::from_millis(200),
         )
     }
 
