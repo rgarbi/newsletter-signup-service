@@ -2,6 +2,7 @@ use once_cell::sync::Lazy;
 use reqwest::Response;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
+use wiremock::MockServer;
 
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
@@ -28,10 +29,10 @@ pub static TRACING: Lazy<()> = Lazy::new(|| {
     };
 });
 
-#[derive(Clone)]
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
+    pub email_server: MockServer,
 }
 
 impl TestApp {
@@ -181,38 +182,41 @@ impl TestApp {
         let response_body = response.text().await.unwrap();
         serde_json::from_str(response_body.as_str()).unwrap()
     }
-}
 
-pub async fn store_subscriber(
-    app: TestApp,
-    subscriber: Option<OverTheWireCreateSubscriber>,
-) -> OverTheWireSubscriber {
-    let subscriber = subscriber.unwrap_or_else(|| generate_over_the_wire_subscriber());
-    let response = app
-        .post_subscriber(
-            subscriber.to_json(),
-            generate_token(subscriber.user_id.clone()),
-        )
-        .await;
-    assert_eq!(200, response.status().as_u16());
+    pub async fn store_subscriber(
+        &self,
+        subscriber: Option<OverTheWireCreateSubscriber>,
+    ) -> OverTheWireSubscriber {
+        let subscriber = subscriber.unwrap_or_else(|| generate_over_the_wire_subscriber());
+        let response = self
+            .post_subscriber(
+                subscriber.to_json(),
+                generate_token(subscriber.user_id.clone()),
+            )
+            .await;
+        assert_eq!(200, response.status().as_u16());
 
-    app.from_response_to_over_the_wire_subscriber(
-        app.get_subscriber_by_email(
-            subscriber.email_address.clone(),
-            generate_token(subscriber.user_id.clone()),
+        self.from_response_to_over_the_wire_subscriber(
+            self.get_subscriber_by_email(
+                subscriber.email_address.clone(),
+                generate_token(subscriber.user_id.clone()),
+            )
+            .await,
         )
-        .await,
-    )
-    .await
+        .await
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 
+    let email_server = MockServer::start().await;
+
     let configuration = {
         let mut c = get_configuration().expect("Failed to read configuration.");
         c.database.database_name = Uuid::new_v4().to_string();
         c.application.port = 0;
+        c.email_client.base_url = email_server.uri();
         c
     };
 
@@ -227,6 +231,7 @@ pub async fn spawn_app() -> TestApp {
     TestApp {
         address,
         db_pool: get_connection_pool(&configuration.database),
+        email_server,
     }
 }
 

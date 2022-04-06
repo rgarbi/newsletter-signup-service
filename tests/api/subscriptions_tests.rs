@@ -5,13 +5,12 @@ use newsletter_signup_service::domain::new_subscription::{
     OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 
-use crate::helper::store_subscriber;
 use crate::helper::{generate_over_the_wire_subscription, spawn_app};
 
 #[tokio::test]
 async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
     let app = spawn_app().await;
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
     let test_cases = vec![
         (
             OverTheWireCreateSubscription {
@@ -78,7 +77,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
 async fn subscriptions_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app
@@ -99,7 +98,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app
         .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
@@ -157,7 +156,7 @@ async fn get_subscription_by_id_not_found() {
 async fn get_subscriptions_by_subscriber_id_many() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
     let expected = 100;
 
     for _ in 0..expected {
@@ -187,7 +186,7 @@ async fn get_subscriptions_by_subscriber_id_many() {
 async fn get_subscriptions_by_id() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
     let body = generate_over_the_wire_subscription(subscriber.id.clone());
     let response = app
         .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))

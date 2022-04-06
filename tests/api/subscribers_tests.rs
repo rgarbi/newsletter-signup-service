@@ -5,7 +5,7 @@ use newsletter_signup_service::domain::new_subscriber::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
 
-use crate::helper::{generate_over_the_wire_subscriber, spawn_app, store_subscriber};
+use crate::helper::{generate_over_the_wire_subscriber, spawn_app};
 
 #[tokio::test]
 async fn subscribers_returns_a_200_for_valid_form_data() {
@@ -40,7 +40,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
 async fn given_a_stored_subscriber_i_can_get_it_by_email() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_email(
@@ -61,7 +61,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
 async fn given_a_stored_subscriber_i_can_get_it_by_user_id() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id(
@@ -82,7 +82,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_user_id() {
 async fn given_a_stored_subscriber_i_can_get_it_by_user_id_and_email() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -104,7 +104,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_user_id_and_email() {
 async fn empty_user_id_and_email_gives_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -120,7 +120,7 @@ async fn empty_user_id_and_email_gives_404() {
 async fn bad_user_id_and_email_gives_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -136,7 +136,7 @@ async fn bad_user_id_and_email_gives_404() {
 async fn bad_user_id_gives_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -152,7 +152,7 @@ async fn bad_user_id_gives_404() {
 async fn bad_email_gives_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -168,7 +168,7 @@ async fn bad_email_gives_404() {
 async fn bad_token_gives_401() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_user_id_and_email(
@@ -184,7 +184,7 @@ async fn bad_token_gives_401() {
 async fn incorrect_email_returns_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_email(
@@ -199,7 +199,7 @@ async fn incorrect_email_returns_404() {
 async fn incorrect_id_returns_404() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_id(
@@ -214,7 +214,7 @@ async fn incorrect_id_returns_404() {
 async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     let app = spawn_app().await;
 
-    let subscriber = store_subscriber(app.clone(), Option::None).await;
+    let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
         .get_subscriber_by_id(

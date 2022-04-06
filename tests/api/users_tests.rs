@@ -1,5 +1,7 @@
 use claim::assert_ok;
 use uuid::Uuid;
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
@@ -13,8 +15,13 @@ async fn valid_users_can_create_an_account() {
 
     let signup = generate_signup();
     let response = app.user_signup(signup.to_json()).await;
-
     assert_eq!(200, response.status().as_u16());
+
+    Mock::given(path("/v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&app.email_server)
+        .await;
 
     let result = count_users_with_email_address(&signup.email_address, &app.db_pool).await;
     assert_ok!(&result);
@@ -210,6 +217,13 @@ async fn forgot_password_works() {
         email_address: signup.email_address,
     };
 
+    Mock::given(path("/v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
     let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
     assert_eq!(200, forgot_password_response.status().as_u16());
 }
@@ -237,6 +251,13 @@ async fn forgot_password_many_times_works() {
     let forgot_password = ForgotPassword {
         email_address: signup.email_address,
     };
+
+    Mock::given(path("/v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(2)
+        .mount(&app.email_server)
+        .await;
 
     let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
     assert_eq!(200, forgot_password_response.status().as_u16());
