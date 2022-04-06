@@ -47,12 +47,14 @@ impl EmailClient {
             personalizations: contents,
         };
 
+        let address = format!("{}/v3/mail/send", &self.base_url);
+
         let result = self
             .http_client
-            .post(&self.base_url)
+            .post(address)
             .header("Authorization", auth_header)
             .header("Content-Type", "application/json")
-            .json(&email_content)
+            .body(email_content.to_json())
             .send()
             .await;
 
@@ -88,9 +90,16 @@ struct SendFrom {
 
 #[derive(Deserialize, Serialize)]
 struct EmailContent {
-    #[serde(rename(serialize = "type"))]
+    #[serde(rename(serialize = "type", deserialize = "content_type"))]
+    #[serde(alias = "content_type", alias = "type")]
     pub content_type: String,
     pub value: String,
+}
+
+impl SendEmailRequest {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
 }
 
 #[cfg(test)]
@@ -99,11 +108,25 @@ mod tests {
     use fake::faker::lorem::en::{Paragraph, Sentence};
     use fake::Fake;
     use secrecy::Secret;
-    use wiremock::matchers::any;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
+    use wiremock::matchers::{header, header_exists, method, path};
+    use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
     use crate::domain::valid_email::ValidEmail;
-    use crate::email_client::EmailClient;
+    use crate::email_client::{EmailClient, SendEmailRequest};
+
+    struct SendEmailBodyMatcher;
+    impl wiremock::Match for SendEmailBodyMatcher {
+        fn matches(&self, request: &Request) -> bool {
+            let body = request.body.clone();
+            let email_request: SendEmailRequest =
+                serde_json::from_str(String::from_utf8(body).unwrap().as_str()).unwrap();
+
+            let size_is_one: bool = email_request.personalizations.len() == 1;
+            let has_subject: bool = !email_request.personalizations[0].subject.is_empty();
+            let has_content: bool = email_request.personalizations[0].content.len() == 1;
+            size_is_one && has_subject && has_content
+        }
+    }
 
     #[tokio::test]
     async fn send_email_fires_a_request_to_base_url() {
@@ -111,7 +134,11 @@ mod tests {
         let mock_server = MockServer::start().await;
         let sender = ValidEmail::parse(SafeEmail().fake()).unwrap();
         let email_client = EmailClient::new(mock_server.uri(), sender, Secret::new(String::new()));
-        Mock::given(any())
+        Mock::given(header_exists("Authorization"))
+            .and(header("Content-Type", "application/json"))
+            .and(path("v3/mail/send"))
+            .and(method("POST"))
+            .and(SendEmailBodyMatcher)
             .respond_with(ResponseTemplate::new(200))
             .expect(1)
             .mount(&mock_server)
