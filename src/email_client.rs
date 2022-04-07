@@ -142,8 +142,8 @@ mod tests {
                 serde_json::from_str(String::from_utf8(body).unwrap().as_str()).unwrap();
 
             let size_is_one: bool = email_request.personalizations.len() == 1;
-            let has_subject: bool = !email_request.personalizations[0].subject.is_empty();
-            let has_content: bool = email_request.personalizations[0].content.len() == 1;
+            let has_subject: bool = !email_request.subject.is_empty();
+            let has_content: bool = email_request.content.len() == 1;
             size_is_one && has_subject && has_content
         }
     }
