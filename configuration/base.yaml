@@ -14,5 +14,5 @@ auth_config:
 email_client:
   base_url: "https://api.sendgrid.com"
   sender_email: "thegospelmessage61@gmail.com"
-  api_key: "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"
+  api_key: "something"
   timeout_milliseconds: 10000
