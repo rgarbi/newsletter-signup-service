@@ -12,7 +12,7 @@ auth_config:
   issuer: "dev-4iy59-im.us.auth0.com"
   signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTH"
 email_client:
-  base_url: "localhost"
-  sender_email: "test@gmail.com"
-  api_key: "something"
+  base_url: "https://api.sendgrid.com"
+  sender_email: "thegospelmessage61@gmail.com"
+  api_key: "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"
   timeout_milliseconds: 10000

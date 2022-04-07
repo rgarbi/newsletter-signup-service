@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::valid_email::ValidEmail;
 
+#[derive(Debug)]
 pub struct EmailClient {
     http_client: Client,
     base_url: String,
@@ -18,13 +19,24 @@ impl EmailClient {
         timeout: std::time::Duration,
     ) -> Self {
         Self {
-            http_client: Client::builder().timeout(timeout).build().unwrap(),
+            http_client: Client::builder()
+                .timeout(timeout)
+                .connection_verbose(true)
+                .build()
+                .unwrap(),
             base_url,
             sender,
             api_key,
         }
     }
 
+    #[tracing::instrument(
+        name = "Sending an email",
+        skip(recipient, subject, _html_content),
+        fields(
+            email = %recipient.to_string(),
+        )
+    )]
     pub async fn send_email(
         &self,
         recipient: ValidEmail,
@@ -34,9 +46,11 @@ impl EmailClient {
     ) -> Result<(), reqwest::Error> {
         let auth_header = format!("Bearer {}", self.api_key.expose_secret());
 
-        let contents: [Personalization; 1] = [Personalization {
-            to: [SendTo {
-                email: recipient.to_string(),
+        let email_content = SendEmailRequest {
+            personalizations: [Personalization {
+                to: [SendTo {
+                    email: recipient.to_string(),
+                }; 1],
             }; 1],
             from: SendFrom {
                 email: self.sender.to_string(),
@@ -46,22 +60,21 @@ impl EmailClient {
                 content_type: "text/plain".to_string(),
                 value: text_content.to_string(),
             }; 1],
-        }];
-
-        let email_content = SendEmailRequest {
-            personalizations: contents,
         };
 
         let address = format!("{}/v3/mail/send", &self.base_url);
+        let body = email_content.to_json();
+        println!("{}", body);
 
         let result = self
             .http_client
             .post(address)
             .header("Authorization", auth_header)
             .header("Content-Type", "application/json")
-            .body(email_content.to_json())
+            .body(body)
             .send()
-            .await?
+            .await
+            .unwrap()
             .error_for_status();
 
         match result {
@@ -74,14 +87,14 @@ impl EmailClient {
 #[derive(Deserialize, Serialize)]
 struct SendEmailRequest {
     pub personalizations: [Personalization; 1],
+    pub from: SendFrom,
+    pub subject: String,
+    pub content: [EmailContent; 1],
 }
 
 #[derive(Deserialize, Serialize)]
 struct Personalization {
     pub to: [SendTo; 1],
-    pub from: SendFrom,
-    pub subject: String,
-    pub content: [EmailContent; 1],
 }
 
 #[derive(Deserialize, Serialize)]
