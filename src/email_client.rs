@@ -73,8 +73,7 @@ impl EmailClient {
             .header("Content-Type", "application/json")
             .body(body)
             .send()
-            .await
-            .unwrap()
+            .await?
             .error_for_status();
 
         match result {
