@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
+use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::insert_otp;
 use crate::db::subscribers::insert_subscriber;
 use crate::db::users::{
@@ -17,7 +18,7 @@ use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 use crate::email_client::EmailClient;
-use crate::util::standardize_email;
+use crate::util::{generate_random_token, standardize_email};
 
 impl TryFrom<SignUp> for NewSubscriber {
     type Error = String;
@@ -163,22 +164,33 @@ pub async fn forgot_password(
     let email = standardize_email(&forgot_password.email_address);
     match get_user_by_email_address(email.as_str(), &pool).await {
         Ok(user) => {
+            let passcode = generate_random_token();
             let otp = OneTimePasscode {
                 id: Uuid::new_v4(),
                 user_id: user.user_id.to_string(),
-                one_time_passcode: Uuid::new_v4().to_string(),
+                one_time_passcode: passcode.clone(),
                 issued_on: Utc::now(),
                 expires_on: Utc::now() + Duration::days(1),
                 used: false,
             };
             match insert_otp(otp, &pool).await {
                 Ok(_) => {
+                    let external_hostname =
+                        get_configuration().unwrap().application.external_hostname;
+                    let link = format!("{}/forgot_password/{}", external_hostname, passcode);
+
                     if email_client
                         .send_email(
                             ValidEmail::parse(email).unwrap(),
                             "Password Reset",
-                            "",
-                            "Here is a link that will enable you to reset your password!",
+                            format!(
+                                "Here is a <a href=\"{}\">link</a> that will enable you to reset your password!",
+                                link
+                            ).as_str(),
+                            format!(
+                                "Here is a link that will enable you to reset your password! {}",
+                                link
+                            ).as_str(),
                         )
                         .await
                         .is_err()

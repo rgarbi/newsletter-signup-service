@@ -1,6 +1,7 @@
 # base.yaml
 application:
   port: 8000
+  external_hostname: "http://localhost:8000"
 database:
   host: "127.0.0.1"
   port: 5432

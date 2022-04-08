@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
 use actix_web::{web, HttpResponse};
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
 pub fn from_string_to_uuid(id: web::Path<String>) -> Result<Uuid, HttpResponse> {
@@ -15,6 +17,14 @@ pub fn from_string_to_uuid(id: web::Path<String>) -> Result<Uuid, HttpResponse> 
 
 pub fn standardize_email(email: &str) -> String {
     email.to_string().to_lowercase()
+}
+
+pub fn generate_random_token() -> String {
+    let mut rng = thread_rng();
+    std::iter::repeat_with(|| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(50)
+        .collect()
 }
 
 #[cfg(test)]

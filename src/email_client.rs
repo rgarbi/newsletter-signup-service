@@ -32,7 +32,7 @@ impl EmailClient {
 
     #[tracing::instrument(
         name = "Sending an email",
-        skip(recipient, subject, _html_content),
+        skip(recipient, subject, html_content, text_content),
         fields(
             email = %recipient.to_string(),
         )
@@ -41,7 +41,7 @@ impl EmailClient {
         &self,
         recipient: ValidEmail,
         subject: &str,
-        _html_content: &str,
+        html_content: &str,
         text_content: &str,
     ) -> Result<(), reqwest::Error> {
         let auth_header = format!("Bearer {}", self.api_key.expose_secret());
@@ -56,15 +56,20 @@ impl EmailClient {
                 email: self.sender.to_string(),
             },
             subject: String::from(subject),
-            content: [EmailContent {
-                content_type: "text/plain".to_string(),
-                value: text_content.to_string(),
-            }; 1],
+            content: [
+                EmailContent {
+                    content_type: "text/plain".to_string(),
+                    value: text_content.to_string(),
+                },
+                EmailContent {
+                    content_type: "text/html".to_string(),
+                    value: html_content.to_string(),
+                },
+            ],
         };
 
         let address = format!("{}/v3/mail/send", &self.base_url);
         let body = email_content.to_json();
-        println!("{}", body);
 
         let result = self
             .http_client
@@ -84,30 +89,30 @@ impl EmailClient {
 }
 
 #[derive(Deserialize, Serialize)]
-struct SendEmailRequest {
+pub struct SendEmailRequest {
     pub personalizations: [Personalization; 1],
     pub from: SendFrom,
     pub subject: String,
-    pub content: [EmailContent; 1],
+    pub content: [EmailContent; 2],
 }
 
 #[derive(Deserialize, Serialize)]
-struct Personalization {
+pub struct Personalization {
     pub to: [SendTo; 1],
 }
 
 #[derive(Deserialize, Serialize)]
-struct SendTo {
+pub struct SendTo {
     pub email: String,
 }
 
 #[derive(Deserialize, Serialize)]
-struct SendFrom {
+pub struct SendFrom {
     pub email: String,
 }
 
 #[derive(Deserialize, Serialize)]
-struct EmailContent {
+pub struct EmailContent {
     #[serde(rename(serialize = "type", deserialize = "content_type"))]
     #[serde(alias = "content_type", alias = "type")]
     pub content_type: String,

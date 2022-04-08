@@ -6,6 +6,7 @@ use wiremock::{Mock, ResponseTemplate};
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::new_user::{ForgotPassword, LogIn, SignUp};
+use newsletter_signup_service::email_client::SendEmailRequest;
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
 
@@ -264,4 +265,44 @@ async fn forgot_password_many_times_works() {
 
     let forgot_password_response2 = app.forgot_password(forgot_password.to_json()).await;
     assert_eq!(200, forgot_password_response2.status().as_u16());
+}
+
+#[tokio::test]
+async fn subscribe_sends_a_confirmation_email_with_a_link() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let forgot_password = ForgotPassword {
+        email_address: signup.email_address,
+    };
+
+    Mock::given(path("/v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response.status().as_u16());
+
+    let email_request = &app.email_server.received_requests().await.unwrap()[0];
+
+    let body: SendEmailRequest = serde_json::from_slice(&email_request.body).unwrap();
+
+    // Extract the link from one of the request fields.
+    let get_link = |s: &str| {
+        let links: Vec<_> = linkify::LinkFinder::new()
+            .links(s)
+            .filter(|l| *l.kind() == linkify::LinkKind::Url)
+            .collect();
+        assert_eq!(links.len(), 1);
+        links[0].as_str().to_owned()
+    };
+
+    let text_link = get_link(body.content[0].value.as_str());
+    assert_eq!(false, text_link.is_empty());
 }
