@@ -1,5 +1,7 @@
+use actix_web::web::Data;
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{Duration, Utc};
+use reqwest::Error;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -175,26 +177,7 @@ pub async fn forgot_password(
             };
             match insert_otp(otp, &pool).await {
                 Ok(_) => {
-                    let external_hostname =
-                        get_configuration().unwrap().application.external_hostname;
-                    let link = format!("{}/forgot_password/{}", external_hostname, passcode);
-
-                    if email_client
-                        .send_email(
-                            ValidEmail::parse(email).unwrap(),
-                            "Password Reset",
-                            format!(
-                                "Here is a <a href=\"{}\">link</a> that will enable you to reset your password!",
-                                link
-                            ).as_str(),
-                            format!(
-                                "Here is a link that will enable you to reset your password! {}",
-                                link
-                            ).as_str(),
-                        )
-                        .await
-                        .is_err()
-                    {
+                    if email_user(email, passcode, email_client).await.is_err() {
                         return HttpResponse::InternalServerError().finish();
                     }
                     HttpResponse::Ok().json(json!({}))
@@ -210,4 +193,30 @@ pub async fn forgot_password(
         }
         Err(_) => HttpResponse::Ok().json(json!({})),
     }
+}
+
+pub async fn email_user(
+    email: String,
+    passcode: String,
+    email_client: Data<EmailClient>,
+) -> Result<(), Error> {
+    let external_hostname = get_configuration().unwrap().application.external_hostname;
+    let link = format!("{}/forgot_password/{}", external_hostname, passcode);
+
+    email_client
+        .send_email(
+            ValidEmail::parse(email).unwrap(),
+            "Password Reset",
+            format!(
+                "Here is a <a href=\"{}\">link</a> that will enable you to reset your password!",
+                link
+            )
+            .as_str(),
+            format!(
+                "Here is a link that will enable you to reset your password! {}",
+                link
+            )
+            .as_str(),
+        )
+        .await
 }
