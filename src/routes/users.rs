@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
 use crate::configuration::get_configuration;
-use crate::db::otp_db_broker::insert_otp;
+use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers::insert_subscriber;
 use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
@@ -195,6 +195,38 @@ pub async fn forgot_password(
     }
 }
 
+#[tracing::instrument(
+    name = "Forgot password login",
+    skip(one_time_passcode, pool),
+    fields(
+        one_time_passcode = %one_time_passcode,
+    )
+)]
+pub async fn forgot_password_login(
+    one_time_passcode: web::Path<String>,
+    pool: web::Data<PgPool>,
+) -> impl Responder {
+    match get_otp_by_otp(one_time_passcode.into_inner().clone().as_str(), &pool).await {
+        Ok(passcode) => {
+            if is_invalid_one_time_passcode(&passcode) {
+                return HttpResponse::BadRequest().finish();
+            }
+
+            //set it to used
+            match set_to_used_by_otp(passcode.one_time_passcode.as_str(), &pool).await {
+                Ok(_) => {
+                    //redirect with a token in the URL?
+                    todo!()
+                }
+                Err(_) => {
+                    return HttpResponse::InternalServerError().finish();
+                }
+            }
+        }
+        Err(_) => HttpResponse::BadRequest().finish(),
+    }
+}
+
 pub async fn email_user(
     email: String,
     passcode: String,
@@ -219,4 +251,74 @@ pub async fn email_user(
             .as_str(),
         )
         .await
+}
+
+fn is_invalid_one_time_passcode(one_time_passcode: &OneTimePasscode) -> bool {
+    let is_expired: bool = one_time_passcode.expires_on.lt(&Utc::now());
+
+    is_expired || one_time_passcode.used
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{Duration, Utc};
+
+    use crate::domain::otp_models::OneTimePasscode;
+    use crate::routes::users::is_invalid_one_time_passcode;
+
+    #[test]
+    fn expired_passcodes_are_invalid() {
+        let otp = OneTimePasscode {
+            id: Default::default(),
+            user_id: "".to_string(),
+            one_time_passcode: "".to_string(),
+            issued_on: Utc::now() - Duration::seconds(100),
+            expires_on: Utc::now() - Duration::seconds(100),
+            used: false,
+        };
+
+        assert_eq!(true, is_invalid_one_time_passcode(&otp))
+    }
+
+    #[test]
+    fn used_passcodes_are_invalid() {
+        let otp = OneTimePasscode {
+            id: Default::default(),
+            user_id: "".to_string(),
+            one_time_passcode: "".to_string(),
+            issued_on: Utc::now() + Duration::seconds(100),
+            expires_on: Utc::now() + Duration::seconds(100),
+            used: true,
+        };
+
+        assert_eq!(true, is_invalid_one_time_passcode(&otp))
+    }
+
+    #[test]
+    fn used_and_expired_passcodes_are_invalid() {
+        let otp = OneTimePasscode {
+            id: Default::default(),
+            user_id: "".to_string(),
+            one_time_passcode: "".to_string(),
+            issued_on: Utc::now() - Duration::seconds(100),
+            expires_on: Utc::now() - Duration::seconds(100),
+            used: true,
+        };
+
+        assert_eq!(true, is_invalid_one_time_passcode(&otp))
+    }
+
+    #[test]
+    fn not_used_and_not_expired_passcodes_are_not_invalid() {
+        let otp = OneTimePasscode {
+            id: Default::default(),
+            user_id: "".to_string(),
+            one_time_passcode: "".to_string(),
+            issued_on: Utc::now() + Duration::seconds(100),
+            expires_on: Utc::now() + Duration::seconds(100),
+            used: false,
+        };
+
+        assert_eq!(false, is_invalid_one_time_passcode(&otp))
+    }
 }
