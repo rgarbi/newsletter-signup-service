@@ -263,6 +263,18 @@
     },
     "query": "INSERT \n            INTO otp (id, user_id, one_time_passcode, issued_on, expires_on, used) \n            VALUES ($1, $2, $3, $4, $5, $6)"
   },
+  "9021c8762ee1570fa8202ae3d560581b3f81fe49b91a0a6b6a1a913fdc144f6f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE otp\n            SET used = true\n            WHERE one_time_passcode = $1"
+  },
   "a2a08aa828ddea78a11b97f832ba0394a63178e8d3d0c9a5ad3e143c5e66d10e": {
     "describe": {
       "columns": [
