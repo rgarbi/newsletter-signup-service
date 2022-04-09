@@ -218,9 +218,7 @@ pub async fn forgot_password_login(
                     //redirect with a token in the URL?
                     todo!()
                 }
-                Err(_) => {
-                    return HttpResponse::InternalServerError().finish();
-                }
+                Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }
         Err(_) => HttpResponse::BadRequest().finish(),
