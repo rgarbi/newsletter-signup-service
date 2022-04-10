@@ -30,6 +30,12 @@ pub struct ResetPassword {
 }
 
 #[derive(Deserialize, Serialize)]
+pub struct ResetPasswordFromForgotPassword {
+    pub user_id: String,
+    pub new_password: String,
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct ForgotPassword {
     pub email_address: String,
 }

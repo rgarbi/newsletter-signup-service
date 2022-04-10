@@ -12,10 +12,13 @@ use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers::insert_subscriber;
 use crate::db::users::{
-    count_users_with_email_address, get_user_by_email_address, insert_user, update_password,
+    count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
+    update_password,
 };
 use crate::domain::new_subscriber::NewSubscriber;
-use crate::domain::new_user::{ForgotPassword, LogIn, ResetPassword, SignUp};
+use crate::domain::new_user::{
+    ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp,
+};
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
@@ -226,16 +229,45 @@ pub async fn forgot_password_login(
     }
 }
 
+#[tracing::instrument(
+    name = "Reset password from forgot password",
+    skip(reset_password, pool, user_claim),
+    fields(
+        user_user_id = %reset_password.user_id,
+    )
+)]
+pub async fn reset_password_from_forgot_password(
+    reset_password: web::Json<ResetPasswordFromForgotPassword>,
+    pool: web::Data<PgPool>,
+    user_claim: Claims,
+) -> impl Responder {
+    if &user_claim.user_id != &reset_password.user_id.to_string() {
+        return HttpResponse::Unauthorized().finish();
+    }
+    match get_user_by_user_id(&reset_password.user_id, &pool).await {
+        Ok(user) => {
+            if user_claim.user_id != user.user_id.to_string() {
+                return HttpResponse::Unauthorized().finish();
+            }
+
+            let new_hashed_password = hash_password(reset_password.new_password.clone()).await;
+
+            match update_password(&user.email_address, &new_hashed_password, &pool).await {
+                Ok(_) => HttpResponse::Ok().finish(),
+                Err(_) => HttpResponse::InternalServerError().finish(),
+            }
+        }
+        Err(_) => HttpResponse::BadRequest().finish(),
+    }
+}
+
 pub async fn email_user(
     email: String,
     passcode: String,
     email_client: Data<EmailClient>,
 ) -> Result<(), Error> {
     let web_app_hostname = get_configuration().unwrap().application.web_app_host;
-    let link = format!(
-        "{}/forgot_password/reset-password?otp={}",
-        web_app_hostname, passcode
-    );
+    let link = format!("{}/reset-password?otp={}", web_app_hostname, passcode);
 
     email_client
         .send_email(

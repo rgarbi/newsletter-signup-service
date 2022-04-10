@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use actix_web::ResponseError;
 use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -33,6 +35,29 @@ pub async fn get_user_by_email_address(email_address: &str, pool: &PgPool) -> Re
             FROM users 
             WHERE email_address = $1"#,
         email_address,
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("{:?}", e);
+        e
+    })?;
+
+    Ok(User {
+        user_id: result.user_id,
+        email_address: result.email_address,
+        password: result.password,
+    })
+}
+
+#[tracing::instrument(name = "Get user by user_id", skip(user_id, pool))]
+pub async fn get_user_by_user_id(user_id: &str, pool: &PgPool) -> Result<User, Error> {
+    let id = Uuid::from_str(user_id).unwrap();
+    let result = sqlx::query!(
+        r#"SELECT user_id, email_address, password
+            FROM users 
+            WHERE user_id = $1"#,
+        id,
     )
     .fetch_one(pool)
     .await
