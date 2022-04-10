@@ -214,10 +214,11 @@ pub async fn forgot_password_login(
 
             //set it to used
             match set_to_used_by_otp(passcode.one_time_passcode.as_str(), &pool).await {
-                Ok(_) => {
-                    //redirect with a token in the URL?
-                    todo!()
-                }
+                Ok(_) => HttpResponse::Ok().json(LoginResponse {
+                    user_id: passcode.user_id.clone(),
+                    token: generate_token(passcode.user_id.clone()),
+                    expires_on: get_expires_at(Option::None),
+                }),
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }
@@ -230,8 +231,11 @@ pub async fn email_user(
     passcode: String,
     email_client: Data<EmailClient>,
 ) -> Result<(), Error> {
-    let external_hostname = get_configuration().unwrap().application.external_hostname;
-    let link = format!("{}/forgot_password/{}", external_hostname, passcode);
+    let web_app_hostname = get_configuration().unwrap().application.web_app_host;
+    let link = format!(
+        "{}/forgot_password/reset-password?otp={}",
+        web_app_hostname, passcode
+    );
 
     email_client
         .send_email(

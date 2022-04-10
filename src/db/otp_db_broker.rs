@@ -61,7 +61,7 @@ pub async fn set_to_used_by_otp(one_time_passcode: &str, pool: &PgPool) -> Resul
             WHERE one_time_passcode = $1"#,
         one_time_passcode,
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await
     .map_err(|e: sqlx::Error| {
         tracing::error!("{:?}", e);

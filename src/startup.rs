@@ -109,7 +109,7 @@ pub fn run(
             .route("/forgot_password", web::post().to(routes::forgot_password))
             .route(
                 "/forgot_password/otp/{otp}",
-                web::post().to(routes::forgot_password_login),
+                web::get().to(routes::forgot_password_login),
             )
             .route("/reset_password", web::post().to(routes::reset_password))
             .route("/health_check", web::get().to(routes::health_check))
