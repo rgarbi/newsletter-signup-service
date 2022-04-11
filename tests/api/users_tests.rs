@@ -355,3 +355,56 @@ async fn forgot_password_given_when_then() {
 
     assert_eq!(200, response.status().as_u16());
 }
+
+#[tokio::test]
+async fn forgot_password_reset_password_given_when_then() {
+    let app = spawn_app().await;
+    //GIVEN: A user who has forgotten their password and has requested to reset their password
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let forgot_password = ForgotPassword {
+        email_address: signup.email_address,
+    };
+
+    Mock::given(path("/v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    let forgot_password_response = app.forgot_password(forgot_password.to_json()).await;
+    assert_eq!(200, forgot_password_response.status().as_u16());
+
+    let email_request = &app.email_server.received_requests().await.unwrap()[0];
+
+    let body: SendEmailRequest = serde_json::from_slice(&email_request.body).unwrap();
+
+    let get_link = |s: &str| {
+        let links: Vec<_> = linkify::LinkFinder::new()
+            .links(s)
+            .filter(|l| *l.kind() == linkify::LinkKind::Url)
+            .collect();
+        assert_eq!(links.len(), 1);
+        links[0].as_str().to_owned()
+    };
+
+    //WHEN: The user gets the email it contains a link.
+    let text_link = get_link(body.content[0].value.as_str());
+    assert_eq!(false, text_link.is_empty());
+
+    //THEN: The user can pass that link to the server and get back a token
+    let otp_url = url::Url::parse(text_link.as_str()).unwrap();
+    let mut query_pairs = otp_url.query_pairs();
+    assert_eq!(query_pairs.count(), 1);
+    let otp = query_pairs.next().unwrap().1.to_string();
+    let response = app.forgot_password_login(otp).await;
+
+    assert_eq!(&200, &response.status().as_u16());
+
+    let forgot_password_login_response_body = response.text().await.unwrap();
+    let login: LoginResponse =
+        serde_json::from_str(forgot_password_login_response_body.as_str()).unwrap();
+}
