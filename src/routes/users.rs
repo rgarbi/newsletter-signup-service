@@ -253,7 +253,7 @@ pub async fn reset_password_from_forgot_password(
             let new_hashed_password = hash_password(reset_password.new_password.clone()).await;
 
             match update_password(&user.email_address, &new_hashed_password, &pool).await {
-                Ok(_) => HttpResponse::Ok().finish(),
+                Ok(_) => HttpResponse::Ok().json(json!({})),
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }
