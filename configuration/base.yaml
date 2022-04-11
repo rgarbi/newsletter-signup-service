@@ -2,7 +2,7 @@
 application:
   port: 8000
   external_hostname: "http://localhost:8000"
-  web_app_host: "https://localhost:3000"
+  web_app_host: "http://localhost:3000"
 database:
   host: "127.0.0.1"
   port: 5432
