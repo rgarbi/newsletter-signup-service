@@ -29,7 +29,7 @@ pub struct ResetPassword {
     pub new_password: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct ResetPasswordFromForgotPassword {
     pub user_id: String,
     pub new_password: String,
@@ -59,6 +59,12 @@ impl LogIn {
 }
 
 impl ForgotPassword {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}
+
+impl ResetPasswordFromForgotPassword {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }

@@ -5,7 +5,9 @@ use wiremock::{Mock, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
-use newsletter_signup_service::domain::new_user::{ForgotPassword, LogIn, SignUp};
+use newsletter_signup_service::domain::new_user::{
+    ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp,
+};
 use newsletter_signup_service::email_client::SendEmailRequest;
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
@@ -361,11 +363,11 @@ async fn forgot_password_reset_password_given_when_then() {
     let app = spawn_app().await;
     //GIVEN: A user who has forgotten their password and has requested to reset their password
     let signup = generate_signup();
-    let response = app.user_signup(signup.to_json()).await;
+    let response = app.user_signup(signup.clone().to_json()).await;
     assert_eq!(200, response.status().as_u16());
 
     let forgot_password = ForgotPassword {
-        email_address: signup.email_address,
+        email_address: signup.clone().email_address,
     };
 
     Mock::given(path("/v3/mail/send"))
@@ -395,7 +397,7 @@ async fn forgot_password_reset_password_given_when_then() {
     let text_link = get_link(body.content[0].value.as_str());
     assert_eq!(false, text_link.is_empty());
 
-    //THEN: The user can pass that link to the server and get back a token
+    //THEN: The user can pass that link to the server and get back a token which can be used to reset their password
     let otp_url = url::Url::parse(text_link.as_str()).unwrap();
     let mut query_pairs = otp_url.query_pairs();
     assert_eq!(query_pairs.count(), 1);
@@ -407,4 +409,22 @@ async fn forgot_password_reset_password_given_when_then() {
     let forgot_password_login_response_body = response.text().await.unwrap();
     let login: LoginResponse =
         serde_json::from_str(forgot_password_login_response_body.as_str()).unwrap();
+
+    let reset = ResetPasswordFromForgotPassword {
+        user_id: login.user_id,
+        new_password: Uuid::new_v4().to_string(),
+    };
+
+    let reset_password_response = app
+        .forgot_password_rest_password(reset.to_json(), login.token)
+        .await;
+    assert_eq!(&200, &reset_password_response.status().as_u16());
+
+    let login: LogIn = LogIn {
+        email_address: signup.email_address,
+        password: reset.clone().new_password,
+    };
+
+    let login_response = app.login(login.to_json()).await;
+    assert_eq!(&200, &login_response.status().as_u16());
 }
