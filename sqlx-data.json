@@ -275,6 +275,38 @@
     },
     "query": "UPDATE otp\n            SET used = true\n            WHERE one_time_passcode = $1"
   },
+  "9f9e36426a6c968a4c3f29033b173e40003a6ecae0e431920ee640b0f9dc0de9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 2,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE user_id = $1"
+  },
   "a2a08aa828ddea78a11b97f832ba0394a63178e8d3d0c9a5ad3e143c5e66d10e": {
     "describe": {
       "columns": [

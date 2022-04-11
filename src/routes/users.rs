@@ -241,7 +241,7 @@ pub async fn reset_password_from_forgot_password(
     pool: web::Data<PgPool>,
     user_claim: Claims,
 ) -> impl Responder {
-    if &user_claim.user_id != &reset_password.user_id.to_string() {
+    if user_claim.user_id != reset_password.user_id {
         return HttpResponse::Unauthorized().finish();
     }
     match get_user_by_user_id(&reset_password.user_id, &pool).await {
