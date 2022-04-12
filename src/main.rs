@@ -1,5 +1,3 @@
-use secrecy::ExposeSecret;
-
 use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
