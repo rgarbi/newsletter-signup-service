@@ -46,7 +46,7 @@ cached = "0.34.0"
 jsonwebtokens = "1"
 argon2 = "0.3"
 rand_core = { version = "0.6", features = ["std"] }
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 rand = { version = "0.8", features=["std_rng"] }
 
 [dev-dependencies]

@@ -83,7 +83,10 @@ impl EmailClient {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(err),
+            Err(err) => {
+                tracing::error!("Error sending email: {:?}", err);
+                Err(err)
+            }
         }
     }
 }
