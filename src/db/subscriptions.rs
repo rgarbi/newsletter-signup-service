@@ -19,8 +19,7 @@ pub async fn insert_subscription(
         id: Uuid::new_v4(),
         subscriber_id: Uuid::from_str(&*subscription.subscriber_id)
             .expect("Unable to parse the UUID"),
-        subscription_first_name: String::from(subscription.subscription_first_name.as_ref()),
-        subscription_last_name: String::from(subscription.subscription_last_name.as_ref()),
+        subscription_name: String::from(subscription.subscription_first_name.as_ref()),
         subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,
         subscription_mailing_address_line_2: subscription
             .subscription_mailing_address_line_2
@@ -38,7 +37,7 @@ pub async fn insert_subscription(
         r#"INSERT INTO subscriptions (
             id, 
             subscriber_id, 
-            subscription_first_name, 
+            subscription_name, 
             subscription_last_name, 
             subscription_mailing_address_line_1, 
             subscription_mailing_address_line_2,
@@ -49,11 +48,10 @@ pub async fn insert_subscription(
             subscription_creation_date,
             active,
             subscription_type
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"#,
         subscription_to_be_saved.id,
         subscription_to_be_saved.subscriber_id,
-        subscription_to_be_saved.subscription_first_name,
-        subscription_to_be_saved.subscription_last_name,
+        subscription_to_be_saved.subscription_name,
         subscription_to_be_saved.subscription_mailing_address_line_1,
         subscription_to_be_saved.subscription_mailing_address_line_2,
         subscription_to_be_saved.subscription_city,
@@ -83,8 +81,7 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
         r#"SELECT
             id, 
             subscriber_id, 
-            subscription_first_name, 
-            subscription_last_name, 
+            subscription_name, 
             subscription_mailing_address_line_1, 
             subscription_mailing_address_line_2,
             subscription_city,
@@ -110,8 +107,7 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
         subscriptions.push(OverTheWireSubscription {
             id: row.id,
             subscriber_id: row.subscriber_id,
-            subscription_first_name: row.subscription_first_name,
-            subscription_last_name: row.subscription_last_name,
+            subscription_name: row.subscription_first_name,
             subscription_email_address: row.subscription_email_address,
             subscription_mailing_address_line_1: row.subscription_mailing_address_line_1,
             subscription_mailing_address_line_2: row.subscription_mailing_address_line_2,
@@ -135,8 +131,7 @@ pub async fn retrieve_subscription_by_subscription_id(
         r#"SELECT
             id,
             subscriber_id,
-            subscription_first_name,
-            subscription_last_name,
+            subscription_name,
             subscription_mailing_address_line_1,
             subscription_mailing_address_line_2,
             subscription_city,
@@ -159,8 +154,7 @@ pub async fn retrieve_subscription_by_subscription_id(
     Ok(OverTheWireSubscription {
         id: result.id,
         subscriber_id: result.subscriber_id,
-        subscription_first_name: result.subscription_first_name,
-        subscription_last_name: result.subscription_last_name,
+        subscription_name: result.subscription_first_name,
         subscription_email_address: result.subscription_email_address,
         subscription_mailing_address_line_1: result.subscription_mailing_address_line_1,
         subscription_mailing_address_line_2: result.subscription_mailing_address_line_2,
