@@ -28,12 +28,10 @@ use crate::util::{generate_random_token, standardize_email};
 impl TryFrom<SignUp> for NewSubscriber {
     type Error = String;
     fn try_from(sign_up: SignUp) -> Result<Self, Self::Error> {
-        let first_name = ValidName::parse(sign_up.first_name)?;
-        let last_name = ValidName::parse(sign_up.last_name)?;
+        let name = ValidName::parse(sign_up.name)?;
         let email_address = ValidEmail::parse(standardize_email(&sign_up.email_address))?;
         Ok(NewSubscriber {
-            first_name,
-            last_name,
+            name,
             email_address,
             user_id: String::new(),
         })
