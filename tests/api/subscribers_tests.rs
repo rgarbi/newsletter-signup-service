@@ -238,8 +238,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     let test_cases = vec![
         (
             OverTheWireCreateSubscriber {
-                last_name: Uuid::new_v4().to_string(),
-                first_name: Uuid::new_v4().to_string(),
+                name: Uuid::new_v4().to_string(),
                 email_address: String::from(""),
                 user_id: Uuid::new_v4().to_string(),
             },
@@ -247,8 +246,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         ),
         (
             OverTheWireCreateSubscriber {
-                last_name: String::from(""),
-                first_name: Uuid::new_v4().to_string(),
+                name: String::from(""),
                 email_address: Uuid::new_v4().to_string(),
                 user_id: Uuid::new_v4().to_string(),
             },
@@ -256,8 +254,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         ),
         (
             OverTheWireCreateSubscriber {
-                last_name: String::from(""),
-                first_name: Uuid::new_v4().to_string(),
+                name: String::from(""),
                 email_address: String::from(""),
                 user_id: Uuid::new_v4().to_string(),
             },
