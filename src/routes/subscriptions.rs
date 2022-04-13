@@ -14,14 +14,12 @@ use crate::util::from_string_to_uuid;
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
     type Error = String;
     fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {
-        let subscription_first_name = ValidName::parse(subscription.subscription_first_name)?;
-        let subscription_last_name = ValidName::parse(subscription.subscription_last_name)?;
+        let subscription_name = ValidName::parse(subscription.subscription_name)?;
         let subscription_email_address =
             ValidEmail::parse(subscription.subscription_email_address)?;
         Ok(NewSubscription {
             subscriber_id: subscription.subscriber_id,
-            subscription_first_name,
-            subscription_last_name,
+            subscription_name,
             subscription_email_address,
             subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,
             subscription_mailing_address_line_2: subscription.subscription_mailing_address_line_2,
