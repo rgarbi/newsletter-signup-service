@@ -32,7 +32,30 @@
     },
     "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE email_address = $1"
   },
-  "1b2915bee45313f7134f1b43c9e7eb89f63a5251ed059014cfd47dcc29b59c58": {
+  "15e98e562a8edf4e4630d2b936f719dd8387f3b08905cff3bd7695fd2a159743": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Bool",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
+  },
+  "2517cbd0f1d8835e486eb7e4e63d7462720970c62f3d632684b9324845a2f4b3": {
     "describe": {
       "columns": [
         {
@@ -41,63 +64,18 @@
           "type_info": "Uuid"
         },
         {
-          "name": "subscriber_id",
+          "name": "email_address",
           "ordinal": 1,
-          "type_info": "Uuid"
+          "type_info": "Text"
         },
         {
-          "name": "subscription_first_name",
+          "name": "name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "subscription_last_name",
+          "name": "user_id",
           "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_mailing_address_line_1",
-          "ordinal": 4,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_mailing_address_line_2",
-          "ordinal": 5,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_city",
-          "ordinal": 6,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_state",
-          "ordinal": 7,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_postal_code",
-          "ordinal": 8,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_email_address",
-          "ordinal": 9,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_creation_date",
-          "ordinal": 10,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "active",
-          "ordinal": 11,
-          "type_info": "Bool"
-        },
-        {
-          "name": "subscription_type",
-          "ordinal": 12,
           "type_info": "Text"
         }
       ],
@@ -105,12 +83,41 @@
         false,
         false,
         false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1"
+  },
+  "5c27eb12c7f949a78bb1be8f0f583497c72096ac937c63af5866a9def0ef7cfc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
         false,
         false,
         false,
@@ -122,96 +129,7 @@
         ]
       }
     },
-    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
-  },
-  "1d93b4aadd335366529a6a9bb62a0315f5a875d35f1a505b6f0093f39ae519e8": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "first_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 4,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1"
-  },
-  "669e782822de3d00f299dd2fae4bce9d0e0165032e6c40b7cb037cf858e64910": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "first_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 4,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"
+    "query": "SELECT id, email_address, name, user_id FROM subscribers WHERE id = $1"
   },
   "6838f50a66a76ee062f685133371fe057795b4321cfc1eae0747575f44bead85": {
     "describe": {
@@ -274,6 +192,92 @@
       }
     },
     "query": "UPDATE otp\n            SET used = true\n            WHERE one_time_passcode = $1"
+  },
+  "9c952af5f45644f9c7fa7e47f394333569dfa3f0f62c2516832637a85fbe5767": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscriber_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscription_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_1",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_2",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_city",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_state",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_postal_code",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_email_address",
+          "ordinal": 8,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_creation_date",
+          "ordinal": 9,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "active",
+          "ordinal": 10,
+          "type_info": "Bool"
+        },
+        {
+          "name": "subscription_type",
+          "ordinal": 11,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
   },
   "9f9e36426a6c968a4c3f29033b173e40003a6ecae0e431920ee640b0f9dc0de9": {
     "describe": {
@@ -357,50 +361,6 @@
     },
     "query": "SELECT id, user_id, one_time_passcode, issued_on, expires_on, used\n            FROM otp\n            WHERE one_time_passcode = $1"
   },
-  "b1e6dcace6616b238547443291b8197d507f2961f2547b20458dd0c4b917e25e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "first_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 4,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE email_address = $1"
-  },
   "b240fa7ad0bf191778acef620998314c360c8c9b7bef1e042d3b321e2e5b29fa": {
     "describe": {
       "columns": [],
@@ -415,7 +375,22 @@
     },
     "query": "INSERT \n            INTO users (user_id, email_address, password) \n            VALUES ($1, $2, $3)"
   },
-  "ca5deb0efdd3d732bf91f6522e3221d167ae8696d36ece085749976de3d0dc5c": {
+  "bc94521b6940ec0a99805622a95977f73bdeb73517ac7fa9ad4fa9a883df974f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscribers (id, email_address, name, user_id) VALUES ($1, $2, $3, $4) ON CONFLICT (email_address) DO NOTHING"
+  },
+  "cce9ccfe0b197abc2a62c0f75e64d798493078f8c6fca1fa14759f84ce6d273d": {
     "describe": {
       "columns": [
         {
@@ -429,63 +404,57 @@
           "type_info": "Uuid"
         },
         {
-          "name": "subscription_first_name",
+          "name": "subscription_name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "subscription_last_name",
+          "name": "subscription_mailing_address_line_1",
           "ordinal": 3,
           "type_info": "Text"
         },
         {
-          "name": "subscription_mailing_address_line_1",
+          "name": "subscription_mailing_address_line_2",
           "ordinal": 4,
           "type_info": "Text"
         },
         {
-          "name": "subscription_mailing_address_line_2",
+          "name": "subscription_city",
           "ordinal": 5,
           "type_info": "Text"
         },
         {
-          "name": "subscription_city",
+          "name": "subscription_state",
           "ordinal": 6,
           "type_info": "Text"
         },
         {
-          "name": "subscription_state",
+          "name": "subscription_postal_code",
           "ordinal": 7,
           "type_info": "Text"
         },
         {
-          "name": "subscription_postal_code",
+          "name": "subscription_email_address",
           "ordinal": 8,
           "type_info": "Text"
         },
         {
-          "name": "subscription_email_address",
-          "ordinal": 9,
-          "type_info": "Text"
-        },
-        {
           "name": "subscription_creation_date",
-          "ordinal": 10,
+          "ordinal": 9,
           "type_info": "Timestamptz"
         },
         {
           "name": "active",
-          "ordinal": 11,
+          "ordinal": 10,
           "type_info": "Bool"
         },
         {
           "name": "subscription_type",
-          "ordinal": 12,
+          "ordinal": 11,
           "type_info": "Text"
         }
       ],
       "nullable": [
-        false,
         false,
         false,
         false,
@@ -505,49 +474,9 @@
         ]
       }
     },
-    "query": "SELECT\n            id,\n            subscriber_id,\n            subscription_first_name,\n            subscription_last_name,\n            subscription_mailing_address_line_1,\n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE id = $1"
+    "query": "SELECT\n            id,\n            subscriber_id,\n            subscription_name,\n            subscription_mailing_address_line_1,\n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE id = $1"
   },
-  "d81905721214a5933ec1bbff832b73d6b19390dd6a8c7494bf29655f7f84606f": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Timestamptz",
-          "Bool",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_first_name, \n            subscription_last_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
-  },
-  "f44c17bbd9831b94e530848a42137f1ae6c660ab2d287f509994fcc77891a1fa": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Text",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email_address) DO NOTHING"
-  },
-  "fa2c9ec0bfe8fde4a78c925dd453efda00b8426b0ff0107660ea2b2b62681725": {
+  "ec104f4ca1e35f9a89c3297859369b57ecc41617ab53ee8f9d594abd135f0c97": {
     "describe": {
       "columns": [
         {
@@ -561,18 +490,13 @@
           "type_info": "Text"
         },
         {
-          "name": "first_name",
+          "name": "name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
           "name": "user_id",
-          "ordinal": 4,
+          "ordinal": 3,
           "type_info": "Text"
         }
       ],
@@ -580,15 +504,53 @@
         false,
         false,
         false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"
+  },
+  "ed3a55d1510ff7be9cc847119a12b39a2bf9a9e630c6c6d64fa72871043e5501": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
         false,
         false
       ],
       "parameters": {
         "Left": [
-          "Uuid"
+          "Text"
         ]
       }
     },
-    "query": "SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE id = $1"
+    "query": "SELECT id, email_address, name, user_id FROM subscribers WHERE email_address = $1"
   }
 }
