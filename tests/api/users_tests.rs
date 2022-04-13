@@ -44,8 +44,7 @@ async fn upper_and_lower_case_email_addresses_are_the_same() {
     assert_eq!(1, result.unwrap());
 
     let other_signup = SignUp {
-        first_name: signup.first_name.clone(),
-        last_name: signup.last_name.clone(),
+        name: signup.name.clone(),
         email_address: signup.email_address.to_uppercase(),
         password: Uuid::new_v4().to_string(),
     };
@@ -107,8 +106,7 @@ async fn login_with_a_bad_password_gives_a_400() {
     let bad_password = SignUp {
         email_address: signup.email_address,
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let login_response = app.login(bad_password.to_json()).await;

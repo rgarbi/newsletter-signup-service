@@ -33,7 +33,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
         .from_response_to_over_the_wire_subscriber(find_response)
         .await;
     assert_eq!(saved.email_address, subscriber.email_address);
-    assert_eq!(saved.last_name, subscriber.last_name);
+    assert_eq!(saved.name, subscriber.name);
 }
 
 #[tokio::test]
@@ -283,7 +283,7 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     let app = spawn_app().await;
 
     // Sabotage the database
-    sqlx::query!("ALTER TABLE subscribers DROP COLUMN last_name;",)
+    sqlx::query!("ALTER TABLE subscribers DROP COLUMN name;",)
         .execute(&app.db_pool)
         .await
         .unwrap();

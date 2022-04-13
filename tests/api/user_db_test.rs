@@ -15,8 +15,7 @@ async fn insert_user_works() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
@@ -32,8 +31,7 @@ async fn insert_user_two_times_does_not_work() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
@@ -52,8 +50,7 @@ async fn count_users() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
@@ -73,8 +70,7 @@ async fn get_user_by_username_test() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
@@ -92,8 +88,7 @@ async fn get_user_by_username_not_found_test() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
@@ -110,8 +105,7 @@ async fn get_user_by_user_id_test() {
     let sign_up = SignUp {
         email_address: Uuid::new_v4().to_string(),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();

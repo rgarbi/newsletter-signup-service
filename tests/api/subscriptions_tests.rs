@@ -83,12 +83,12 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 
     assert_eq!(200, response.status().as_u16());
 
-    let saved = sqlx::query!("SELECT subscription_first_name, subscription_last_name, subscription_postal_code, id FROM subscriptions")
-        .fetch_one(&app.db_pool)
-        .await
-        .expect("Failed to fetch saved subscription.");
-    assert_eq!(saved.subscription_first_name, body.subscription_first_name);
-    assert_eq!(saved.subscription_last_name, body.subscription_last_name);
+    let saved =
+        sqlx::query!("SELECT subscription_name, subscription_postal_code, id FROM subscriptions")
+            .fetch_one(&app.db_pool)
+            .await
+            .expect("Failed to fetch saved subscription.");
+    assert_eq!(saved.subscription_name, body.subscription_name);
 }
 
 #[tokio::test]
