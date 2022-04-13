@@ -283,8 +283,7 @@ pub fn generate_signup() -> SignUp {
     SignUp {
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
         password: Uuid::new_v4().to_string(),
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
     }
 }
 
@@ -298,8 +297,7 @@ pub fn generate_reset_password(username: String, old_password: String) -> ResetP
 
 pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
     OverTheWireCreateSubscriber {
-        first_name: Uuid::new_v4().to_string(),
-        last_name: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
         email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
         user_id: Uuid::new_v4().to_string(),
     }
@@ -310,12 +308,11 @@ pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWire
         subscriber_id,
         subscription_type: SubscriptionType::Electronic,
         subscription_state: Uuid::new_v4().to_string(),
-        subscription_last_name: Uuid::new_v4().to_string(),
+        subscription_name: Uuid::new_v4().to_string(),
         subscription_city: Uuid::new_v4().to_string(),
         subscription_email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
         subscription_postal_code: Uuid::new_v4().to_string(),
         subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
-        subscription_first_name: Uuid::new_v4().to_string(),
     }
 }
