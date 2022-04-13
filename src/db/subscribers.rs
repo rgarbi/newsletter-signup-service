@@ -15,11 +15,10 @@ pub async fn insert_subscriber(
     transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<(), StoreSubscriberError> {
     sqlx::query!(
-        r#"INSERT INTO subscribers (id, email_address, first_name, last_name, user_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (email_address) DO NOTHING"#,
+        r#"INSERT INTO subscribers (id, email_address, name, user_id) VALUES ($1, $2, $3, $4) ON CONFLICT (email_address) DO NOTHING"#,
         Uuid::new_v4(),
         subscriber.email_address.as_ref(),
-        subscriber.first_name.as_ref(),
-        subscriber.last_name.as_ref(),
+        subscriber.name.as_ref(),
         subscriber.user_id,
     ).execute(transaction).await.map_err(|e| {
         let err = StoreSubscriberError(e);
@@ -40,18 +39,20 @@ pub async fn retrieve_subscriber_by_email(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE email_address = $1"#,
+        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE email_address = $1"#,
         email_address
-    ).fetch_one(pool).await.map_err(|e| {
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
 
     Ok(OverTheWireSubscriber {
         id: result.id.to_string(),
-        last_name: result.last_name,
+        name: result.name,
         email_address: result.email_address,
-        first_name: result.first_name,
         user_id: result.user_id,
     })
 }
@@ -65,21 +66,20 @@ pub async fn retrieve_subscriber_by_id(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE id = $1"#,
+        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE id = $1"#,
         id
     )
-        .fetch_one(pool)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
 
     Ok(OverTheWireSubscriber {
         id: result.id.to_string(),
-        last_name: result.last_name,
+        name: result.name,
         email_address: result.email_address,
-        first_name: result.first_name,
         user_id: result.user_id,
     })
 }
@@ -93,21 +93,20 @@ pub async fn retrieve_subscriber_by_user_id(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1"#,
+        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1"#,
         user_id
     )
-        .fetch_one(pool)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
 
     Ok(OverTheWireSubscriber {
         id: result.id.to_string(),
-        last_name: result.last_name,
+        name: result.name,
         email_address: result.email_address,
-        first_name: result.first_name,
         user_id: result.user_id,
     })
 }
@@ -122,7 +121,7 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, first_name, last_name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"#,
+        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"#,
         user_id,
         email_address
     )
@@ -135,9 +134,8 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
 
     Ok(OverTheWireSubscriber {
         id: result.id.to_string(),
-        last_name: result.last_name,
+        name: result.name,
         email_address: result.email_address,
-        first_name: result.first_name,
         user_id: result.user_id,
     })
 }
