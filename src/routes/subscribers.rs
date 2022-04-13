@@ -26,12 +26,10 @@ pub struct SubscriberQueries {
 impl TryFrom<OverTheWireCreateSubscriber> for NewSubscriber {
     type Error = String;
     fn try_from(subscriber: OverTheWireCreateSubscriber) -> Result<Self, Self::Error> {
-        let first_name = ValidName::parse(subscriber.first_name)?;
-        let last_name = ValidName::parse(subscriber.last_name)?;
+        let name = ValidName::parse(subscriber.name)?;
         let email_address = ValidEmail::parse(subscriber.email_address)?;
         Ok(NewSubscriber {
-            first_name,
-            last_name,
+            name,
             email_address,
             user_id: subscriber.user_id,
         })
