@@ -8,8 +8,7 @@ use crate::domain::valid_name::ValidName;
 #[derive(Deserialize, Serialize)]
 pub struct OverTheWireCreateSubscription {
     pub subscriber_id: String,
-    pub subscription_first_name: String,
-    pub subscription_last_name: String,
+    pub subscription_name: String,
     pub subscription_mailing_address_line_1: String,
     pub subscription_mailing_address_line_2: Option<String>,
     pub subscription_city: String,
@@ -23,8 +22,7 @@ pub struct OverTheWireCreateSubscription {
 pub struct OverTheWireSubscription {
     pub id: Uuid,
     pub subscriber_id: Uuid,
-    pub subscription_first_name: String,
-    pub subscription_last_name: String,
+    pub subscription_name: String,
     pub subscription_mailing_address_line_1: String,
     pub subscription_mailing_address_line_2: String,
     pub subscription_city: String,
@@ -38,8 +36,7 @@ pub struct OverTheWireSubscription {
 
 pub struct NewSubscription {
     pub subscriber_id: String,
-    pub subscription_first_name: ValidName,
-    pub subscription_last_name: ValidName,
+    pub subscription_name: ValidName,
     pub subscription_mailing_address_line_1: String,
     pub subscription_mailing_address_line_2: Option<String>,
     pub subscription_city: String,

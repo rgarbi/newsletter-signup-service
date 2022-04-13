@@ -12,8 +12,7 @@ pub struct User {
 pub struct SignUp {
     pub email_address: String,
     pub password: String,
-    pub first_name: String,
-    pub last_name: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
