@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
-use newsletter_signup_service::domain::new_subscription::{
+use newsletter_signup_service::domain::subscription_models::{
     OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 

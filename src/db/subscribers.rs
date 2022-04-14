@@ -4,7 +4,7 @@ use actix_web::ResponseError;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::domain::new_subscriber::{NewSubscriber, OverTheWireSubscriber};
+use crate::domain::subscriber_models::{NewSubscriber, OverTheWireSubscriber};
 
 #[tracing::instrument(
     name = "Saving new subscriber details in the database",

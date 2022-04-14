@@ -4,7 +4,7 @@ use actix_web::ResponseError;
 use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::domain::new_user::User;
+use crate::domain::user_models::User;
 
 #[tracing::instrument(name = "Count users with a given username", skip(email_address, pool))]
 pub async fn count_users_with_email_address(

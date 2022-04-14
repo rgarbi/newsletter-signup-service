@@ -15,11 +15,11 @@ use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
     update_password,
 };
-use crate::domain::new_subscriber::NewSubscriber;
-use crate::domain::new_user::{
+use crate::domain::otp_models::OneTimePasscode;
+use crate::domain::subscriber_models::NewSubscriber;
+use crate::domain::user_models::{
     ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp,
 };
-use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 use crate::email_client::EmailClient;

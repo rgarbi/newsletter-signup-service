@@ -10,7 +10,7 @@ use crate::db::subscribers::{
     insert_subscriber, retrieve_subscriber_by_email, retrieve_subscriber_by_id,
     retrieve_subscriber_by_user_id, retrieve_subscriber_by_user_id_and_email_address,
 };
-use crate::domain::new_subscriber::{
+use crate::domain::subscriber_models::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
 use crate::domain::valid_email::ValidEmail;

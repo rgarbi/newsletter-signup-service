@@ -4,7 +4,7 @@ use uuid::Uuid;
 use newsletter_signup_service::db::users::{
     count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
 };
-use newsletter_signup_service::domain::new_user::SignUp;
+use newsletter_signup_service::domain::user_models::SignUp;
 
 use crate::helper::spawn_app;
 

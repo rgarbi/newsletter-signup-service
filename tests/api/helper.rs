@@ -6,13 +6,13 @@ use wiremock::MockServer;
 
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
-use newsletter_signup_service::domain::new_subscriber::{
+use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
-use newsletter_signup_service::domain::new_subscription::{
+use newsletter_signup_service::domain::subscription_models::{
     OverTheWireCreateSubscription, SubscriptionType,
 };
-use newsletter_signup_service::domain::new_user::{ResetPassword, SignUp};
+use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::{get_connection_pool, Application};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 

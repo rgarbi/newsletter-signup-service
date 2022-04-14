@@ -6,7 +6,7 @@ use crate::db::subscriptions::{
     insert_subscription, retrieve_subscription_by_subscription_id,
     retrieve_subscriptions_by_subscriber_id,
 };
-use crate::domain::new_subscription::{NewSubscription, OverTheWireCreateSubscription};
+use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 use crate::util::from_string_to_uuid;

@@ -5,7 +5,9 @@ use sqlx::PgPool;
 use tracing::log::error;
 use uuid::Uuid;
 
-use crate::domain::new_subscription::{NewSubscription, OverTheWireSubscription, SubscriptionType};
+use crate::domain::subscription_models::{
+    NewSubscription, OverTheWireSubscription, SubscriptionType,
+};
 
 #[tracing::instrument(
     name = "Saving new subscription details in the database",

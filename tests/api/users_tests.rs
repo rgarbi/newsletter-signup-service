@@ -5,7 +5,7 @@ use wiremock::{Mock, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
-use newsletter_signup_service::domain::new_user::{
+use newsletter_signup_service::domain::user_models::{
     ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp,
 };
 use newsletter_signup_service::email_client::SendEmailRequest;
