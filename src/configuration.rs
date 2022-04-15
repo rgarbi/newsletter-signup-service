@@ -13,6 +13,7 @@ pub struct Settings {
     pub application: ApplicationSettings,
     pub auth_config: AuthConfig,
     pub email_client: EmailClientSettings,
+    pub stripe_client: StripeClientSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -49,6 +50,14 @@ pub struct EmailClientSettings {
     pub api_key: Secret<String>,
     pub timeout_milliseconds: u64,
 }
+
+#[derive(serde::Deserialize, Clone)]
+pub struct StripeClientSettings {
+    pub api_secret_key: Secret<String>,
+    pub api_public_key: Secret<String>,
+    pub webhook_key: Secret<String>,
+}
+
 impl EmailClientSettings {
     pub fn sender(&self) -> Result<ValidEmail, String> {
         ValidEmail::parse(self.sender_email.clone())

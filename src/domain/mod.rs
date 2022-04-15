@@ -1,4 +1,5 @@
 pub mod otp_models;
+pub mod stripe_models;
 pub mod subscriber_models;
 pub mod subscription_models;
 pub mod user_models;

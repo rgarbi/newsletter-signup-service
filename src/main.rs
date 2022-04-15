@@ -1,3 +1,5 @@
+use secrecy::ExposeSecret;
+
 use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
@@ -12,6 +14,12 @@ async fn main() -> std::io::Result<()> {
     init_subscriber(subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");
+
+    println!(
+        "Stripe API KEY: {}",
+        &configuration.stripe_client.api_secret_key.expose_secret()
+    );
+
     let application = Application::build(configuration).await?;
     application.run_until_stopped().await?;
     Ok(())

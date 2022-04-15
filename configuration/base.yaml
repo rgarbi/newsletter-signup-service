@@ -18,3 +18,7 @@ email_client:
   sender_email: "thegospelmessage61@gmail.com"
   api_key: "something"
   timeout_milliseconds: 10000
+stripe_client:
+  api_secret_key: ""
+  api_public_key: ""
+  webhook_key: ""

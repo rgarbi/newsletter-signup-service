@@ -135,6 +135,10 @@ pub fn run(
                 "/subscribers/{id}/subscriptions",
                 web::get().to(routes::get_subscriptions_by_subscriber_id),
             )
+            .route(
+                "/create_checkout_session",
+                web::post().to(routes::create_checkout_session),
+            )
             .app_data(connection.clone())
             .app_data(email_client.clone())
     })
