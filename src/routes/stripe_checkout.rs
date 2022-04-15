@@ -42,7 +42,7 @@ pub async fn create_checkout_session(
 
             let price = &prices.data[0];
 
-            let checkout_price_data = stripe::CreateCheckoutSessionLineItemsPriceData {
+            let _checkout_price_data = stripe::CreateCheckoutSessionLineItemsPriceData {
                 currency: price.currency.unwrap(),
                 product: None,
                 product_data: None,
