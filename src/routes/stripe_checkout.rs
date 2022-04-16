@@ -2,6 +2,7 @@ use actix_web::{web, HttpResponse, Responder};
 use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
+use stripe::CheckoutSessionMode;
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -39,26 +40,15 @@ pub async fn create_checkout_session(
     match list_prices_response {
         Ok(prices) => {
             println!("Got prices: {:?}", &prices);
-
-            let price = &prices.data[0];
-
-            let _checkout_price_data = stripe::CreateCheckoutSessionLineItemsPriceData {
-                currency: price.currency.unwrap(),
-                product: None,
-                product_data: None,
-                recurring: None,
-                tax_behavior: None,
-                unit_amount: None,
-                unit_amount_decimal: None,
-            };
+            let price_id = prices.data[0].id.to_string();
 
             let line_item = stripe::CreateCheckoutSessionLineItems {
                 adjustable_quantity: None,
                 description: None,
                 dynamic_tax_rates: None,
-                price: None,
+                price: Some(Box::new(price_id.to_string())),
                 price_data: None,
-                quantity: None,
+                quantity: Some(Box::new(1)),
                 tax_rates: None,
             };
             let line_items = [line_item].to_vec();
@@ -66,6 +56,7 @@ pub async fn create_checkout_session(
             let mut checkout_session =
                 stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
             checkout_session.line_items = Some(Box::new(line_items));
+            checkout_session.mode = Some(CheckoutSessionMode::Subscription);
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
 
