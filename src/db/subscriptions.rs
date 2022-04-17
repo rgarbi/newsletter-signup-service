@@ -170,13 +170,13 @@ pub async fn retrieve_subscription_by_subscription_id(
 
 pub fn from_str_to_subscription_type(val: String) -> SubscriptionType {
     if val.eq("Electronic") {
-        return SubscriptionType::Electronic;
+        return SubscriptionType::Digital;
     }
 
     if val.eq("Physical") {
-        return SubscriptionType::Physical;
+        return SubscriptionType::Paper;
     }
 
     error!("Could not map string: {} to the enum SubscriptionType", val);
-    SubscriptionType::Electronic
+    SubscriptionType::Digital
 }

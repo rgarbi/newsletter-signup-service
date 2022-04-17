@@ -50,15 +50,15 @@ pub struct NewSubscription {
 
 #[derive(Deserialize, Serialize)]
 pub enum SubscriptionType {
-    Electronic,
-    Physical,
+    Digital,
+    Paper,
 }
 
 impl SubscriptionType {
     pub fn as_str(&self) -> &'static str {
         match self {
-            SubscriptionType::Electronic => "Electronic",
-            SubscriptionType::Physical => "Physical",
+            SubscriptionType::Digital => "Digital",
+            SubscriptionType::Paper => "Paper",
         }
     }
 }

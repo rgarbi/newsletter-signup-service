@@ -15,7 +15,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
         (
             OverTheWireCreateSubscription {
                 subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Electronic,
+                subscription_type: SubscriptionType::Digital,
                 subscription_state: Uuid::new_v4().to_string(),
                 subscription_name: String::from(""),
                 subscription_city: Uuid::new_v4().to_string(),
@@ -29,7 +29,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
         (
             OverTheWireCreateSubscription {
                 subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Electronic,
+                subscription_type: SubscriptionType::Digital,
                 subscription_state: Uuid::new_v4().to_string(),
                 subscription_name: Uuid::new_v4().to_string(),
                 subscription_city: Uuid::new_v4().to_string(),
@@ -43,7 +43,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
         (
             OverTheWireCreateSubscription {
                 subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Electronic,
+                subscription_type: SubscriptionType::Digital,
                 subscription_state: Uuid::new_v4().to_string(),
                 subscription_name: Uuid::new_v4().to_string(),
                 subscription_city: Uuid::new_v4().to_string(),
