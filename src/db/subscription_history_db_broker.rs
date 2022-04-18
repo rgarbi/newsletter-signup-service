@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::Utc;
 use serde_json::json;
 use sqlx::PgPool;
@@ -80,8 +82,9 @@ pub async fn retrieve_subscription_events_by_subscription_id(
             subscription_id: row.subscription_id,
             subscription_change_event_date: row.subscription_change_event_date,
             subscription_change_event_type: HistoryEventType::from_str(
-                row.subscription_change_event_type,
-            ),
+                &row.subscription_change_event_type,
+            )
+            .unwrap(),
             subscription: row.subscription,
         })
     }

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::log::error;
@@ -29,25 +31,29 @@ impl HistoryEventType {
             HistoryEventType::UpdatedSubscriptionInformation => "UpdatedSubscriptionInformation",
         }
     }
+}
 
-    pub fn from_str(val: String) -> HistoryEventType {
+impl FromStr for HistoryEventType {
+    type Err = ();
+
+    fn from_str(val: &str) -> Result<HistoryEventType, ()> {
         if val.eq("Created") {
-            return HistoryEventType::Created;
+            return Ok(HistoryEventType::Created);
         }
 
         if val.eq("Cancelled") {
-            return HistoryEventType::Cancelled;
+            return Ok(HistoryEventType::Cancelled);
         }
 
         if val.eq("ChangedPaymentMethod") {
-            return HistoryEventType::ChangedPaymentMethod;
+            return Ok(HistoryEventType::ChangedPaymentMethod);
         }
 
         if val.eq("UpdatedSubscriptionInformation") {
-            return HistoryEventType::UpdatedSubscriptionInformation;
+            return Ok(HistoryEventType::UpdatedSubscriptionInformation);
         }
 
         error!("Could not map string: {} to the enum HistoryEventType", val);
-        HistoryEventType::UpdatedSubscriptionInformation
+        Err(())
     }
 }
