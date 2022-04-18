@@ -1,6 +1,6 @@
 [package]
 name = "newsletter-signup-service"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [lib]
@@ -31,7 +31,7 @@ serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
 serde-aux = "3"
 uuid = { version = "0.8", features = ["serde", "v4"] }
-config = "0.12.0"
+config = "0.13"
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 tracing-bunyan-formatter = "0.3"
@@ -39,13 +39,13 @@ tracing-log = "0.1"
 secrecy = { version = "0.8", features = ["serde"] }
 tracing-actix-web = "0.5"
 unicode-segmentation = "1"
-validator = "0.14.0"
+validator = "0.14"
 base64 = "0.13.0"
 anyhow = "1"
 derive_more = "0.99.17"
 cached = "0.34.0"
 jsonwebtokens = "1"
-argon2 = "0.3"
+argon2 = "0.4"
 rand_core = { version = "0.6", features = ["std"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 rand = { version = "0.8", features=["std_rng"] }
