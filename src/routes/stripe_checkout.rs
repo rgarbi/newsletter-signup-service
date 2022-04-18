@@ -66,6 +66,10 @@ pub async fn create_checkout_session(
                         "Checkout session Created!!! URL: {:?}",
                         checkout_session_created.url
                     );
+                    println!(
+                        "Checkout session Created!!! URL: {:?}",
+                        checkout_session_created.id
+                    );
                     HttpResponse::Ok().json(json!({}))
                 }
                 Err(stripe_error) => {
