@@ -5,7 +5,7 @@ use newsletter_signup_service::domain::subscription_models::{
     OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 
-use crate::helper::{generate_over_the_wire_subscription, spawn_app};
+use crate::helper::{generate_over_the_wire_create_subscription, spawn_app};
 
 #[tokio::test]
 async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
@@ -76,7 +76,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 
     let subscriber = app.store_subscriber(Option::None).await;
 
-    let body = generate_over_the_wire_subscription(subscriber.id.clone());
+    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
     let response = app
         .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
         .await;
@@ -96,7 +96,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let body = generate_over_the_wire_subscription(subscriber.id.clone());
+    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
     let response = app
         .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
         .await;
@@ -157,7 +157,7 @@ async fn get_subscriptions_by_subscriber_id_many() {
     let expected = 100;
 
     for _ in 0..expected {
-        let body = generate_over_the_wire_subscription(subscriber.id.clone());
+        let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
         let response = app
             .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
             .await;
@@ -184,7 +184,7 @@ async fn get_subscriptions_by_id() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let body = generate_over_the_wire_subscription(subscriber.id.clone());
+    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
     let response = app
         .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
         .await;

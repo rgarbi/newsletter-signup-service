@@ -1,3 +1,4 @@
+use chrono::Utc;
 use once_cell::sync::Lazy;
 use reqwest::Response;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -10,7 +11,7 @@ use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
 use newsletter_signup_service::domain::subscription_models::{
-    OverTheWireCreateSubscription, SubscriptionType,
+    OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::{get_connection_pool, Application};
@@ -303,7 +304,9 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
     }
 }
 
-pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWireCreateSubscription {
+pub fn generate_over_the_wire_create_subscription(
+    subscriber_id: String,
+) -> OverTheWireCreateSubscription {
     OverTheWireCreateSubscription {
         subscriber_id,
         subscription_type: SubscriptionType::Digital,
@@ -314,5 +317,22 @@ pub fn generate_over_the_wire_subscription(subscriber_id: String) -> OverTheWire
         subscription_postal_code: Uuid::new_v4().to_string(),
         subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
+    }
+}
+
+pub fn generate_over_the_wire_subscription() -> OverTheWireSubscription {
+    OverTheWireSubscription {
+        id: Uuid::new_v4(),
+        subscriber_id: Uuid::new_v4(),
+        subscription_type: SubscriptionType::Digital,
+        subscription_state: Uuid::new_v4().to_string(),
+        subscription_name: Uuid::new_v4().to_string(),
+        subscription_city: Uuid::new_v4().to_string(),
+        subscription_email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
+        subscription_creation_date: Utc::now(),
+        subscription_postal_code: Uuid::new_v4().to_string(),
+        subscription_mailing_address_line_2: Uuid::new_v4().to_string(),
+        subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
+        active: false,
     }
 }

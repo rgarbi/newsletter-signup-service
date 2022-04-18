@@ -1,11 +1,10 @@
 use chrono::Utc;
 use serde_json::json;
 use sqlx::PgPool;
-use tracing::log::error;
 use uuid::Uuid;
 
 use crate::domain::subscription_history_models::{HistoryEventType, SubscriptionHistoryEvent};
-use crate::domain::subscription_models::{OverTheWireSubscription, SubscriptionType};
+use crate::domain::subscription_models::OverTheWireSubscription;
 
 #[tracing::instrument(
     name = "Saving a subscription history event",
