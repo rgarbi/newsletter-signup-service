@@ -1,3 +1,5 @@
+previewsEnabled: true
+previewsExpireAfterDays: 3
 services:
   # A Docker web service
   - type: web
@@ -5,6 +7,7 @@ services:
     env: docker
     region: oregon
     plan: starter
+    previewPlan: starter
     numInstances: 1
     healthCheckPath: /health_check
     envVars:
@@ -30,6 +33,8 @@ services:
           property: database
   - type: web
     name: newsletter web app
+    plan: starter
+    previewPlan: starter
     env: static
     repo: https://github.com/rgarbi/gospel-message-web-app
     buildCommand: yarn build
@@ -45,5 +50,6 @@ services:
 databases:
   - name: newsletter-signup-service-db
     plan: starter
+    previewPlan: starter
     region: oregon
     databaseName: gm_newsletter
