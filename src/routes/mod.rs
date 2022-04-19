@@ -1,11 +1,11 @@
 pub use health_check::*;
-pub use stripe_checkout::*;
+pub use payment::*;
 pub use subscribers::*;
 pub use subscriptions::*;
 pub use users::*;
 
 pub mod health_check;
-pub mod stripe_checkout;
+pub mod payment;
 pub mod subscribers;
 pub mod subscriptions;
 pub mod users;

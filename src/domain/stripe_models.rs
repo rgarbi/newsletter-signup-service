@@ -10,3 +10,11 @@ impl CreateCheckoutSession {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+#[derive(Deserialize, Serialize)]
+pub enum StripeWebhookEventType {
+    Created,
+    ChangedPaymentMethod,
+    Cancelled,
+    UpdatedSubscriptionInformation,
+}
