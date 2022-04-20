@@ -138,7 +138,7 @@ pub async fn get_subscriber_by_id(
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
-    match retrieve_subscriber_by_id(from_string_to_uuid(id).unwrap(), &pool).await {
+    match retrieve_subscriber_by_id(from_string_to_uuid(&id).unwrap(), &pool).await {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }

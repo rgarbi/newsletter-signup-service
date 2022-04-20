@@ -118,7 +118,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
 }
 
 #[tokio::test]
-async fn get_subscriptions_by_subscriber_id_not_found_returns_empty_list() {
+async fn get_subscriptions_by_subscriber_id_not_found_returns_bad_request() {
     let app = spawn_app().await;
 
     let subscriptions_response = app
@@ -127,13 +127,7 @@ async fn get_subscriptions_by_subscriber_id_not_found_returns_empty_list() {
             generate_token(Uuid::new_v4().to_string()),
         )
         .await;
-    assert_eq!(200, subscriptions_response.status().as_u16());
-
-    let response_body = subscriptions_response.text().await.unwrap();
-    let subscriptions: Vec<OverTheWireSubscription> =
-        serde_json::from_str(response_body.as_str()).unwrap();
-
-    assert_eq!(0, subscriptions.len())
+    assert_eq!(400, subscriptions_response.status().as_u16());
 }
 
 #[tokio::test]

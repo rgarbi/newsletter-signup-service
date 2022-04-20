@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
 pub fn from_string_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
-    match Uuid::from_str(id.into_inner().as_str()) {
+    match Uuid::from_str(id.as_str().clone()) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
             tracing::error!("Got a malformed UUID");
@@ -40,12 +40,12 @@ mod tests {
 
         assert_eq!(
             uuid,
-            from_string_to_uuid(Path::try_from(uuid.to_string()).unwrap()).unwrap()
+            from_string_to_uuid(&Path::try_from(uuid.to_string()).unwrap()).unwrap()
         );
     }
 
     #[quickcheck_macros::quickcheck]
     fn anything_not_a_uuid_is_invalid(invalid_uuid: String) -> bool {
-        from_string_to_uuid(Path::try_from(invalid_uuid).unwrap()).is_err()
+        from_string_to_uuid(&Path::try_from(invalid_uuid).unwrap()).is_err()
     }
 }

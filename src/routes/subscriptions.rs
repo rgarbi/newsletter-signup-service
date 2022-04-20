@@ -12,7 +12,6 @@ use crate::db::subscriptions_db_broker::{
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
-use crate::routes::get_subscriber_by_id;
 use crate::util::from_string_to_uuid;
 
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
@@ -97,7 +96,7 @@ pub async fn get_subscription_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> impl Responder {
-    match retrieve_subscription_by_subscription_id(from_string_to_uuid(id).unwrap(), &pool).await {
+    match retrieve_subscription_by_subscription_id(from_string_to_uuid(&id).unwrap(), &pool).await {
         Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
         Err(_) => HttpResponse::NotFound().finish(),
     }
