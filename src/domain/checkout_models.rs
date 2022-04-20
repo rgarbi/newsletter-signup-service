@@ -56,7 +56,7 @@ impl CheckoutSessionState {
         match self {
             CheckoutSessionState::Created => "Created",
             CheckoutSessionState::Cancelled => "Cancelled",
-            CheckoutSessionState::CompletedSuccessfully => "ChangedPaymentMethod",
+            CheckoutSessionState::CompletedSuccessfully => "CompletedSuccessfully",
         }
     }
 }
