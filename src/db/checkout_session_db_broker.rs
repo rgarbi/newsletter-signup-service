@@ -59,14 +59,14 @@ pub async fn insert_checkout_session(
 }
 
 #[tracing::instrument(
-    name = "Get all subscription events by subscription id",
-    skip(id, pool)
+    name = "Get checkout sessions by stripe session id",
+    skip(stripe_session_id, pool)
 )]
 pub async fn retrieve_checkout_session_by_stripe_session_id(
     stripe_session_id: String,
     pool: &PgPool,
-) -> Result<Vec<SubscriptionHistoryEvent>, sqlx::Error> {
-    let rows = sqlx::query!(
+) -> Result<CheckoutSession, sqlx::Error> {
+    let result = sqlx::query!(
         r#"SELECT
             id, 
             user_id, 
@@ -74,30 +74,76 @@ pub async fn retrieve_checkout_session_by_stripe_session_id(
             created_at, 
             price_lookup_key,
             stripe_session_id,
-            subscription,
+            subscription
             FROM checkout_session WHERE stripe_session_id = $1"#,
         stripe_session_id
     )
-    .fetch_all(pool)
+    .fetch_one(pool)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
 
-    let mut events: Vec<SubscriptionHistoryEvent> = Vec::new();
+    let checkout_session = CheckoutSession {
+        id: result.id,
+        user_id: result.user_id,
+        session_state: CheckoutSessionState::from_str(&result.session_state).unwrap(),
+        created_at: result.created_at,
+        price_lookup_key: result.price_lookup_key,
+        stripe_session_id: result.stripe_session_id,
+        subscription: result.subscription,
+    };
 
-    for row in rows {
-        events.push(SubscriptionHistoryEvent {
-            id: row.id,
-            subscription_id: row.subscription_id,
-            subscription_change_event_date: row.subscription_change_event_date,
-            subscription_change_event_type: HistoryEventType::from_str(
-                &row.subscription_change_event_type,
-            )
-            .unwrap(),
-            subscription: row.subscription,
-        })
-    }
-    Ok(events)
+    Ok(checkout_session)
+}
+
+#[tracing::instrument(
+    name = "Cancel checkout session by stripe session id",
+    skip(stripe_session_id, pool)
+)]
+pub async fn cancel_checkout_session_by_stripe_session_id(
+    stripe_session_id: String,
+    pool: &PgPool,
+) -> Result<(), sqlx::Error> {
+    let result = sqlx::query!(
+        r#"UPDATE checkout_session
+            SET session_state = $1
+            WHERE stripe_session_id = $2"#,
+        CheckoutSessionState::Cancelled.as_str(),
+        stripe_session_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(())
+}
+
+#[tracing::instrument(
+    name = "Mark checkout session as successful by stripe session id",
+    skip(stripe_session_id, pool)
+)]
+pub async fn set_checkout_session_state_to_success_by_stripe_session_id(
+    stripe_session_id: String,
+    pool: &PgPool,
+) -> Result<(), sqlx::Error> {
+    let result = sqlx::query!(
+        r#"UPDATE checkout_session
+            SET session_state = $1
+            WHERE stripe_session_id = $2"#,
+        CheckoutSessionState::CompletedSuccessfully.as_str(),
+        stripe_session_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(())
 }

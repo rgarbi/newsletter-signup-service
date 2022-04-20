@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+use tracing::log::error;
 use uuid::Uuid;
 
 use crate::domain::subscription_models::OverTheWireCreateSubscription;
@@ -26,6 +28,27 @@ pub enum CheckoutSessionState {
     Created,
     CompletedSuccessfully,
     Cancelled,
+}
+
+impl FromStr for CheckoutSessionState {
+    type Err = ();
+
+    fn from_str(val: &str) -> Result<CheckoutSessionState, ()> {
+        if val.eq("Created") {
+            return Ok(CheckoutSessionState::Created);
+        }
+
+        if val.eq("Cancelled") {
+            return Ok(CheckoutSessionState::Cancelled);
+        }
+
+        if val.eq("CompletedSuccessfully") {
+            return Ok(CheckoutSessionState::CompletedSuccessfully);
+        }
+
+        error!("Could not map string: {} to the enum HistoryEventType", val);
+        Err(())
+    }
 }
 
 impl CheckoutSessionState {
