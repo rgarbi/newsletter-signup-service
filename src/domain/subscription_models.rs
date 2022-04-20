@@ -32,6 +32,7 @@ pub struct OverTheWireSubscription {
     pub subscription_creation_date: DateTime<Utc>,
     pub active: bool,
     pub subscription_type: SubscriptionType,
+    pub stripe_subscription_id: String,
 }
 
 pub struct NewSubscription {
