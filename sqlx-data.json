@@ -76,29 +76,6 @@
     },
     "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE email_address = $1"
   },
-  "15e98e562a8edf4e4630d2b936f719dd8387f3b08905cff3bd7695fd2a159743": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Timestamptz",
-          "Bool",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
-  },
   "2517cbd0f1d8835e486eb7e4e63d7462720970c62f3d632684b9324845a2f4b3": {
     "describe": {
       "columns": [
@@ -136,6 +113,135 @@
       }
     },
     "query": "SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1"
+  },
+  "272b580eea930f373410d70eb691873051e421b7d49e299d1aaff402bb94718a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscriber_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscription_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_1",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_2",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_city",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_state",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_postal_code",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_email_address",
+          "ordinal": 8,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_creation_date",
+          "ordinal": 9,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "active",
+          "ordinal": 10,
+          "type_info": "Bool"
+        },
+        {
+          "name": "subscription_type",
+          "ordinal": 11,
+          "type_info": "Text"
+        },
+        {
+          "name": "stripe_subscription_id",
+          "ordinal": 12,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type,\n            stripe_subscription_id\n            FROM subscriptions WHERE subscriber_id = $1"
+  },
+  "4831a46d37fc42180b43fcdbe0364bd88f2bb5e411b8236d1d4cee85219b6e55": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "UPDATE checkout_session\n            SET session_state = $1\n            WHERE stripe_session_id = $2"
+  },
+  "4daea33728b68676e7ca88e23fa87c9adc618f453024e0fd1c24eaddc8aad4c5": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Bool",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO subscriptions (\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type,\n            stripe_subscription_id\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
   },
   "5c27eb12c7f949a78bb1be8f0f583497c72096ac937c63af5866a9def0ef7cfc": {
     "describe": {
@@ -253,92 +359,6 @@
     },
     "query": "INSERT INTO subscription_event_history (\n            id, \n            subscription_id, \n            subscription_change_event_type, \n            subscription_change_event_date, \n            subscription\n            ) VALUES ($1, $2, $3, $4, $5)"
   },
-  "9c952af5f45644f9c7fa7e47f394333569dfa3f0f62c2516832637a85fbe5767": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "subscriber_id",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "subscription_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_mailing_address_line_1",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_mailing_address_line_2",
-          "ordinal": 4,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_city",
-          "ordinal": 5,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_state",
-          "ordinal": 6,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_postal_code",
-          "ordinal": 7,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_email_address",
-          "ordinal": 8,
-          "type_info": "Text"
-        },
-        {
-          "name": "subscription_creation_date",
-          "ordinal": 9,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "active",
-          "ordinal": 10,
-          "type_info": "Bool"
-        },
-        {
-          "name": "subscription_type",
-          "ordinal": 11,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE subscriber_id = $1"
-  },
   "9f9e36426a6c968a4c3f29033b173e40003a6ecae0e431920ee640b0f9dc0de9": {
     "describe": {
       "columns": [
@@ -450,7 +470,81 @@
     },
     "query": "INSERT INTO subscribers (id, email_address, name, user_id) VALUES ($1, $2, $3, $4) ON CONFLICT (email_address) DO NOTHING"
   },
-  "cce9ccfe0b197abc2a62c0f75e64d798493078f8c6fca1fa14759f84ce6d273d": {
+  "c4c4a86508160552322fc4fa19bab4bbdc352648011bd636545b732e48f62e47": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "session_state",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "price_lookup_key",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "stripe_session_id",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription",
+          "ordinal": 6,
+          "type_info": "Jsonb"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT\n            id, \n            user_id, \n            session_state, \n            created_at, \n            price_lookup_key,\n            stripe_session_id,\n            subscription\n            FROM checkout_session WHERE stripe_session_id = $1"
+  },
+  "e439cae1d8e3efcbd4e986a7faf230172a7e8a3c2bc4aee756d58f891ca42307": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Timestamptz",
+          "Text",
+          "Text",
+          "Jsonb"
+        ]
+      }
+    },
+    "query": "INSERT INTO checkout_session (\n            id, \n            user_id, \n            session_state, \n            created_at, \n            price_lookup_key,\n            stripe_session_id,\n            subscription\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+  },
+  "eba869d3542708f9ddf2e55cb1fe5fdcb9608dfedcf573ec89d408fa71997e1d": {
     "describe": {
       "columns": [
         {
@@ -512,9 +606,15 @@
           "name": "subscription_type",
           "ordinal": 11,
           "type_info": "Text"
+        },
+        {
+          "name": "stripe_subscription_id",
+          "ordinal": 12,
+          "type_info": "Text"
         }
       ],
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -534,7 +634,7 @@
         ]
       }
     },
-    "query": "SELECT\n            id,\n            subscriber_id,\n            subscription_name,\n            subscription_mailing_address_line_1,\n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type\n            FROM subscriptions WHERE id = $1"
+    "query": "SELECT\n            id,\n            subscriber_id,\n            subscription_name,\n            subscription_mailing_address_line_1,\n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            active,\n            subscription_type,\n            stripe_subscription_id\n            FROM subscriptions WHERE id = $1"
   },
   "ec104f4ca1e35f9a89c3297859369b57ecc41617ab53ee8f9d594abd135f0c97": {
     "describe": {
