@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::domain::subscription_models::OverTheWireCreateSubscription;
 
@@ -11,11 +12,12 @@ pub struct CreateCheckoutSession {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct CheckoutSession {
+    pub id: Uuid,
     pub user_id: String,
     pub session_state: CheckoutSessionState,
     pub created_at: DateTime<Utc>,
     pub price_lookup_key: String,
-    pub subscription: OverTheWireCreateSubscription,
+    pub subscription: serde_json::Value,
     pub stripe_session_id: String,
 }
 
