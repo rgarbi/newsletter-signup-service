@@ -49,7 +49,7 @@ pub async fn post_subscription(
         Ok(subscription) => subscription,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match insert_subscription(new_subscription, &pool).await {
+    match insert_subscription(new_subscription, Default::default(), &pool).await {
         Ok(subscription) => HttpResponse::Ok().json(subscription),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }

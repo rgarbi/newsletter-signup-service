@@ -6,8 +6,7 @@ use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::domain::subscription_history_models::{HistoryEventType, SubscriptionHistoryEvent};
-use crate::domain::subscription_models::{OverTheWireCreateSubscription, OverTheWireSubscription};
+use crate::domain::subscription_models::OverTheWireCreateSubscription;
 
 #[tracing::instrument(
     name = "Saving a new checkout session",
@@ -106,7 +105,7 @@ pub async fn cancel_checkout_session_by_stripe_session_id(
     stripe_session_id: String,
     pool: &PgPool,
 ) -> Result<(), sqlx::Error> {
-    let result = sqlx::query!(
+    sqlx::query!(
         r#"UPDATE checkout_session
             SET session_state = $1
             WHERE stripe_session_id = $2"#,
@@ -131,7 +130,7 @@ pub async fn set_checkout_session_state_to_success_by_stripe_session_id(
     stripe_session_id: String,
     pool: &PgPool,
 ) -> Result<(), sqlx::Error> {
-    let result = sqlx::query!(
+    sqlx::query!(
         r#"UPDATE checkout_session
             SET session_state = $1
             WHERE stripe_session_id = $2"#,
