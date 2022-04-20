@@ -4,10 +4,8 @@ use newsletter_signup_service::db::checkout_session_db_broker::{
     retrieve_checkout_session_by_stripe_session_id,
     set_checkout_session_state_to_success_by_stripe_session_id,
 };
-use uuid::Uuid;
-
-use newsletter_signup_service::db::subscription_history_db_broker::retrieve_subscription_events_by_subscription_id;
 use newsletter_signup_service::domain::checkout_models::CheckoutSessionState;
+use uuid::Uuid;
 
 use crate::helper::{
     generate_checkout_session, generate_over_the_wire_create_subscription, spawn_app,
