@@ -1,3 +1,4 @@
+mod checkout_session_db_tests;
 mod health_check;
 mod helper;
 mod otp_db_test;
