@@ -10,5 +10,5 @@ CREATE TABLE checkout_session
     subscription      jsonb       NOT NULL
 );
 
-CREATE INDEX user_id_idx ON checkout_session (user_id);
+CREATE INDEX checkout_session_user_id_idx ON checkout_session (user_id);
 CREATE INDEX stripe_session_id_idx ON checkout_session (stripe_session_id);
