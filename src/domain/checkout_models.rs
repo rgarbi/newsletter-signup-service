@@ -16,6 +16,7 @@ pub struct CheckoutSession {
     pub created_at: DateTime<Utc>,
     pub price_lookup_key: String,
     pub subscription: OverTheWireCreateSubscription,
+    pub stripe_session_id: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
