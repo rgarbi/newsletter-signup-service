@@ -12,7 +12,10 @@ use newsletter_signup_service::db::subscription_history_db_broker::{
 use newsletter_signup_service::domain::checkout_models::CheckoutSessionState;
 use newsletter_signup_service::domain::subscription_history_models::HistoryEventType;
 
-use crate::helper::{generate_checkout_session, generate_over_the_wire_subscription, spawn_app};
+use crate::helper::{
+    generate_checkout_session, generate_over_the_wire_create_subscription,
+    generate_over_the_wire_subscription, spawn_app,
+};
 
 #[tokio::test]
 async fn insert_checkout_session_works() {
@@ -23,8 +26,8 @@ async fn insert_checkout_session_works() {
 
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
-        checkout_session.price_lookup_key(),
-        subscription,
+        checkout_session.price_lookup_key,
+        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -41,8 +44,8 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
 
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
-        checkout_session.price_lookup_key(),
-        subscription,
+        checkout_session.price_lookup_key,
+        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -50,7 +53,7 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
     assert_ok!(result);
 
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &pool).await;
+        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let user_id = checkout_session_result.unwrap().user_id;
@@ -66,8 +69,8 @@ async fn cancel_checkout_session_by_stripe_session_id_works() {
 
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
-        checkout_session.price_lookup_key(),
-        subscription,
+        checkout_session.price_lookup_key,
+        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -75,15 +78,15 @@ async fn cancel_checkout_session_by_stripe_session_id_works() {
     assert_ok!(result);
 
     let cancel_session_result =
-        cancel_checkout_session_by_stripe_session_id(stripe_session_id.clone(), &pool).await;
+        cancel_checkout_session_by_stripe_session_id(stripe_session_id.clone(), &app.db_pool).await;
     assert_ok!(&cancel_session_result);
 
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &pool).await;
+        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let state = checkout_session_result.unwrap().session_state;
-    assert_eq!(state, CheckoutSessionState::Cancelled);
+    assert_eq!(state.as_str(), CheckoutSessionState::Cancelled.as_str());
 }
 
 #[tokio::test]
@@ -95,8 +98,8 @@ async fn set_checkout_session_state_to_success_by_stripe_session_id_works() {
 
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
-        checkout_session.price_lookup_key(),
-        subscription,
+        checkout_session.price_lookup_key,
+        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -104,13 +107,16 @@ async fn set_checkout_session_state_to_success_by_stripe_session_id_works() {
     assert_ok!(result);
 
     let success_session_result =
-        cancel_checkout_session_by_stripe_session_id(stripe_session_id.clone(), &pool).await;
+        cancel_checkout_session_by_stripe_session_id(stripe_session_id.clone(), &app.db_pool).await;
     assert_ok!(&success_session_result);
 
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &pool).await;
+        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let state = checkout_session_result.unwrap().session_state;
-    assert_eq!(state, CheckoutSessionState::CompletedSuccessfully);
+    assert_eq!(
+        state.as_str(),
+        CheckoutSessionState::CompletedSuccessfully.as_str()
+    );
 }
