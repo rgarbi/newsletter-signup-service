@@ -1,12 +1,14 @@
 use chrono::Utc;
 use once_cell::sync::Lazy;
 use reqwest::Response;
+use serde_json::json;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use wiremock::MockServer;
 
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
+use newsletter_signup_service::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
@@ -334,5 +336,20 @@ pub fn generate_over_the_wire_subscription() -> OverTheWireSubscription {
         subscription_mailing_address_line_2: Uuid::new_v4().to_string(),
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
         active: false,
+        stripe_subscription_id: Uuid::new_v4().to_string(),
+    }
+}
+
+pub fn generate_checkout_session(stripe_session_id: Option<String>) -> CheckoutSession {
+    CheckoutSession {
+        id: Uuid::new_v4(),
+        user_id: Uuid::new_v4().to_string(),
+        session_state: CheckoutSessionState::Created,
+        created_at: Utc::now(),
+        price_lookup_key: Uuid::new_v4().to_string(),
+        subscription: json!(generate_over_the_wire_create_subscription(
+            Uuid::new_v4().to_string()
+        )),
+        stripe_session_id: stripe_session_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
     }
 }
