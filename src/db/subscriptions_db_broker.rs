@@ -50,8 +50,9 @@ pub async fn insert_subscription(
             subscription_email_address,
             subscription_creation_date,
             active,
-            subscription_type
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"#,
+            subscription_type,
+            stripe_subscription_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
         subscription_to_be_saved.id,
         subscription_to_be_saved.subscriber_id,
         subscription_to_be_saved.subscription_name,
@@ -63,7 +64,8 @@ pub async fn insert_subscription(
         subscription_to_be_saved.subscription_email_address,
         subscription_to_be_saved.subscription_creation_date,
         subscription_to_be_saved.active,
-        subscription_to_be_saved.subscription_type.as_str()
+        subscription_to_be_saved.subscription_type.as_str(),
+        subscription_to_be_saved.stripe_subscription_id
     )
     .execute(pool)
     .await

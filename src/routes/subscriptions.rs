@@ -1,6 +1,7 @@
 use actix_web::{web, HttpResponse, Responder};
 use chrono::Utc;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 use crate::db::subscriptions_db_broker::{
     insert_subscription, retrieve_subscription_by_subscription_id,
@@ -49,7 +50,7 @@ pub async fn post_subscription(
         Ok(subscription) => subscription,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match insert_subscription(new_subscription, Default::default(), &pool).await {
+    match insert_subscription(new_subscription, Uuid::new_v4().to_string(), &pool).await {
         Ok(subscription) => HttpResponse::Ok().json(subscription),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
