@@ -11,10 +11,11 @@ use crate::domain::subscription_models::{
 
 #[tracing::instrument(
     name = "Saving new subscription details in the database",
-    skip(subscription, pool)
+    skip(subscription, stripe_subscription_id, pool)
 )]
 pub async fn insert_subscription(
     subscription: NewSubscription,
+    stripe_subscription_id: String,
     pool: &PgPool,
 ) -> Result<OverTheWireSubscription, sqlx::Error> {
     let subscription_to_be_saved = OverTheWireSubscription {
@@ -33,6 +34,7 @@ pub async fn insert_subscription(
         subscription_creation_date: Utc::now(),
         active: true,
         subscription_type: subscription.subscription_type,
+        stripe_subscription_id,
     };
 
     sqlx::query!(
@@ -91,7 +93,8 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             subscription_email_address,
             subscription_creation_date,
             active,
-            subscription_type
+            subscription_type,
+            stripe_subscription_id
             FROM subscriptions WHERE subscriber_id = $1"#,
         id
     )
@@ -118,6 +121,7 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             subscription_creation_date: row.subscription_creation_date,
             subscription_type: from_str_to_subscription_type(row.subscription_type),
             active: row.active,
+            stripe_subscription_id: row.stripe_subscription_id,
         })
     }
     Ok(subscriptions)
@@ -141,7 +145,8 @@ pub async fn retrieve_subscription_by_subscription_id(
             subscription_email_address,
             subscription_creation_date,
             active,
-            subscription_type
+            subscription_type,
+            stripe_subscription_id
             FROM subscriptions WHERE id = $1"#,
         id
     )
@@ -165,6 +170,7 @@ pub async fn retrieve_subscription_by_subscription_id(
         subscription_creation_date: result.subscription_creation_date,
         subscription_type: from_str_to_subscription_type(result.subscription_type),
         active: result.active,
+        stripe_subscription_id: result.stripe_subscription_id,
     })
 }
 
