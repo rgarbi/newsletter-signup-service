@@ -1,3 +1,5 @@
+use crate::auth::token::Claims;
+use crate::db::subscribers::retrieve_subscriber_by_id;
 use actix_web::{web, HttpResponse, Responder};
 use chrono::Utc;
 use sqlx::PgPool;
@@ -10,6 +12,7 @@ use crate::db::subscriptions_db_broker::{
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
+use crate::routes::get_subscriber_by_id;
 use crate::util::from_string_to_uuid;
 
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
@@ -58,7 +61,7 @@ pub async fn post_subscription(
 
 #[tracing::instrument(
     name = "Getting subscriptions by subscriber id",
-    skip(id, pool),
+    skip(id, pool, user),
     fields(
         id = %id,
     )
@@ -66,8 +69,18 @@ pub async fn post_subscription(
 pub async fn get_subscriptions_by_subscriber_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
+    user: Claims,
 ) -> impl Responder {
-    match retrieve_subscriptions_by_subscriber_id(from_string_to_uuid(id).unwrap(), &pool).await {
+    match retrieve_subscriber_by_id(from_string_to_uuid(&id).unwrap(), &pool).await {
+        Ok(subscriber) => {
+            if subscriber.user_id != user.user_id {
+                return HttpResponse::Unauthorized().finish();
+            }
+        }
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    }
+
+    match retrieve_subscriptions_by_subscriber_id(from_string_to_uuid(&id).unwrap(), &pool).await {
         Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
         Err(_) => HttpResponse::NotFound().finish(),
     }

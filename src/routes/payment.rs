@@ -10,16 +10,21 @@ use crate::domain::checkout_models::CreateCheckoutSession;
 
 #[tracing::instrument(
     name = "Create checkout session",
-    skip(create_checkout_session, _pool, _user),
+    skip(create_checkout_session, user_id, _pool, user),
     fields(
         price_param = %create_checkout_session.price_lookup_key,
     )
 )]
 pub async fn create_checkout_session(
     create_checkout_session: web::Json<CreateCheckoutSession>,
+    user_id: web::Path<String>,
     _pool: web::Data<PgPool>,
-    _user: Claims,
+    user: Claims,
 ) -> impl Responder {
+    if user_id.clone() != user.user_id {
+        return HttpResponse::Unauthorized().finish();
+    }
+
     let configuration = get_configuration().unwrap();
 
     let success_url: String = format!(

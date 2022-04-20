@@ -5,7 +5,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
-pub fn from_string_to_uuid(id: web::Path<String>) -> Result<Uuid, HttpResponse> {
+pub fn from_string_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
     match Uuid::from_str(id.into_inner().as_str()) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
