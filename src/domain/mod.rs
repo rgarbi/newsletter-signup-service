@@ -1,5 +1,5 @@
+pub mod checkout_models;
 pub mod otp_models;
-pub mod stripe_models;
 pub mod subscriber_models;
 pub mod subscription_history_models;
 pub mod subscription_models;

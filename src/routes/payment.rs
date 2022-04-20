@@ -6,7 +6,7 @@ use stripe::{CheckoutSessionMode, Webhook, WebhookEvent};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
-use crate::domain::stripe_models::CreateCheckoutSession;
+use crate::domain::checkout_models::CreateCheckoutSession;
 
 #[tracing::instrument(
     name = "Create checkout session",

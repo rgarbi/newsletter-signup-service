@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct OverTheWireCreateSubscription {
     pub subscriber_id: String,
     pub subscription_name: String,
@@ -48,7 +48,7 @@ pub struct NewSubscription {
     pub subscription_type: SubscriptionType,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum SubscriptionType {
     Digital,
     Paper,
