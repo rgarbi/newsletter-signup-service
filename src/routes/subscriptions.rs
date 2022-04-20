@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse, Responder};
 use chrono::Utc;
 use sqlx::PgPool;
 
-use crate::db::subscriptions::{
+use crate::db::subscriptions_db_broker::{
     insert_subscription, retrieve_subscription_by_subscription_id,
     retrieve_subscriptions_by_subscriber_id,
 };
