@@ -136,7 +136,7 @@ pub fn run(
                 web::get().to(routes::get_subscriptions_by_subscriber_id),
             )
             .route(
-                "/create_checkout_session",
+                "/checkout/{user_id}",
                 web::post().to(routes::create_checkout_session),
             )
             .app_data(connection.clone())

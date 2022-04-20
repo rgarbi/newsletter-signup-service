@@ -6,11 +6,12 @@ use stripe::{CheckoutSessionMode, Webhook, WebhookEvent};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
+use crate::db::checkout_session_db_broker::insert_checkout_session;
 use crate::domain::checkout_models::CreateCheckoutSession;
 
 #[tracing::instrument(
     name = "Create checkout session",
-    skip(create_checkout_session, user_id, _pool, user),
+    skip(create_checkout_session, user_id, pool, user),
     fields(
         price_param = %create_checkout_session.price_lookup_key,
     )
@@ -18,7 +19,7 @@ use crate::domain::checkout_models::CreateCheckoutSession;
 pub async fn create_checkout_session(
     create_checkout_session: web::Json<CreateCheckoutSession>,
     user_id: web::Path<String>,
-    _pool: web::Data<PgPool>,
+    pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
     if user_id.clone() != user.user_id {
@@ -67,15 +68,38 @@ pub async fn create_checkout_session(
 
             match checkout_session_response {
                 Ok(checkout_session_created) => {
+                    let checkout_session_url = checkout_session_created.url.clone().unwrap();
                     println!(
                         "Checkout session Created!!! URL: {:?}",
-                        checkout_session_created.url
+                        &checkout_session_created.url
                     );
                     println!(
                         "Checkout session Created!!! URL: {:?}",
-                        checkout_session_created.id
+                        &checkout_session_created.id
                     );
-                    HttpResponse::Ok().json(json!({}))
+
+                    let redirect_url = checkout_session_url.as_str();
+                    let store_checkout_result = insert_checkout_session(
+                        user_id.into_inner().clone(),
+                        create_checkout_session.price_lookup_key.clone(),
+                        create_checkout_session.subscription.clone(),
+                        checkout_session_created.id.as_str().to_string(),
+                        &pool,
+                    )
+                    .await;
+
+                    match store_checkout_result {
+                        Ok(_) => {
+                            println!("REDIRECTING!!!");
+                            return HttpResponse::SeeOther()
+                                .append_header(("Location", redirect_url))
+                                .finish();
+                        }
+                        Err(err) => {
+                            println!("Err: {:?}", err);
+                            HttpResponse::InternalServerError().finish()
+                        }
+                    }
                 }
                 Err(stripe_error) => {
                     println!("Err: {:?}", stripe_error);
