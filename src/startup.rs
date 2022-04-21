@@ -81,6 +81,7 @@ pub fn security_headers() -> DefaultHeaders {
         ))
         .add((header::PRAGMA, "no-cache"))
         .add((header::EXPIRES, "0"))
+        .add((header::ACCESS_CONTROL_ALLOW_ORIGIN, "*"))
 }
 
 pub fn define_cors() -> Cors {
