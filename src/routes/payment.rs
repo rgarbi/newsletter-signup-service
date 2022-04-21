@@ -91,8 +91,9 @@ pub async fn create_checkout_session(
                     match store_checkout_result {
                         Ok(_) => {
                             println!("REDIRECTING!!!");
-                            return HttpResponse::SeeOther()
+                            return HttpResponse::Found()
                                 .append_header(("Location", redirect_url))
+                                .append_header(("Access-Control-Allow-Origin", "*"))
                                 .finish();
                         }
                         Err(err) => {

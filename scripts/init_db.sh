@@ -15,6 +15,7 @@ if ! [ -x "$(command -v sqlx)" ]; then
   exit 1
 fi
 
+docker system prune --volumes --force
 
 DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"

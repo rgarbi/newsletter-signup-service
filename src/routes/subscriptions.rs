@@ -73,6 +73,7 @@ pub async fn get_subscriptions_by_subscriber_id(
     match retrieve_subscriber_by_id(from_string_to_uuid(&id).unwrap(), &pool).await {
         Ok(subscriber) => {
             if subscriber.user_id != user.user_id {
+                println!("Getting a 401 here??????");
                 return HttpResponse::Unauthorized().finish();
             }
         }

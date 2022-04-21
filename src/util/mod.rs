@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
 pub fn from_string_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
-    match Uuid::from_str(id.as_str().clone()) {
+    match Uuid::from_str(id.as_str()) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
             tracing::error!("Got a malformed UUID");
