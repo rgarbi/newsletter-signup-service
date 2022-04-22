@@ -93,7 +93,7 @@ pub async fn create_checkout_session(
                             let redirect_response = CreateCheckoutSessionRedirect {
                                 location: checkout_session_url.as_str().to_string(),
                             };
-                            return HttpResponse::Ok().json(redirect_response);
+                            HttpResponse::Ok().json(redirect_response)
                         }
                         Err(err) => {
                             println!("Err: {:?}", err);
