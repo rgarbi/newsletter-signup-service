@@ -69,3 +69,25 @@ impl OverTheWireCreateSubscription {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
+    type Error = String;
+    fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {
+        let subscription_name = ValidName::parse(subscription.subscription_name)?;
+        let subscription_email_address =
+            ValidEmail::parse(subscription.subscription_email_address)?;
+        Ok(NewSubscription {
+            subscriber_id: subscription.subscriber_id,
+            subscription_name,
+            subscription_email_address,
+            subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,
+            subscription_mailing_address_line_2: subscription.subscription_mailing_address_line_2,
+            subscription_city: subscription.subscription_city,
+            subscription_state: subscription.subscription_state,
+            subscription_postal_code: subscription.subscription_postal_code,
+            subscription_type: subscription.subscription_type,
+            subscription_creation_date: Utc::now(),
+            active: true,
+        })
+    }
+}

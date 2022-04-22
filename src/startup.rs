@@ -123,7 +123,6 @@ pub fn run(
             )
             .route("/reset_password", web::post().to(routes::reset_password))
             .route("/health_check", web::get().to(routes::health_check))
-            .route("/subscriptions", web::post().to(routes::post_subscription))
             .route(
                 "/subscriptions/{id}",
                 web::get().to(routes::get_subscription_by_id),
@@ -144,6 +143,10 @@ pub fn run(
             .route(
                 "/checkout/{user_id}",
                 web::post().to(routes::create_checkout_session),
+            )
+            .route(
+                "/checkout/{user_id}/session/{session_id}",
+                web::post().to(routes::complete_session),
             )
             .app_data(connection.clone())
             .app_data(email_client.clone())

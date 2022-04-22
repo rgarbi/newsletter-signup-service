@@ -6,8 +6,13 @@ use stripe::{CheckoutSessionMode, Webhook, WebhookEvent};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
-use crate::db::checkout_session_db_broker::insert_checkout_session;
+use crate::db::checkout_session_db_broker::{
+    insert_checkout_session, retrieve_checkout_session_by_stripe_session_id,
+    set_checkout_session_state_to_success_by_stripe_session_id,
+};
+use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
+use crate::domain::subscription_models::OverTheWireCreateSubscription;
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -158,4 +163,75 @@ pub async fn handle_webhook(
     }
 
     HttpResponse::Ok().json(json!({}))
+}
+
+#[tracing::instrument(
+    name = "Handle Webhook",
+    skip(params, pool, user),
+    fields(
+        user_id = %params.0,
+    )
+)]
+pub async fn complete_session(
+    params: web::Path<(String, String)>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    let user_id = params.into_inner().0;
+    let session_id = params.into_inner().1;
+    if &user_id != &user.user_id {
+        return HttpResponse::Unauthorized().finish();
+    }
+    let checkout_session = retrieve_checkout_session_by_stripe_session_id(&session_id, &pool).await;
+
+    return match checkout_session {
+        Ok(checkout) => {
+            if &checkout.user_id != &user_id_path_param {
+                return HttpResponse::Unauthorized().finish();
+            }
+
+            let mut transaction = match pool.begin().await {
+                Ok(transaction) => transaction,
+                Err(_) => return HttpResponse::InternalServerError().finish(),
+            };
+            //use a transaction
+            let set_state_result = set_checkout_session_state_to_success_by_stripe_session_id(
+                &checkout.stripe_session_id,
+                &mut transaction,
+            )
+            .await;
+
+            if set_state_result.is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            let stored_subscription: OverTheWireCreateSubscription =
+                serde_json::from_value(checkout.subscription).unwrap();
+
+            let new_subscription = match stored_subscription.try_into() {
+                Ok(subscription) => subscription,
+                Err(_) => return HttpResponse::BadRequest().finish(),
+            };
+
+            let subscription_result = insert_subscription(
+                new_subscription,
+                checkout.stripe_session_id,
+                &mut transaction,
+            )
+            .await;
+
+            match subscription_result {
+                Ok(_) => {
+                    if transaction.commit().await.is_err() {
+                        HttpResponse::InternalServerError().finish();
+                    }
+                    HttpResponse::Ok().json({})
+                }
+                Err(_) => HttpResponse::InternalServerError().finish(),
+            }
+        }
+        Err(err) => {
+            println!("Err: {:?}", err);
+            HttpResponse::NotFound().finish()
+        }
+    };
 }

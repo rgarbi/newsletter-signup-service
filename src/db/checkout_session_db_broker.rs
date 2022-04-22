@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use chrono::Utc;
 use serde_json::json;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::domain::subscription_models::OverTheWireCreateSubscription;
@@ -62,7 +62,7 @@ pub async fn insert_checkout_session(
     skip(stripe_session_id, pool)
 )]
 pub async fn retrieve_checkout_session_by_stripe_session_id(
-    stripe_session_id: String,
+    stripe_session_id: &String,
     pool: &PgPool,
 ) -> Result<CheckoutSession, sqlx::Error> {
     let result = sqlx::query!(
@@ -124,11 +124,11 @@ pub async fn cancel_checkout_session_by_stripe_session_id(
 
 #[tracing::instrument(
     name = "Mark checkout session as successful by stripe session id",
-    skip(stripe_session_id, pool)
+    skip(stripe_session_id, transaction)
 )]
 pub async fn set_checkout_session_state_to_success_by_stripe_session_id(
-    stripe_session_id: String,
-    pool: &PgPool,
+    stripe_session_id: &String,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"UPDATE checkout_session
@@ -137,7 +137,7 @@ pub async fn set_checkout_session_state_to_success_by_stripe_session_id(
         CheckoutSessionState::CompletedSuccessfully.as_str(),
         stripe_session_id
     )
-    .execute(pool)
+    .execute(transaction)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);

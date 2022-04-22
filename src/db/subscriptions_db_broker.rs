@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use chrono::Utc;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
 use tracing::log::error;
 use uuid::Uuid;
 
@@ -11,12 +11,12 @@ use crate::domain::subscription_models::{
 
 #[tracing::instrument(
     name = "Saving new subscription details in the database",
-    skip(subscription, stripe_subscription_id, pool)
+    skip(subscription, stripe_subscription_id, transaction)
 )]
 pub async fn insert_subscription(
     subscription: NewSubscription,
     stripe_subscription_id: String,
-    pool: &PgPool,
+    transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<OverTheWireSubscription, sqlx::Error> {
     let subscription_to_be_saved = OverTheWireSubscription {
         id: Uuid::new_v4(),
@@ -67,7 +67,7 @@ pub async fn insert_subscription(
         subscription_to_be_saved.subscription_type.as_str(),
         subscription_to_be_saved.stripe_subscription_id
     )
-    .execute(pool)
+    .execute(transaction)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
