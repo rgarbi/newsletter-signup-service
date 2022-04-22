@@ -7,7 +7,7 @@ use stripe::{CheckoutSessionMode, Webhook, WebhookEvent};
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
 use crate::db::checkout_session_db_broker::insert_checkout_session;
-use crate::domain::checkout_models::CreateCheckoutSession;
+use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -78,7 +78,6 @@ pub async fn create_checkout_session(
                         &checkout_session_created.id
                     );
 
-                    let redirect_url = checkout_session_url.as_str();
                     let store_checkout_result = insert_checkout_session(
                         user_id.into_inner().clone(),
                         create_checkout_session.price_lookup_key.clone(),
@@ -91,11 +90,10 @@ pub async fn create_checkout_session(
                     match store_checkout_result {
                         Ok(_) => {
                             println!("REDIRECTING!!!");
-                            return HttpResponse::SeeOther()
-                                .append_header(("Location", redirect_url))
-                                .append_header(("Connection", "close"))
-                                .append_header(("Access-Control-Allow-Origin", "*"))
-                                .finish();
+                            let redirect_response = CreateCheckoutSessionRedirect {
+                                location: checkout_session_url.as_str().to_string(),
+                            };
+                            return HttpResponse::Ok().json(redirect_response);
                         }
                         Err(err) => {
                             println!("Err: {:?}", err);

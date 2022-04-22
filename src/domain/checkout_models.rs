@@ -13,6 +13,11 @@ pub struct CreateCheckoutSession {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct CreateCheckoutSessionRedirect {
+    pub location: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct CheckoutSession {
     pub id: Uuid,
     pub user_id: String,
@@ -68,6 +73,12 @@ impl CreateCheckoutSession {
 }
 
 impl CheckoutSession {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}
+
+impl CreateCheckoutSessionRedirect {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
