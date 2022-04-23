@@ -79,7 +79,7 @@ pub async fn create_checkout_session(
                         &checkout_session_created.url
                     );
                     println!(
-                        "Checkout session Created!!! URL: {:?}",
+                        "Checkout session Created!!! ID: {:?}",
                         &checkout_session_created.id
                     );
 
@@ -177,8 +177,9 @@ pub async fn complete_session(
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
-    let user_id = params.into_inner().0;
-    let session_id = params.into_inner().1;
+    let param_tuple: (String, String) = params.into_inner();
+    let user_id = param_tuple.clone().0;
+    let session_id = param_tuple.clone().1;
     if &user_id != &user.user_id {
         return HttpResponse::Unauthorized().finish();
     }
@@ -186,7 +187,7 @@ pub async fn complete_session(
 
     return match checkout_session {
         Ok(checkout) => {
-            if &checkout.user_id != &user_id_path_param {
+            if &checkout.user_id != &user_id {
                 return HttpResponse::Unauthorized().finish();
             }
 

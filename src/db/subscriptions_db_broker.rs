@@ -177,11 +177,11 @@ pub async fn retrieve_subscription_by_subscription_id(
 }
 
 pub fn from_str_to_subscription_type(val: String) -> SubscriptionType {
-    if val.eq("Electronic") {
+    if val.eq("Digital") {
         return SubscriptionType::Digital;
     }
 
-    if val.eq("Physical") {
+    if val.eq("Paper") {
         return SubscriptionType::Paper;
     }
 
