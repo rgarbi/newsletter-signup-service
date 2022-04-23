@@ -47,7 +47,7 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
     assert_ok!(result);
 
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
+        retrieve_checkout_session_by_stripe_session_id(&stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let user_id = checkout_session_result.unwrap().user_id;
@@ -76,7 +76,7 @@ async fn cancel_checkout_session_by_stripe_session_id_works() {
     assert_ok!(&cancel_session_result);
 
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
+        retrieve_checkout_session_by_stripe_session_id(&stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let state = checkout_session_result.unwrap().session_state;
@@ -100,15 +100,19 @@ async fn set_checkout_session_state_to_success_by_stripe_session_id_works() {
     .await;
     assert_ok!(result);
 
+    let mut transaction = app.db_pool.begin().await.unwrap();
+
     let success_session_result = set_checkout_session_state_to_success_by_stripe_session_id(
-        stripe_session_id.clone(),
-        &app.db_pool,
+        &stripe_session_id.clone(),
+        &mut transaction,
     )
     .await;
     assert_ok!(&success_session_result);
 
+    assert_ok!(transaction.commit().await);
+
     let checkout_session_result =
-        retrieve_checkout_session_by_stripe_session_id(stripe_session_id, &app.db_pool).await;
+        retrieve_checkout_session_by_stripe_session_id(&stripe_session_id, &app.db_pool).await;
     assert_ok!(&checkout_session_result);
 
     let state = checkout_session_result.unwrap().session_state;
