@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]

@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use validator::validate_email;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
