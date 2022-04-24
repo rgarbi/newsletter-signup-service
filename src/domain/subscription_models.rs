@@ -35,6 +35,7 @@ pub struct OverTheWireSubscription {
     pub stripe_subscription_id: String,
 }
 
+#[derive(Deserialize, Serialize, Clone)]
 pub struct NewSubscription {
     pub subscriber_id: String,
     pub subscription_name: ValidName,
