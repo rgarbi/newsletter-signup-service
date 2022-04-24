@@ -186,14 +186,14 @@ pub async fn complete_session(
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
     let session_id = param_tuple.clone().1;
-    if &user_id != &user.user_id {
+    if user_id != user.user_id {
         return HttpResponse::Unauthorized().finish();
     }
     let checkout_session = retrieve_checkout_session_by_stripe_session_id(&session_id, &pool).await;
 
     return match checkout_session {
         Ok(checkout) => {
-            if &checkout.user_id != &user_id {
+            if checkout.user_id != user_id {
                 return HttpResponse::Unauthorized().finish();
             }
 
@@ -231,7 +231,7 @@ pub async fn complete_session(
                     if transaction.commit().await.is_err() {
                         HttpResponse::InternalServerError().finish();
                     }
-                    HttpResponse::Ok().json({})
+                    HttpResponse::Ok().json(json!({}))
                 }
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
