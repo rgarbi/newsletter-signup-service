@@ -70,6 +70,12 @@ impl OverTheWireCreateSubscription {
     }
 }
 
+impl NewSubscription {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}
+
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
     type Error = String;
     fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {

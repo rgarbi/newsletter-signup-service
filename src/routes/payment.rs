@@ -12,7 +12,7 @@ use crate::db::checkout_session_db_broker::{
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
-use crate::domain::subscription_models::OverTheWireCreateSubscription;
+use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -30,6 +30,11 @@ pub async fn create_checkout_session(
     if user_id.clone() != user.user_id {
         return HttpResponse::Unauthorized().finish();
     }
+
+    let new_subscription: NewSubscription = match create_checkout_session.subscription.try_into() {
+        Ok(subscription) => subscription,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
 
     let configuration = get_configuration().unwrap();
 
@@ -86,7 +91,7 @@ pub async fn create_checkout_session(
                     let store_checkout_result = insert_checkout_session(
                         user_id.into_inner().clone(),
                         create_checkout_session.price_lookup_key.clone(),
-                        create_checkout_session.subscription.clone(),
+                        new_subscription,
                         checkout_session_created.id.as_str().to_string(),
                         &pool,
                     )

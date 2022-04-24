@@ -6,7 +6,7 @@ use serde_json::json;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::domain::subscription_models::OverTheWireCreateSubscription;
+use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 
 #[tracing::instrument(
     name = "Saving a new checkout session",
@@ -15,7 +15,7 @@ use crate::domain::subscription_models::OverTheWireCreateSubscription;
 pub async fn insert_checkout_session(
     user_id: String,
     price_lookup_key: String,
-    subscription: OverTheWireCreateSubscription,
+    subscription: NewSubscription,
     stripe_session_id: String,
     pool: &PgPool,
 ) -> Result<(), sqlx::Error> {

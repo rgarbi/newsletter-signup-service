@@ -202,6 +202,22 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
+    pub async fn post_checkout(
+        &self,
+        body: String,
+        user_id: String,
+        token: String,
+    ) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/checkout/{}", &self.address, user_id))
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn from_response_to_over_the_wire_subscriber(
         &self,
         response: Response,

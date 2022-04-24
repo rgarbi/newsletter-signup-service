@@ -1,74 +1,13 @@
+use claim::assert_ok;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
+use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::subscription_models::{
-    OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
+    NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 
-use crate::helper::{generate_over_the_wire_create_subscription, spawn_app};
-
-#[tokio::test]
-async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
-    let app = spawn_app().await;
-    let subscriber = app.store_subscriber(Option::None).await;
-    let test_cases = vec![
-        (
-            OverTheWireCreateSubscription {
-                subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Digital,
-                subscription_state: Uuid::new_v4().to_string(),
-                subscription_name: String::from(""),
-                subscription_city: Uuid::new_v4().to_string(),
-                subscription_email_address: Uuid::new_v4().to_string(),
-                subscription_postal_code: Uuid::new_v4().to_string(),
-                subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
-                subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
-            },
-            "empty name",
-        ),
-        (
-            OverTheWireCreateSubscription {
-                subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Digital,
-                subscription_state: Uuid::new_v4().to_string(),
-                subscription_name: Uuid::new_v4().to_string(),
-                subscription_city: Uuid::new_v4().to_string(),
-                subscription_email_address: String::from(""),
-                subscription_postal_code: Uuid::new_v4().to_string(),
-                subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
-                subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
-            },
-            "empty email",
-        ),
-        (
-            OverTheWireCreateSubscription {
-                subscriber_id: subscriber.id.clone(),
-                subscription_type: SubscriptionType::Digital,
-                subscription_state: Uuid::new_v4().to_string(),
-                subscription_name: Uuid::new_v4().to_string(),
-                subscription_city: Uuid::new_v4().to_string(),
-                subscription_email_address: Uuid::new_v4().to_string(),
-                subscription_postal_code: Uuid::new_v4().to_string(),
-                subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
-                subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
-            },
-            "invalid email",
-        ),
-    ];
-    for (body, description) in test_cases {
-        // Act
-        let response = app
-            .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
-            .await;
-        // Assert
-        assert_eq!(
-            400,
-            response.status().as_u16(),
-            "The API did not return a 200 OK when the payload was {}.",
-            description
-        );
-    }
-}
+use crate::helper::{generate_over_the_wire_create_subscription, spawn_app, TestApp};
 
 #[tokio::test]
 async fn subscriptions_returns_a_200_for_valid_form_data() {
@@ -76,19 +15,17 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 
     let subscriber = app.store_subscriber(Option::None).await;
 
-    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
-    let response = app
-        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
-        .await;
-
-    assert_eq!(200, response.status().as_u16());
+    let stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
 
     let saved =
         sqlx::query!("SELECT subscription_name, subscription_postal_code, id FROM subscriptions")
             .fetch_one(&app.db_pool)
             .await
             .expect("Failed to fetch saved subscription.");
-    assert_eq!(saved.subscription_name, body.subscription_name);
+    assert_eq!(
+        saved.subscription_name,
+        stored_subscription.subscription_name
+    );
 }
 
 #[tokio::test]
@@ -96,11 +33,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
-    let response = app
-        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
-        .await;
-    assert_eq!(200, response.status().as_u16());
+    let _stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
 
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
@@ -151,11 +84,7 @@ async fn get_subscriptions_by_subscriber_id_many() {
     let expected = 100;
 
     for _ in 0..expected {
-        let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
-        let response = app
-            .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
-            .await;
-        assert_eq!(200, response.status().as_u16());
+        store_subscription(subscriber.id.clone(), &app).await;
     }
 
     let subscriptions_response = app
@@ -174,23 +103,15 @@ async fn get_subscriptions_by_subscriber_id_many() {
 }
 
 #[tokio::test]
-async fn get_subscriptions_by_id() {
+async fn get_subscription_by_id() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let body = generate_over_the_wire_create_subscription(subscriber.id.clone());
-    let response = app
-        .post_subscription(body.to_json(), generate_token(subscriber.user_id.clone()))
-        .await;
-    assert_eq!(200, response.status().as_u16());
-
-    let response_body = response.text().await.unwrap();
-    let saved_subscription: OverTheWireSubscription =
-        serde_json::from_str(response_body.as_str()).unwrap();
+    let stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
-            saved_subscription.id.to_string(),
+            stored_subscription.id.to_string(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -201,7 +122,28 @@ async fn get_subscriptions_by_id() {
         serde_json::from_str(saved_subscription_response_body.as_str()).unwrap();
 
     assert_eq!(
-        body.subscriber_id.to_string(),
+        stored_subscription.subscriber_id.to_string(),
         subscription.subscriber_id.to_string()
     )
+}
+
+async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
+    let over_the_wire_create_subscription =
+        generate_over_the_wire_create_subscription(subscriber_id);
+
+    let mut transaction_result = app.db_pool.begin().await;
+    assert_ok!(&mut transaction_result);
+    let mut transaction = transaction_result.unwrap();
+
+    let new_subscription: NewSubscription = over_the_wire_create_subscription.try_into().unwrap();
+
+    let response = insert_subscription(
+        new_subscription,
+        Uuid::new_v4().to_string(),
+        &mut transaction,
+    )
+    .await;
+    assert_ok!(&response);
+    assert_ok!(transaction.commit().await);
+    response.unwrap()
 }
