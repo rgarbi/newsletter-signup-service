@@ -2,6 +2,7 @@ use chrono::Utc;
 use once_cell::sync::Lazy;
 use reqwest::Response;
 use serde_json::json;
+use sqlx::postgres::PgPoolOptions;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use wiremock::MockServer;
@@ -277,7 +278,9 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .await
         .expect("Failed to create database.");
     // Migrate database
-    let connection_pool = PgPool::connect_with(config.with_db())
+    let connection_pool = PgPoolOptions::new()
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")
