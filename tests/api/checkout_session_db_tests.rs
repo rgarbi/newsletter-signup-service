@@ -8,7 +8,8 @@ use newsletter_signup_service::domain::checkout_models::CheckoutSessionState;
 use uuid::Uuid;
 
 use crate::helper::{
-    generate_checkout_session, generate_over_the_wire_create_subscription, spawn_app,
+    generate_checkout_session, generate_new_subscription,
+    generate_over_the_wire_create_subscription, spawn_app,
 };
 
 #[tokio::test]
@@ -21,7 +22,7 @@ async fn insert_checkout_session_works() {
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
         checkout_session.price_lookup_key,
-        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
+        generate_new_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -39,7 +40,7 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
         checkout_session.price_lookup_key,
-        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
+        generate_new_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -64,7 +65,7 @@ async fn cancel_checkout_session_by_stripe_session_id_works() {
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
         checkout_session.price_lookup_key,
-        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
+        generate_new_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )
@@ -93,7 +94,7 @@ async fn set_checkout_session_state_to_success_by_stripe_session_id_works() {
     let result = insert_checkout_session(
         checkout_session.user_id.clone(),
         checkout_session.price_lookup_key,
-        generate_over_the_wire_create_subscription(Uuid::new_v4().to_string()),
+        generate_new_subscription(Uuid::new_v4().to_string()),
         stripe_session_id.clone(),
         &app.db_pool,
     )

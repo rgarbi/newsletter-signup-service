@@ -1,14 +1,13 @@
-use claim::assert_ok;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
-use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
+
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscription_models::{
-    NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
+    OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 
-use crate::helper::{generate_over_the_wire_create_subscription, spawn_app, TestApp};
+use crate::helper::{spawn_app, TestApp};
 
 #[tokio::test]
 async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
@@ -70,7 +69,11 @@ async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
     for (body, description) in test_cases {
         // Act
         let response = app
-            .post_checkout(body.to_json(), generate_token(subscriber.user_id.clone()))
+            .post_checkout(
+                body.to_json(),
+                subscriber.user_id.clone(),
+                generate_token(subscriber.user_id.clone()),
+            )
             .await;
         // Assert
         assert_eq!(

@@ -31,10 +31,11 @@ pub async fn create_checkout_session(
         return HttpResponse::Unauthorized().finish();
     }
 
-    let new_subscription: NewSubscription = match create_checkout_session.subscription.try_into() {
-        Ok(subscription) => subscription,
-        Err(_) => return HttpResponse::BadRequest().finish(),
-    };
+    let new_subscription: NewSubscription =
+        match create_checkout_session.subscription.clone().try_into() {
+            Ok(subscription) => subscription,
+            Err(_) => return HttpResponse::BadRequest().finish(),
+        };
 
     let configuration = get_configuration().unwrap();
 

@@ -6,7 +6,7 @@ use serde_json::json;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
+use crate::domain::subscription_models::NewSubscription;
 
 #[tracing::instrument(
     name = "Saving a new checkout session",

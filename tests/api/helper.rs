@@ -13,7 +13,7 @@ use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
 use newsletter_signup_service::domain::subscription_models::{
-    OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
+    NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::{get_connection_pool, Application};
@@ -336,6 +336,12 @@ pub fn generate_over_the_wire_create_subscription(
         subscription_mailing_address_line_2: Option::from(Uuid::new_v4().to_string()),
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
     }
+}
+
+pub fn generate_new_subscription(subscriber_id: String) -> NewSubscription {
+    generate_over_the_wire_create_subscription(subscriber_id)
+        .try_into()
+        .unwrap()
 }
 
 pub fn generate_over_the_wire_subscription() -> OverTheWireSubscription {
