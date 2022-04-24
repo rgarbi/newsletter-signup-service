@@ -4,10 +4,10 @@ use newsletter_signup_service::auth::token::generate_token;
 
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscription_models::{
-    OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
+    OverTheWireCreateSubscription, SubscriptionType,
 };
 
-use crate::helper::{spawn_app, TestApp};
+use crate::helper::spawn_app;
 
 #[tokio::test]
 async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
