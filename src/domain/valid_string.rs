@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ValidString(String);
 
 impl ValidString {
