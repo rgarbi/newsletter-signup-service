@@ -4,7 +4,7 @@ use uuid::Uuid;
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::subscription_models::{
-    NewSubscription, OverTheWireSubscription, SubscriptionType,
+    NewSubscription, OverTheWireSubscription,
 };
 
 use crate::helper::{generate_over_the_wire_create_subscription, spawn_app, TestApp};

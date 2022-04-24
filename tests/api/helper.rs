@@ -166,17 +166,6 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
-    pub async fn post_subscription(&self, body: String, token: String) -> reqwest::Response {
-        reqwest::Client::new()
-            .post(&format!("{}/subscriptions", &self.address))
-            .header("Content-Type", "application/json")
-            .bearer_auth(token)
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request.")
-    }
-
     pub async fn get_subscriptions_by_subscriber_id(
         &self,
         subscriber_id: String,

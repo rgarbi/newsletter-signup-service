@@ -7,10 +7,7 @@ use newsletter_signup_service::db::checkout_session_db_broker::{
 use newsletter_signup_service::domain::checkout_models::CheckoutSessionState;
 use uuid::Uuid;
 
-use crate::helper::{
-    generate_checkout_session, generate_new_subscription,
-    generate_over_the_wire_create_subscription, spawn_app,
-};
+use crate::helper::{generate_checkout_session, generate_new_subscription, spawn_app};
 
 #[tokio::test]
 async fn insert_checkout_session_works() {
