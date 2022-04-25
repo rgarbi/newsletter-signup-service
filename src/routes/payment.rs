@@ -172,10 +172,11 @@ pub async fn handle_webhook(
 }
 
 #[tracing::instrument(
-    name = "Handle Webhook",
+    name = "Complete Session",
     skip(params, pool, user),
     fields(
         user_id = %params.0,
+        session_id = %params.1,
     )
 )]
 pub async fn complete_session(
