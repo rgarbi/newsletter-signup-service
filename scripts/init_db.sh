@@ -29,9 +29,8 @@ then
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
     -e POSTGRES_DB=${DB_NAME} \
     -p "${DB_PORT}":5432 \
-    -v ${PWD}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql \
-    -d postgres \
-    postgres -N 1000
+      -d richardgarbi/postgres-docker-more-connections \
+    postgres
 fi
 # ˆ Increased maximum number of connections for testing purposes
 

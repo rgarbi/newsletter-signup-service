@@ -13,15 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:latest
+        image: richardgarbi/postgres-docker-more-connections:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
-        volumes:
-          - ${{ github.action_path }}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
         options: >-
           --health-cmd pg_isready
           --health-interval 15s
