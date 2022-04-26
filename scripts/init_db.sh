@@ -15,7 +15,7 @@ if ! [ -x "$(command -v sqlx)" ]; then
   exit 1
 fi
 
-docker system prune --volumes --force
+#docker system prune --volumes --force
 
 DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
@@ -29,6 +29,7 @@ then
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
     -e POSTGRES_DB=${DB_NAME} \
     -p "${DB_PORT}":5432 \
+    -v ${PWD}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql \
     -d postgres \
     postgres -N 1000
 fi
