@@ -21,7 +21,7 @@ jobs:
         ports:
           - 5432:5432
         volumes:
-          - ${{ github.workspace }}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
+          - /home/runner/work/newsletter-signup-service/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
