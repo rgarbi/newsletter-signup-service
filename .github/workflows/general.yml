@@ -21,7 +21,7 @@ jobs:
         ports:
           - 5432:5432
         volumes:
-          - max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
+          - ${{ github.workspace }}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
     env:
       SQLX_VERSION: 0.5.11
       SQLX_FEATURES: all
