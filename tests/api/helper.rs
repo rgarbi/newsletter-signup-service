@@ -280,6 +280,8 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Migrate database
     let connection_pool = PgPoolOptions::new()
         .connect_timeout(std::time::Duration::from_secs(10))
+        .idle_timeout(std::time::Duration::from_secs(5))
+        .min_connections(5)
         .connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
