@@ -62,7 +62,6 @@ jobs:
             sqlx-cli
             --force
             --version=${{ env.SQLX_VERSION }}
-            --locked
 
       - name: Migrate database
         run: |
