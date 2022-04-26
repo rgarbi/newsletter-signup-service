@@ -15,8 +15,6 @@ if ! [ -x "$(command -v sqlx)" ]; then
   exit 1
 fi
 
-#docker system prune --volumes --force
-
 DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 DB_NAME="${POSTGRES_DB:=newsletter-signup-service}"
@@ -24,6 +22,8 @@ DB_PORT="${POSTGRES_PORT:=5432}"
 # Launch postgres using Docker
 if [[ -z "${SKIP_DOCKER}" ]]
 then
+  docker system prune --volumes --force
+
   docker run \
     -e POSTGRES_USER=${DB_USER} \
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
