@@ -71,7 +71,10 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                         token: generate_token(user_id),
                         expires_on: get_expires_at(Option::None),
                     },
-                    Err(_) => return HttpResponse::InternalServerError().finish(),
+                    Err(_) => {
+                        transaction.rollback().await.unwrap();
+                        return HttpResponse::InternalServerError().finish();
+                    }
                 };
 
             new_subscriber.user_id = login_response.user_id.clone();
@@ -82,7 +85,10 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                     }
                     HttpResponse::Ok().json(&login_response)
                 }
-                Err(_) => HttpResponse::InternalServerError().finish(),
+                Err(_) => {
+                    transaction.rollback().await.unwrap();
+                    HttpResponse::InternalServerError().finish()
+                }
             }
         }
         Err(_) => HttpResponse::InternalServerError().finish(),

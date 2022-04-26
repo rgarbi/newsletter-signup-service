@@ -210,8 +210,10 @@ pub async fn complete_session(
             .await;
 
             if set_state_result.is_err() {
+                transaction.rollback().await.unwrap();
                 return HttpResponse::InternalServerError().finish();
             }
+
             let stored_subscription: OverTheWireCreateSubscription =
                 serde_json::from_value(checkout.subscription).unwrap();
 
@@ -234,7 +236,10 @@ pub async fn complete_session(
                     }
                     HttpResponse::Ok().json(json!({}))
                 }
-                Err(_) => HttpResponse::InternalServerError().finish(),
+                Err(_) => {
+                    transaction.rollback().await.unwrap();
+                    HttpResponse::InternalServerError().finish()
+                }
             }
         }
         Err(err) => {
