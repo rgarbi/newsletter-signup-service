@@ -21,12 +21,12 @@ jobs:
         ports:
           - 5432:5432
         volumes:
-          - /home/runner/work/newsletter-signup-service/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
+          - ${{ github.workspace }}/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 15s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
     env:
       SQLX_VERSION: 0.5.11
       SQLX_FEATURES: all
