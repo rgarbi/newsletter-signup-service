@@ -75,7 +75,7 @@ jobs:
         run: |
           cargo sqlx prepare --check -- --bin newsletter-signup-service
 
-      - name: Run cargo test
+      - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
