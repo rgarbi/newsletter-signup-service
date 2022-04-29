@@ -10,9 +10,11 @@ use crate::db::checkout_session_db_broker::{
     insert_checkout_session, retrieve_checkout_session_by_stripe_session_id,
     set_checkout_session_state_to_success_by_stripe_session_id,
 };
+use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
+use crate::util::{from_path_to_uuid, from_string_to_uuid};
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -36,6 +38,20 @@ pub async fn create_checkout_session(
             Ok(subscription) => subscription,
             Err(_) => return HttpResponse::BadRequest().finish(),
         };
+
+    //get the subscriber by id
+    let subscriber = match retrieve_subscriber_by_id(
+        from_string_to_uuid(new_subscription.subscriber_id).unwrap(),
+        &pool,
+    )
+    .await
+    {
+        Ok(subscriber) => subscriber,
+        Err(err) => {
+            println!("Err: {:?}", err);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
 
     let configuration = get_configuration().unwrap();
 
@@ -74,6 +90,7 @@ pub async fn create_checkout_session(
                 stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
             checkout_session.line_items = Some(Box::new(line_items));
             checkout_session.mode = Some(CheckoutSessionMode::Subscription);
+
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
 
@@ -87,6 +104,11 @@ pub async fn create_checkout_session(
                     println!(
                         "Checkout session Created!!! ID: {:?}",
                         &checkout_session_created.id
+                    );
+
+                    println!(
+                        "CUSTOMER ID: {}",
+                        &checkout_session_created.customer.unwrap().id()
                     );
 
                     let store_checkout_result = insert_checkout_session(

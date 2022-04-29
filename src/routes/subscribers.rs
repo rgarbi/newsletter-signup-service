@@ -6,7 +6,7 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::auth::token::Claims;
-use crate::db::subscribers::{
+use crate::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_email, retrieve_subscriber_by_id,
     retrieve_subscriber_by_user_id, retrieve_subscriber_by_user_id_and_email_address,
 };
@@ -15,7 +15,7 @@ use crate::domain::subscriber_models::{
 };
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
-use crate::util::from_string_to_uuid;
+use crate::util::from_path_to_uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct SubscriberQueries {
@@ -138,7 +138,7 @@ pub async fn get_subscriber_by_id(
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
-    match retrieve_subscriber_by_id(from_string_to_uuid(&id).unwrap(), &pool).await {
+    match retrieve_subscriber_by_id(from_path_to_uuid(&id).unwrap(), &pool).await {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
     }

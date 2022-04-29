@@ -10,7 +10,7 @@ use crate::auth::password_hashing::{hash_password, validate_password};
 use crate::auth::token::{generate_token, get_expires_at, Claims, LoginResponse};
 use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
-use crate::db::subscribers::insert_subscriber;
+use crate::db::subscribers_db_broker::insert_subscriber;
 use crate::db::users::{
     count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
     update_password,

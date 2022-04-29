@@ -5,7 +5,11 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
-pub fn from_string_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
+pub fn from_path_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
+    from_string_to_uuid(id.into_inner())
+}
+
+pub fn from_string_to_uuid(id: String) -> Result<Uuid, HttpResponse> {
     match Uuid::from_str(id.as_str()) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
@@ -32,7 +36,7 @@ mod tests {
     use actix_web::web::Path;
     use uuid::Uuid;
 
-    use crate::util::from_string_to_uuid;
+    use crate::util::from_path_to_uuid;
 
     #[test]
     fn a_uuid_is_valid() {
@@ -40,12 +44,12 @@ mod tests {
 
         assert_eq!(
             uuid,
-            from_string_to_uuid(&Path::try_from(uuid.to_string()).unwrap()).unwrap()
+            from_path_to_uuid(&Path::try_from(uuid.to_string()).unwrap()).unwrap()
         );
     }
 
     #[quickcheck_macros::quickcheck]
     fn anything_not_a_uuid_is_invalid(invalid_uuid: String) -> bool {
-        from_string_to_uuid(&Path::try_from(invalid_uuid).unwrap()).is_err()
+        from_path_to_uuid(&Path::try_from(invalid_uuid).unwrap()).is_err()
     }
 }
