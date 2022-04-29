@@ -24,7 +24,7 @@ async fn set_stripe_customer_id_works() {
     let result = insert_subscriber(&new_subscriber, &mut transaction).await;
     assert_ok!(result);
 
-    assert_ok!(transaction.commit());
+    assert_ok!(transaction.commit().await);
 
     let stored_subscriber =
         retrieve_subscriber_by_user_id(subscriber.user_id.as_str(), &app.db_pool)
