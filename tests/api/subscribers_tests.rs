@@ -218,7 +218,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
 
     let response = app
         .get_subscriber_by_id(
-            subscriber.id.clone(),
+            subscriber.id.to_string(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;

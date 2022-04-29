@@ -15,7 +15,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 
     let subscriber = app.store_subscriber(Option::None).await;
 
-    let stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
 
     let saved =
         sqlx::query!("SELECT subscription_name, subscription_postal_code, id FROM subscriptions")
@@ -33,11 +33,11 @@ async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let _stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
+    let _stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
 
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
-            subscriber.id.clone(),
+            subscriber.id.to_string(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -84,12 +84,12 @@ async fn get_subscriptions_by_subscriber_id_many() {
     let expected = 100;
 
     for _ in 0..expected {
-        store_subscription(subscriber.id.clone(), &app).await;
+        store_subscription(subscriber.id.to_string(), &app).await;
     }
 
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
-            subscriber.id.clone(),
+            subscriber.id.to_string(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -107,7 +107,7 @@ async fn get_subscription_by_id() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.clone(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(

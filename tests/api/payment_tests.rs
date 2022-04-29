@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
@@ -18,7 +19,7 @@ async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
             CreateCheckoutSession {
                 price_lookup_key: Uuid::new_v4().to_string(),
                 subscription: OverTheWireCreateSubscription {
-                    subscriber_id: subscriber.id.clone(),
+                    subscriber_id: subscriber.id.to_string(),
                     subscription_type: SubscriptionType::Digital,
                     subscription_state: Uuid::new_v4().to_string(),
                     subscription_name: String::from(""),
@@ -35,7 +36,7 @@ async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
             CreateCheckoutSession {
                 price_lookup_key: Uuid::new_v4().to_string(),
                 subscription: OverTheWireCreateSubscription {
-                    subscriber_id: subscriber.id.clone(),
+                    subscriber_id: subscriber.id.to_string(),
                     subscription_type: SubscriptionType::Digital,
                     subscription_state: Uuid::new_v4().to_string(),
                     subscription_name: Uuid::new_v4().to_string(),
@@ -52,7 +53,7 @@ async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
             CreateCheckoutSession {
                 price_lookup_key: Uuid::new_v4().to_string(),
                 subscription: OverTheWireCreateSubscription {
-                    subscriber_id: subscriber.id.clone(),
+                    subscriber_id: subscriber.id.to_string(),
                     subscription_type: SubscriptionType::Digital,
                     subscription_state: Uuid::new_v4().to_string(),
                     subscription_name: Uuid::new_v4().to_string(),
