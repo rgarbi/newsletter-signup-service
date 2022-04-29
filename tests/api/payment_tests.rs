@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;

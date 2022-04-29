@@ -1,14 +1,9 @@
-use claim::{assert_err, assert_ok};
+use claim::assert_ok;
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id, set_stripe_customer_id,
 };
-use uuid::Uuid;
-
-use newsletter_signup_service::db::users::{
-    count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
-};
 use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
-use newsletter_signup_service::domain::user_models::SignUp;
+use uuid::Uuid;
 
 use crate::helper::{generate_over_the_wire_subscriber, spawn_app};
 

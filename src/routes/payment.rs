@@ -1,8 +1,10 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use secrecy::ExposeSecret;
+use serde::de::Unexpected::Option;
 use serde_json::json;
 use sqlx::PgPool;
-use stripe::{CheckoutSessionMode, Webhook, WebhookEvent};
+use std::str::FromStr;
+use stripe::{CheckoutSessionMode, CustomerId, Webhook, WebhookEvent};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -13,6 +15,7 @@ use crate::db::checkout_session_db_broker::{
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
+use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::util::from_string_to_uuid;
 
@@ -90,6 +93,7 @@ pub async fn create_checkout_session(
                 stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
             checkout_session.line_items = Some(Box::new(line_items));
             checkout_session.mode = Some(CheckoutSessionMode::Subscription);
+            checkout_session.customer = set_stripe_customer_id(subscriber);
 
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
@@ -271,4 +275,14 @@ pub async fn complete_session(
             HttpResponse::NotFound().finish()
         }
     };
+}
+
+fn set_stripe_customer_id(subscriber: &OverTheWireSubscriber) -> Option<CustomerId> {
+    if subscriber.stripe_customer_id.is_some() {
+        return Some(
+            CustomerId::from_str(subscriber.stripe_customer_id.unwrap().as_str()).unwrap(),
+        );
+    } else {
+        None
+    }
 }
