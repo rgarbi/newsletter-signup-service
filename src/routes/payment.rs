@@ -161,6 +161,8 @@ pub async fn handle_webhook(
         match validate_signature {
             Ok(_webhook_event) => {
                 println!("Successfully validated the webhook!!!");
+                println!("Web hook type was: {:?}", _webhook_event.event_type);
+                println!("Web hook object was: {:?}", _webhook_event.data.object);
             }
             Err(webhook_error) => {
                 println!("Err: {:?}", webhook_error);
