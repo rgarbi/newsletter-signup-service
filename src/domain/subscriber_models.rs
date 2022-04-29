@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
@@ -18,7 +19,7 @@ impl OverTheWireCreateSubscriber {
 
 #[derive(Deserialize, Serialize)]
 pub struct OverTheWireSubscriber {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
     pub email_address: String,
     pub user_id: String,
