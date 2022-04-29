@@ -14,7 +14,7 @@ use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
-use crate::util::{from_path_to_uuid, from_string_to_uuid};
+use crate::util::from_string_to_uuid;
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -41,7 +41,7 @@ pub async fn create_checkout_session(
 
     //get the subscriber by id
     let subscriber = match retrieve_subscriber_by_id(
-        from_string_to_uuid(new_subscription.subscriber_id).unwrap(),
+        from_string_to_uuid(new_subscription.subscriber_id.as_str()).unwrap(),
         &pool,
     )
     .await
