@@ -74,7 +74,7 @@ pub async fn retrieve_subscriber_by_email(
     })?;
 
     Ok(OverTheWireSubscriber {
-        id: result.id.to_string(),
+        id: result.id,
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
@@ -107,7 +107,7 @@ pub async fn retrieve_subscriber_by_id(
     })?;
 
     Ok(OverTheWireSubscriber {
-        id: result.id.to_string(),
+        id: result.id,
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
@@ -135,7 +135,7 @@ pub async fn retrieve_subscriber_by_user_id(
     })?;
 
     Ok(OverTheWireSubscriber {
-        id: result.id.to_string(),
+        id: result.id,
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
@@ -165,7 +165,7 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
         })?;
 
     Ok(OverTheWireSubscriber {
-        id: result.id.to_string(),
+        id: result.id,
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
