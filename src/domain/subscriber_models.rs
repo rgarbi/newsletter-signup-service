@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct OverTheWireCreateSubscriber {
     pub name: String,
     pub email_address: String,
@@ -17,7 +17,7 @@ impl OverTheWireCreateSubscriber {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct OverTheWireSubscriber {
     pub id: Uuid,
     pub name: String,
@@ -26,6 +26,7 @@ pub struct OverTheWireSubscriber {
     pub stripe_customer_id: Option<String>,
 }
 
+#[derive(Deserialize, Serialize, Clone)]
 pub struct NewSubscriber {
     pub email_address: ValidEmail,
     pub name: ValidName,

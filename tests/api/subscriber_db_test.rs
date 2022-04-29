@@ -17,7 +17,7 @@ async fn set_stripe_customer_id_works() {
     let app = spawn_app().await;
 
     let subscriber = generate_over_the_wire_subscriber();
-    let new_subscriber: NewSubscriber = subscriber.try_into().unwrap();
+    let new_subscriber: NewSubscriber = subscriber.clone().try_into().unwrap();
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
 
