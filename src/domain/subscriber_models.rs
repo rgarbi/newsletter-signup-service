@@ -22,6 +22,7 @@ pub struct OverTheWireSubscriber {
     pub name: String,
     pub email_address: String,
     pub user_id: String,
+    pub stripe_customer_id: String,
 }
 
 pub struct NewSubscriber {
