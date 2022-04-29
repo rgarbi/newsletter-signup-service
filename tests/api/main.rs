@@ -3,6 +3,7 @@ mod health_check;
 mod helper;
 mod otp_db_test;
 mod payment_tests;
+mod subscriber_db_test;
 mod subscribers_tests;
 mod subscription_event_history_db_tests;
 mod subscriptions_tests;
