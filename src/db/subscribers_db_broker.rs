@@ -30,6 +30,30 @@ pub async fn insert_subscriber(
     Ok(())
 }
 
+#[tracing::instrument(name = "Set Stripe Customer ID", skip(id, stripe_customer_id, pool))]
+pub async fn set_stripe_customer_id(
+    id: &Uuid,
+    stripe_customer_id: &String,
+    pool: &PgPool,
+) -> Result<(), StoreSubscriberError> {
+    sqlx::query!(
+        r#"UPDATE subscribers
+            SET stripe_customer_id = $1
+            WHERE id = $2"#,
+        stripe_customer_id,
+        id,
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        let err = StoreSubscriberError(e);
+        tracing::error!("{:?}", err);
+        err
+    })?;
+
+    Ok(())
+}
+
 #[tracing::instrument(
     name = "Retrieving a subscriber by email address from the database",
     skip(email_address, pool)
