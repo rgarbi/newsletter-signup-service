@@ -39,7 +39,7 @@ pub async fn retrieve_subscriber_by_email(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE email_address = $1"#,
+        r#"SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE email_address = $1"#,
         email_address
     )
     .fetch_one(pool)
@@ -54,6 +54,7 @@ pub async fn retrieve_subscriber_by_email(
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
+        stripe_customer_id: result.stripe_customer_id,
     })
 }
 
@@ -66,7 +67,12 @@ pub async fn retrieve_subscriber_by_id(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE id = $1"#,
+        r#"SELECT 
+            id, 
+            email_address, 
+            name, user_id, 
+            stripe_customer_id 
+          FROM subscribers WHERE id = $1"#,
         id
     )
     .fetch_one(pool)
@@ -81,6 +87,7 @@ pub async fn retrieve_subscriber_by_id(
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
+        stripe_customer_id: result.stripe_customer_id,
     })
 }
 
@@ -93,7 +100,7 @@ pub async fn retrieve_subscriber_by_user_id(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1"#,
+        r#"SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE user_id = $1"#,
         user_id
     )
     .fetch_one(pool)
@@ -108,6 +115,7 @@ pub async fn retrieve_subscriber_by_user_id(
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
+        stripe_customer_id: result.stripe_customer_id,
     })
 }
 
@@ -121,7 +129,7 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
     pool: &PgPool,
 ) -> Result<OverTheWireSubscriber, sqlx::Error> {
     let result = sqlx::query!(
-        r#"SELECT id, email_address, name, user_id FROM subscribers WHERE user_id = $1 AND email_address = $2"#,
+        r#"SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE user_id = $1 AND email_address = $2"#,
         user_id,
         email_address
     )
@@ -137,6 +145,7 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
         name: result.name,
         email_address: result.email_address,
         user_id: result.user_id,
+        stripe_customer_id: result.stripe_customer_id,
     })
 }
 
