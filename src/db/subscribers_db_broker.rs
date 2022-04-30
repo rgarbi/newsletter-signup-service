@@ -33,7 +33,7 @@ pub async fn insert_subscriber(
 #[tracing::instrument(name = "Set Stripe Customer ID", skip(id, stripe_customer_id, pool))]
 pub async fn set_stripe_customer_id(
     id: &Uuid,
-    stripe_customer_id: &String,
+    stripe_customer_id: &str,
     pool: &PgPool,
 ) -> Result<(), StoreSubscriberError> {
     sqlx::query!(

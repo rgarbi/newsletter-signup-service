@@ -1,6 +1,6 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use core::option::Option;
 use secrecy::ExposeSecret;
-use serde::de::Unexpected::Option;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
@@ -12,12 +12,12 @@ use crate::db::checkout_session_db_broker::{
     insert_checkout_session, retrieve_checkout_session_by_stripe_session_id,
     set_checkout_session_state_to_success_by_stripe_session_id,
 };
-use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
+use crate::db::subscribers_db_broker::{retrieve_subscriber_by_id, set_stripe_customer_id};
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
-use crate::util::from_string_to_uuid;
+use crate::util::{duplicate, from_string_to_uuid};
 
 #[tracing::instrument(
     name = "Create checkout session",
@@ -93,7 +93,7 @@ pub async fn create_checkout_session(
                 stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
             checkout_session.line_items = Some(Box::new(line_items));
             checkout_session.mode = Some(CheckoutSessionMode::Subscription);
-            checkout_session.customer = set_stripe_customer_id(subscriber);
+            checkout_session.customer = set_stripe_customer_id_if_not_empty(&subscriber);
 
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
@@ -110,10 +110,19 @@ pub async fn create_checkout_session(
                         &checkout_session_created.id
                     );
 
-                    println!(
-                        "CUSTOMER ID: {}",
-                        &checkout_session_created.customer.unwrap().id()
-                    );
+                    if subscriber.stripe_customer_id.is_none() {
+                        let stripe_customer =
+                            duplicate(checkout_session_created.customer).unwrap().id();
+                        let stripe_customer_id = stripe_customer.as_str();
+                        match set_stripe_customer_id(&subscriber.id, stripe_customer_id, &pool)
+                            .await
+                        {
+                            Ok(_) => (),
+                            Err(err) => {
+                                println!("Err: {:?}", err);
+                            }
+                        }
+                    }
 
                     let store_checkout_result = insert_checkout_session(
                         user_id.into_inner().clone(),
@@ -277,12 +286,12 @@ pub async fn complete_session(
     };
 }
 
-fn set_stripe_customer_id(subscriber: &OverTheWireSubscriber) -> Option<CustomerId> {
-    if subscriber.stripe_customer_id.is_some() {
-        return Some(
-            CustomerId::from_str(subscriber.stripe_customer_id.unwrap().as_str()).unwrap(),
-        );
+fn set_stripe_customer_id_if_not_empty(subscriber: &OverTheWireSubscriber) -> Option<CustomerId> {
+    return if subscriber.stripe_customer_id.is_some() {
+        Option::Some(
+            CustomerId::from_str(subscriber.clone().stripe_customer_id.unwrap().as_str()).unwrap(),
+        )
     } else {
-        None
-    }
+        Option::None
+    };
 }

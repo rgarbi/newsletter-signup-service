@@ -37,6 +37,10 @@ pub fn generate_random_token() -> String {
         .collect()
 }
 
+pub fn duplicate<T>(x: T) -> T {
+    x
+}
+
 #[cfg(test)]
 mod tests {
     use actix_web::web::Path;
