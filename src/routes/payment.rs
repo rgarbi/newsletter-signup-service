@@ -4,7 +4,8 @@ use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
-use stripe::{CheckoutSessionMode, CustomerId, Webhook, WebhookEvent};
+use stripe::{CheckoutSessionMode, CustomerId, ListCheckoutSessions, Webhook, WebhookEvent};
+use uuid::Uuid;
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -93,7 +94,8 @@ pub async fn create_checkout_session(
                 stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
             checkout_session.line_items = Some(Box::new(line_items));
             checkout_session.mode = Some(CheckoutSessionMode::Subscription);
-            checkout_session.customer = set_stripe_customer_id_if_not_empty(&subscriber);
+            let client_ref_id = subscriber.id.to_string().clone();
+            checkout_session.client_reference_id = Option::Some(client_ref_id.as_str());
 
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
@@ -109,20 +111,6 @@ pub async fn create_checkout_session(
                         "Checkout session Created!!! ID: {:?}",
                         &checkout_session_created.id
                     );
-
-                    if subscriber.stripe_customer_id.is_none() {
-                        let stripe_customer =
-                            duplicate(checkout_session_created.customer).unwrap().id();
-                        let stripe_customer_id = stripe_customer.as_str();
-                        match set_stripe_customer_id(&subscriber.id, stripe_customer_id, &pool)
-                            .await
-                        {
-                            Ok(_) => (),
-                            Err(err) => {
-                                println!("Err: {:?}", err);
-                            }
-                        }
-                    }
 
                     let store_checkout_result = insert_checkout_session(
                         user_id.into_inner().clone(),
