@@ -297,7 +297,7 @@ async fn get_stripe_customer_id(
     subscriber: &OverTheWireSubscriber,
     client: &Client,
 ) -> Result<String, HttpResponse> {
-    if &subscriber.stripe_customer_id.is_none() {
+    if subscriber.stripe_customer_id.is_none() {
         return match create_stripe_customer(subscriber.email_address.clone(), client).await {
             Ok(customer) => Ok(String::from(customer.id.as_str())),
             Err(err) => {
@@ -306,7 +306,7 @@ async fn get_stripe_customer_id(
             }
         };
     } else {
-        Ok(subscriber.email_address.clone())
+        Ok(subscriber.stripe_customer_id.unwrap().clone())
     }
 }
 
