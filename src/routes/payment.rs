@@ -4,7 +4,10 @@ use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
-use stripe::{CheckoutSessionMode, CustomerId, ListCheckoutSessions, Webhook, WebhookEvent};
+use stripe::{
+    CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, ListCheckoutSessions,
+    StripeError, Webhook, WebhookEvent,
+};
 use uuid::Uuid;
 
 use crate::auth::token::Claims;
@@ -96,6 +99,9 @@ pub async fn create_checkout_session(
             checkout_session.mode = Some(CheckoutSessionMode::Subscription);
             let client_ref_id = subscriber.id.to_string().clone();
             checkout_session.client_reference_id = Option::Some(client_ref_id.as_str());
+
+            checkout_session.customer =
+                Option::Some(CustomerId::from_str(client_ref_id.as_str()).unwrap());
 
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
@@ -274,6 +280,23 @@ pub async fn complete_session(
     };
 }
 
+async fn get_stripe_customer_id(
+    subscriber: &OverTheWireSubscriber,
+    client: &Client,
+) -> Result<&str, HttpResponse> {
+    if &subscriber.stripe_customer_id.is_none() {
+        match create_stripe_customer(subscriber.email_address, client).await {
+            Ok(customer) => return customer.id.as_str(),
+            Err(err) => {
+                println!("Err: {:?}", err);
+                return HttpResponse::InternalServerError().finish();
+            }
+        }
+    } else {
+        subscriber.email_address.as_str()
+    }
+}
+
 fn set_stripe_customer_id_if_not_empty(subscriber: &OverTheWireSubscriber) -> Option<CustomerId> {
     return if subscriber.stripe_customer_id.is_some() {
         Option::Some(
@@ -282,4 +305,10 @@ fn set_stripe_customer_id_if_not_empty(subscriber: &OverTheWireSubscriber) -> Op
     } else {
         Option::None
     };
+}
+
+async fn create_stripe_customer(email: String, client: &Client) -> Result<Customer, StripeError> {
+    let mut create_customer_params = CreateCustomer::new();
+    create_customer_params.email = Option::Some(email.as_str());
+    stripe::Customer::create(client, create_customer_params).await
 }
