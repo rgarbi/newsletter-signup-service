@@ -306,18 +306,8 @@ async fn get_stripe_customer_id(
             }
         };
     } else {
-        Ok(subscriber.stripe_customer_id.unwrap().clone())
+        Ok(subscriber.stripe_customer_id.clone().unwrap())
     }
-}
-
-fn set_stripe_customer_id_if_not_empty(subscriber: &OverTheWireSubscriber) -> Option<CustomerId> {
-    return if subscriber.stripe_customer_id.is_some() {
-        Option::Some(
-            CustomerId::from_str(subscriber.clone().stripe_customer_id.unwrap().as_str()).unwrap(),
-        )
-    } else {
-        Option::None
-    };
 }
 
 async fn create_stripe_customer(email: String, client: &Client) -> Result<Customer, StripeError> {
