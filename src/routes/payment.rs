@@ -73,6 +73,19 @@ pub async fn create_checkout_session(
 
     let look_up_keys = [create_checkout_session.price_lookup_key.clone()].to_vec();
     let client = stripe::Client::new(configuration.stripe_client.api_secret_key.expose_secret());
+
+    //Get customer
+    let stripe_customer_id = match get_stripe_customer_id(&subscriber, &client).await {
+        Ok(id) => id,
+        Err(error_response) => {
+            return error_response;
+        }
+    };
+
+    set_stripe_customer_id(&subscriber.id, stripe_customer_id.as_str(), &pool)
+        .await
+        .unwrap();
+
     let mut list_prices = stripe::ListPrices::new();
     list_prices.lookup_keys = Some(Box::new(look_up_keys));
     let list_prices_response = stripe::Price::list(&client, list_prices).await;
@@ -101,7 +114,7 @@ pub async fn create_checkout_session(
             checkout_session.client_reference_id = Option::Some(client_ref_id.as_str());
 
             checkout_session.customer =
-                Option::Some(CustomerId::from_str(client_ref_id.as_str()).unwrap());
+                Option::Some(CustomerId::from_str(stripe_customer_id.as_str()).unwrap());
 
             let checkout_session_response =
                 stripe::CheckoutSession::create(&client, checkout_session).await;
@@ -283,17 +296,17 @@ pub async fn complete_session(
 async fn get_stripe_customer_id(
     subscriber: &OverTheWireSubscriber,
     client: &Client,
-) -> Result<&str, HttpResponse> {
+) -> Result<String, HttpResponse> {
     if &subscriber.stripe_customer_id.is_none() {
-        match create_stripe_customer(subscriber.email_address, client).await {
-            Ok(customer) => return customer.id.as_str(),
+        return match create_stripe_customer(subscriber.email_address.clone(), client).await {
+            Ok(customer) => Ok(String::from(customer.id.as_str())),
             Err(err) => {
                 println!("Err: {:?}", err);
-                return HttpResponse::InternalServerError().finish();
+                Err(HttpResponse::InternalServerError().finish())
             }
-        }
+        };
     } else {
-        subscriber.email_address.as_str()
+        Ok(subscriber.email_address.clone())
     }
 }
 
