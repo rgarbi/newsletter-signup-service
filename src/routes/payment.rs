@@ -1,13 +1,10 @@
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use core::option::Option;
 use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
-use stripe::{
-    CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, StripeError, Webhook,
-    WebhookEvent,
-};
+use stripe::{CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, StripeError};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;

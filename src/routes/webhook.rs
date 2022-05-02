@@ -9,7 +9,7 @@ use crate::configuration::get_configuration;
 
 #[tracing::instrument(
 name = "Handle Webhook",
-    skip(webhook_event, _pool, _user),
+    skip(webhook_event, req, body, _pool),
     fields(
         webhook_event_id = %webhook_event.id,
     )
