@@ -209,7 +209,6 @@ impl TestApp {
     }
 
     pub async fn from_response_to_over_the_wire_subscriber(
-        &self,
         response: Response,
     ) -> OverTheWireSubscriber {
         let response_body = response.text().await.unwrap();
@@ -253,7 +252,7 @@ pub async fn spawn_app() -> TestApp {
         c
     };
 
-    configure_database(&configuration.database).await;
+    let pool = configure_database(&configuration.database).await;
     let application = Application::build(configuration.clone())
         .await
         .expect("Failed to build application.");
@@ -263,7 +262,7 @@ pub async fn spawn_app() -> TestApp {
 
     TestApp {
         address,
-        db_pool: get_connection_pool(&configuration.database),
+        db_pool: pool,
         email_server,
     }
 }
