@@ -5,10 +5,9 @@ use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
 use stripe::{
-    CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, ListCheckoutSessions,
-    StripeError, Webhook, WebhookEvent,
+    CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, StripeError, Webhook,
+    WebhookEvent,
 };
-use uuid::Uuid;
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -21,7 +20,7 @@ use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
-use crate::util::{duplicate, from_string_to_uuid};
+use crate::util::from_string_to_uuid;
 
 #[tracing::instrument(
     name = "Create checkout session",
