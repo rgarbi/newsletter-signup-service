@@ -17,7 +17,7 @@ use newsletter_signup_service::domain::subscription_models::{
     NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
-use newsletter_signup_service::startup::{get_connection_pool, Application};
+use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
@@ -209,6 +209,7 @@ impl TestApp {
     }
 
     pub async fn from_response_to_over_the_wire_subscriber(
+        &self,
         response: Response,
     ) -> OverTheWireSubscriber {
         let response_body = response.text().await.unwrap();
