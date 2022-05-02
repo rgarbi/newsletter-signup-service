@@ -275,9 +275,10 @@ pub async fn complete_session(
             match subscription_result {
                 Ok(_) => {
                     if transaction.commit().await.is_err() {
-                        HttpResponse::InternalServerError().finish();
+                        HttpResponse::InternalServerError().finish()
+                    } else {
+                        HttpResponse::Ok().json(json!({}))
                     }
-                    HttpResponse::Ok().json(json!({}))
                 }
                 Err(_) => {
                     transaction.rollback().await.unwrap();
