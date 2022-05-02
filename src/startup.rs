@@ -148,6 +148,7 @@ pub fn run(
                 "/checkout/{user_id}/session/{session_id}",
                 web::post().to(routes::complete_session),
             )
+            .route("/webhook", web::post().to(routes::webhook))
             .app_data(connection.clone())
             .app_data(email_client.clone())
     })
