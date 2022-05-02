@@ -30,22 +30,6 @@ services:
         fromDatabase:
           name: newsletter-signup-service-db
           property: database
-  - type: web
-    name: newsletter web app
-    plan: starter
-    previewPlan: starter
-    env: static
-    repo: https://github.com/rgarbi/gospel-message-web-app
-    buildCommand: yarn build
-    staticPublishPath: ./build
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: sameorigin
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 databases:
   - name: newsletter-signup-service-db
     plan: starter
