@@ -1,10 +1,11 @@
 use actix_web::{web, HttpResponse, Responder};
-use core::option::Option;
+use reqwest::Error;
 use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
 use stripe::{CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, StripeError};
+use tracing_subscriber::fmt::format;
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -12,7 +13,9 @@ use crate::db::checkout_session_db_broker::{
     insert_checkout_session, retrieve_checkout_session_by_stripe_session_id,
     set_checkout_session_state_to_success_by_stripe_session_id,
 };
-use crate::db::subscribers_db_broker::{retrieve_subscriber_by_id, set_stripe_customer_id};
+use crate::db::subscribers_db_broker::{
+    retrieve_subscriber_by_id, retrieve_subscriber_by_user_id, set_stripe_customer_id,
+};
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
@@ -242,6 +245,60 @@ pub async fn complete_session(
     };
 }
 
+#[tracing::instrument(
+name = "Create Stripe Portal Session",
+skip(user_id, _pool, user),
+fields(
+price_param = %create_checkout_session.price_lookup_key,
+)
+)]
+pub async fn create_stripe_portal_session(
+    user_id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    let config = get_configuration().unwrap();
+    if user_id.clone() != user.user_id {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    let subscriber =
+        match retrieve_subscriber_by_user_id(user_id.into_inner().as_str(), &pool).await {
+            Ok(subscriber) => subscriber,
+            Err(err) => {
+                println!("Err: {:?}", err);
+                return HttpResponse::BadRequest().finish();
+            }
+        };
+
+    if subscriber.stripe_customer_id.is_none() {
+        return HttpResponse::BadRequest().finish();
+    }
+
+    let return_url = format!("{}/subscriber", config.application.web_app_host);
+
+    let result = create_billing_portal_session(
+        subscriber.stripe_customer_id.unwrap(),
+        config.api_secret_key.expose_secret(),
+        return_url,
+    )
+    .await;
+
+    match result {
+        Ok(portal_url) => {
+            println!("Got the following back {:?}", portal_url);
+            return HttpResponse::Ok().finish();
+        }
+        Err(err) => {
+            println!(
+                "Something blew up when creating the portal session! {:?}",
+                err
+            );
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+}
+
 async fn get_stripe_customer_id(
     subscriber: &OverTheWireSubscriber,
     client: &Client,
@@ -263,4 +320,33 @@ async fn create_stripe_customer(email: String, client: &Client) -> Result<Custom
     let mut create_customer_params = CreateCustomer::new();
     create_customer_params.email = Option::Some(email.as_str());
     stripe::Customer::create(client, create_customer_params).await
+}
+
+async fn create_billing_portal_session(
+    stripe_customer_id: String,
+    stripe_publishable_key: String,
+    return_url: String,
+) -> Result<String, Error> {
+    let body = reqwest::multipart::Form::new()
+        .text("customer", stripe_customer_id)
+        .text("return_url", return_url);
+
+    let response = reqwest::Client::new()
+        .post("https://api.stripe.com/v1/billing_portal/sessions")
+        .basic_auth(stripe_publishable_key, None)
+        .multipart(body)
+        .send()
+        .await;
+
+    return match response {
+        Ok(response) => {
+            let response_body = response.text().await.unwrap();
+            println!("Got the following back!! {:?}", response_body);
+            Ok(String::new())
+        }
+        Err(err) => {
+            println!("Err: {:?}", err);
+            Err(err)
+        }
+    };
 }

@@ -47,8 +47,8 @@ cached = "0.34.0"
 jsonwebtokens = "1"
 argon2 = "0.4"
 rand_core = { version = "0.6", features = ["std"] }
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
-rand = { version = "0.8", features=["std_rng"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "multipart"] }
+rand = { version = "0.8", features = ["std_rng"] }
 async-stripe = { version = "0.13.0", features = ["runtime-tokio-hyper-rustls"] }
 
 [dev-dependencies]
