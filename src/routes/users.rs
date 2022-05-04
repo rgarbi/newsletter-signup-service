@@ -123,6 +123,21 @@ pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Re
 }
 
 #[tracing::instrument(
+    name = "Check token",
+    skip(user_id, user),
+    fields(
+        user_id = %user_id,
+    )
+)]
+pub async fn check_token(user_id: web::Path<String>, user: Claims) -> impl Responder {
+    if user_id.clone() != user.user_id {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    HttpResponse::Ok().json(json!({}))
+}
+
+#[tracing::instrument(
     name = "Reset password",
     skip(reset_password, pool, user_claim),
     fields(
