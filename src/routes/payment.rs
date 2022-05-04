@@ -288,19 +288,19 @@ pub async fn create_stripe_portal_session(
     )
     .await;
 
-    match result {
+    return match result {
         Ok(portal_url) => {
             println!("Got the following back {:?}", portal_url);
-            return HttpResponse::Ok().finish();
+            HttpResponse::Ok().finish()
         }
         Err(err) => {
             println!(
                 "Something blew up when creating the portal session! {:?}",
                 err
             );
-            return HttpResponse::InternalServerError().finish();
+            HttpResponse::InternalServerError().finish()
         }
-    }
+    };
 }
 
 async fn get_stripe_customer_id(
