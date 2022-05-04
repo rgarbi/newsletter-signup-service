@@ -5,7 +5,6 @@ use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
 use stripe::{CheckoutSessionMode, Client, CreateCustomer, Customer, CustomerId, StripeError};
-use tracing_subscriber::fmt::format;
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
