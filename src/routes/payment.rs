@@ -246,11 +246,11 @@ pub async fn complete_session(
 }
 
 #[tracing::instrument(
-name = "Create Stripe Portal Session",
-skip(user_id, pool, user),
-fields(
-price_param = %create_checkout_session.price_lookup_key,
-)
+    name = "Create Stripe Portal Session",
+    skip(user_id, pool, user),
+    fields(
+        user_id = %user_id,
+    )
 )]
 pub async fn create_stripe_portal_session(
     user_id: web::Path<String>,
