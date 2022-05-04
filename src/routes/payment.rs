@@ -247,7 +247,7 @@ pub async fn complete_session(
 
 #[tracing::instrument(
 name = "Create Stripe Portal Session",
-skip(user_id, _pool, user),
+skip(user_id, pool, user),
 fields(
 price_param = %create_checkout_session.price_lookup_key,
 )
@@ -279,7 +279,11 @@ pub async fn create_stripe_portal_session(
 
     let result = create_billing_portal_session(
         subscriber.stripe_customer_id.unwrap(),
-        config.api_secret_key.expose_secret(),
+        config
+            .stripe_client
+            .api_secret_key
+            .expose_secret()
+            .to_string(),
         return_url,
     )
     .await;
@@ -333,7 +337,7 @@ async fn create_billing_portal_session(
 
     let response = reqwest::Client::new()
         .post("https://api.stripe.com/v1/billing_portal/sessions")
-        .basic_auth(stripe_publishable_key, None)
+        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
         .multipart(body)
         .send()
         .await;
