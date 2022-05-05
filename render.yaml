@@ -52,9 +52,66 @@ services:
         sync: false
     domains:
       - api.gospelmessage.net
+  #STAGING API
+  - type: web
+    name: staging newsletter-signup-service
+    env: docker
+    repo: https://github.com/rgarbi/newsletter-signup-service
+    branch: staging
+    region: oregon
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /health_check
+    envVars:
+      - key: APP__DATABASE__USERNAME
+        fromDatabase:
+          name: staging newsletter-signup-service-db
+          property: user
+      - key: APP__DATABASE__PASSWORD
+        fromDatabase:
+          name: staging newsletter-signup-service-db
+          property: password
+      - key: APP__DATABASE__HOST
+        fromDatabase:
+          name: staging newsletter-signup-service-db
+          property: host
+      - key: APP__DATABASE__PORT
+        fromDatabase:
+          name: staging newsletter-signup-service-db
+          property: port
+      - key: APP__DATABASE__DATABASE_NAME
+        fromDatabase:
+          name: staging newsletter-signup-service-db
+          property: database
+      - key: APP__APPLICATION__WEB_APP_HOST
+        value: https://subscribe.gospelmessage.net
+      - key: APP__AUTH_CONFIG__AUDIENCE
+        value: https://api.gospelmessage.net
+      - key: APP__AUTH_CONFIG__ISSUER
+        value: https://api.gospelmessage.net
+      - key: APP__AUTH_CONFIG__SIGNING_KEY
+        generateValue: true
+      - key: APP__EMAIL_CLIENT__API_KEY
+        sync: false
+      - key: APP__EMAIL_CLIENT__BASE_URL
+        value: https://api.sendgrid.com
+      - key: APP__EMAIL_CLIENT__SENDER_EMAIL
+        value: thegospelmessage61@gmail.com
+      - key: APP__STRIPE_CLIENT__API_PUBLIC_KEY
+        sync: false
+      - key: APP__STRIPE_CLIENT__API_SECRET_KEY
+        sync: false
+      - key: APP__STRIPE_CLIENT__WEBHOOK_KEY
+        sync: false
+    domains:
+      - staging-api.gospelmessage.net
 
 databases:
   - name: prod newsletter-signup-service-db
+    plan: starter
+    region: oregon
+    databaseName: gm_newsletter
+  - name: staging newsletter-signup-service-db
     plan: starter
     region: oregon
     databaseName: gm_newsletter
