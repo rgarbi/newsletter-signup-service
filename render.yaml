@@ -1,7 +1,7 @@
 services:
   #Prod API
   - type: web
-    name: prod-newsletter-signup-service
+    name: prod newsletter-signup-service
     env: docker
     repo: https://github.com/rgarbi/newsletter-signup-service
     branch: main
@@ -54,7 +54,7 @@ services:
       - api.gospelmessage.net
 
 databases:
-  - name: prod-newsletter-signup-service-db
+  - name: prod newsletter-signup-service-db
     plan: starter
     region: oregon
     databaseName: gm_newsletter
