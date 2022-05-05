@@ -12,23 +12,23 @@ services:
     envVars:
       - key: APP__DATABASE__USERNAME
         fromDatabase:
-          name: prod-newsletter-signup-service-db
+          name: prod newsletter-signup-service-db
           property: user
       - key: APP__DATABASE__PASSWORD
         fromDatabase:
-          name: prod-newsletter-signup-service-db
+          name: prod newsletter-signup-service-db
           property: password
       - key: APP__DATABASE__HOST
         fromDatabase:
-          name: prod-newsletter-signup-service-db
+          name: prod newsletter-signup-service-db
           property: host
       - key: APP__DATABASE__PORT
         fromDatabase:
-          name: prod-newsletter-signup-service-db
+          name: prod newsletter-signup-service-db
           property: port
       - key: APP__DATABASE__DATABASE_NAME
         fromDatabase:
-          name: prod-newsletter-signup-service-db
+          name: prod newsletter-signup-service-db
           property: database
       - key: APP__APPLICATION__WEB_APP_HOST
         value: https://subscribe.gospelmessage.net
