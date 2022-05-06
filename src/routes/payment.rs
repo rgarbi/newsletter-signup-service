@@ -16,7 +16,9 @@ use crate::db::subscribers_db_broker::{
     retrieve_subscriber_by_id, retrieve_subscriber_by_user_id, set_stripe_customer_id,
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
-use crate::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
+use crate::domain::checkout_models::{
+    CreateCheckoutSession, CreateStripeSessionRedirect, StripeBillingPortalSession,
+};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::util::from_string_to_uuid;
@@ -288,9 +290,15 @@ pub async fn create_stripe_portal_session(
     .await;
 
     return match result {
-        Ok(portal_url) => {
-            println!("Got the following back {:?}", portal_url);
-            HttpResponse::Ok().finish()
+        Ok(stripe_billing_portal_session) => {
+            println!(
+                "Got the following back {:?}",
+                &stripe_billing_portal_session.url
+            );
+            let redirect_response = CreateStripeSessionRedirect {
+                location: stripe_billing_portal_session.url,
+            };
+            HttpResponse::Ok().json(redirect_response)
         }
         Err(err) => {
             println!(
@@ -329,7 +337,7 @@ async fn create_billing_portal_session(
     stripe_customer_id: String,
     stripe_publishable_key: String,
     return_url: String,
-) -> Result<String, Error> {
+) -> Result<StripeBillingPortalSession, Error> {
     let response = reqwest::Client::new()
         .post(format!(
             "https://api.stripe.com/v1/billing_portal/sessions?customer={}&return_url={}",
@@ -344,7 +352,7 @@ async fn create_billing_portal_session(
         Ok(response) => {
             let response_body = response.text().await.unwrap();
             println!("Got the following back!! {:?}", response_body);
-            Ok(String::new())
+            Ok(serde_json::from_str(response_body.as_str()).unwrap())
         }
         Err(err) => {
             println!("Err: {:?}", err);
