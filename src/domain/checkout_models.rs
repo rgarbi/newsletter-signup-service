@@ -13,7 +13,7 @@ pub struct CreateCheckoutSession {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct CreateCheckoutSessionRedirect {
+pub struct CreateStripeSessionRedirect {
     pub location: String,
 }
 
@@ -33,6 +33,20 @@ pub enum CheckoutSessionState {
     Created,
     CompletedSuccessfully,
     Cancelled,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct StripeBillingPortalSession {
+    pub id: String,
+    pub object: String,
+    pub configuration: String,
+    pub created: u128,
+    pub customer: String,
+    pub livemode: bool,
+    pub locale: String,
+    pub on_behalf_of: String,
+    pub return_url: String,
+    pub url: String,
 }
 
 impl FromStr for CheckoutSessionState {
@@ -78,7 +92,7 @@ impl CheckoutSession {
     }
 }
 
-impl CreateCheckoutSessionRedirect {
+impl CreateStripeSessionRedirect {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }

@@ -16,7 +16,7 @@ use crate::db::subscribers_db_broker::{
     retrieve_subscriber_by_id, retrieve_subscriber_by_user_id, set_stripe_customer_id,
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
-use crate::domain::checkout_models::{CreateCheckoutSession, CreateCheckoutSessionRedirect};
+use crate::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::util::from_string_to_uuid;
@@ -141,7 +141,7 @@ pub async fn create_checkout_session(
                     match store_checkout_result {
                         Ok(_) => {
                             println!("REDIRECTING!!!");
-                            let redirect_response = CreateCheckoutSessionRedirect {
+                            let redirect_response = CreateStripeSessionRedirect {
                                 location: checkout_session_url.as_str().to_string(),
                             };
                             HttpResponse::Ok().json(redirect_response)
@@ -330,14 +330,13 @@ async fn create_billing_portal_session(
     stripe_publishable_key: String,
     return_url: String,
 ) -> Result<String, Error> {
-    let body = reqwest::multipart::Form::new()
-        .text("customer", stripe_customer_id)
-        .text("return_url", return_url);
-
     let response = reqwest::Client::new()
-        .post("https://api.stripe.com/v1/billing_portal/sessions")
+        .post(format!(
+            "https://api.stripe.com/v1/billing_portal/sessions?customer={}&return_url={}",
+            stripe_customer_id, return_url
+        ))
+        .header("Content-Type", "application/x-www-form-urlencoded")
         .basic_auth(stripe_publishable_key, Option::Some(String::new()))
-        .multipart(body)
         .send()
         .await;
 
