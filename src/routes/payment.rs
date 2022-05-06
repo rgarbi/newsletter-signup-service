@@ -351,8 +351,10 @@ async fn create_billing_portal_session(
     return match response {
         Ok(response) => {
             let response_body = response.text().await.unwrap();
-            println!("Got the following back!! {:?}", response_body);
-            Ok(serde_json::from_str(response_body.as_str()).unwrap())
+            println!("Got the following back!! {:?}", &response_body);
+            let stripe_session: StripeBillingPortalSession =
+                serde_json::from_str(response_body.as_str()).unwrap();
+            Ok(stripe_session)
         }
         Err(err) => {
             println!("Err: {:?}", err);

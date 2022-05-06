@@ -43,8 +43,8 @@ pub struct StripeBillingPortalSession {
     pub created: u128,
     pub customer: String,
     pub livemode: bool,
-    pub locale: String,
-    pub on_behalf_of: String,
+    pub locale: Option<String>,
+    pub on_behalf_of: Option<String>,
     pub return_url: String,
     pub url: String,
 }
