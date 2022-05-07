@@ -390,7 +390,7 @@ async fn get_stripe_session(
     stripe_publishable_key: String,
 ) -> Result<String, Error> {
     let response = reqwest::Client::new()
-        .post(format!(
+        .get(format!(
             "https://api.stripe.com/v1/checkout/sessions/{}",
             stripe_session_id
         ))
