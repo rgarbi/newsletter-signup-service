@@ -75,7 +75,7 @@ pub async fn cancel_subscription_by_id(
     user: Claims,
 ) -> impl Responder {
     let subscription_id = from_path_to_uuid(&id).unwrap();
-    match retrieve_subscription_by_subscription_id(subscription_id.clone(), &pool).await {
+    match retrieve_subscription_by_subscription_id(subscription_id, &pool).await {
         Ok(subscription) => {
             match reject_unauthorized_user(subscription.subscriber_id, user.user_id, &pool).await {
                 Ok(_) => {}
@@ -88,9 +88,7 @@ pub async fn cancel_subscription_by_id(
             };
 
             //Set it to active = false
-            match cancel_subscription_by_subscription_id(subscription_id.clone(), &mut transaction)
-                .await
-            {
+            match cancel_subscription_by_subscription_id(subscription_id, &mut transaction).await {
                 Ok(_) => {}
                 Err(_) => {
                     transaction.rollback().await.unwrap();
@@ -112,7 +110,7 @@ async fn reject_unauthorized_user(
     user_id: String,
     pool: &PgPool,
 ) -> Result<(), HttpResponse> {
-    return match retrieve_subscriber_by_id(subscriber_id, &pool).await {
+    return match retrieve_subscriber_by_id(subscriber_id, pool).await {
         Ok(subscriber) => {
             if subscriber.user_id != user_id {
                 return Err(HttpResponse::Unauthorized().finish());
