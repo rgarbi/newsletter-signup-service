@@ -37,8 +37,8 @@ pub async fn get_subscriptions_by_subscriber_id(
 }
 
 #[tracing::instrument(
-    name = "Getting subscriptions by subscriber id",
-    skip(id, pool),
+    name = "Getting subscription by subscription id",
+    skip(id, pool, user),
     fields(
         id = %id,
     )
@@ -46,9 +46,52 @@ pub async fn get_subscriptions_by_subscriber_id(
 pub async fn get_subscription_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
+    user: Claims,
 ) -> impl Responder {
     match retrieve_subscription_by_subscription_id(from_path_to_uuid(&id).unwrap(), &pool).await {
-        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
+        Ok(subscription) => {
+            match retrieve_subscriber_by_id(subscription.subscriber_id, &pool).await {
+                Ok(subscriber) => {
+                    if subscriber.user_id != user.user_id {
+                        return HttpResponse::Unauthorized().finish();
+                    }
+                }
+                Err(_) => return HttpResponse::BadRequest().finish(),
+            }
+            HttpResponse::Ok().json(subscription)
+        }
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Cancel subscription by subscription id",
+    skip(id, pool, user),
+    fields(
+        id = %id,
+    )
+)]
+pub async fn cancel_subscription_by_id(
+    id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    match retrieve_subscription_by_subscription_id(from_path_to_uuid(&id).unwrap(), &pool).await {
+        Ok(subscription) => {
+            match retrieve_subscriber_by_id(subscription.subscriber_id, &pool).await {
+                Ok(subscriber) => {
+                    if subscriber.user_id != user.user_id {
+                        return HttpResponse::Unauthorized().finish();
+                    }
+                }
+                Err(_) => return HttpResponse::BadRequest().finish(),
+            }
+            //Set it to active = false
+            //Add a history object....
+            //Call stripe to cancel the subscription
+
+            HttpResponse::Ok().json(subscription)
+        }
         Err(_) => HttpResponse::NotFound().finish(),
     }
 }

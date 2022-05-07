@@ -176,6 +176,27 @@ pub async fn retrieve_subscription_by_subscription_id(
     })
 }
 
+#[tracing::instrument(name = "Cancel a subscription by subscription id", skip(id, pool))]
+pub async fn cancel_subscription_by_subscription_id(
+    id: Uuid,
+    transaction: &mut Transaction<'_, Postgres>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"UPDATE subscriptions
+            SET active = false
+            WHERE id = $1"#,
+        id
+    )
+    .execute(transaction)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(())
+}
+
 pub fn from_str_to_subscription_type(val: String) -> SubscriptionType {
     if val.eq("Digital") {
         return SubscriptionType::Digital;
