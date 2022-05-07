@@ -176,7 +176,10 @@ pub async fn retrieve_subscription_by_subscription_id(
     })
 }
 
-#[tracing::instrument(name = "Cancel a subscription by subscription id", skip(id, pool))]
+#[tracing::instrument(
+    name = "Cancel a subscription by subscription id",
+    skip(id, transaction)
+)]
 pub async fn cancel_subscription_by_subscription_id(
     id: Uuid,
     transaction: &mut Transaction<'_, Postgres>,

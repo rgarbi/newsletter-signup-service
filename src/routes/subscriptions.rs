@@ -93,7 +93,7 @@ pub async fn cancel_subscription_by_id(
             {
                 Ok(_) => {}
                 Err(_) => {
-                    transaction.rollback().await;
+                    transaction.rollback().await.unwrap();
                     return HttpResponse::InternalServerError().finish();
                 }
             }

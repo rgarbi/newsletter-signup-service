@@ -220,7 +220,7 @@ pub async fn complete_session(
             };
 
             //Get the actual subscription id
-            let stripe_session = match get_stripe_session(
+            let _stripe_session = match get_stripe_session(
                 checkout.stripe_session_id.clone(),
                 config
                     .stripe_client
