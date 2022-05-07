@@ -180,6 +180,7 @@ pub async fn complete_session(
     pool: web::Data<PgPool>,
     user: Claims,
 ) -> impl Responder {
+    let config = get_configuration().unwrap();
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
     let session_id = param_tuple.clone().1;
@@ -216,6 +217,27 @@ pub async fn complete_session(
             let new_subscription = match stored_subscription.try_into() {
                 Ok(subscription) => subscription,
                 Err(_) => return HttpResponse::BadRequest().finish(),
+            };
+
+            //Get the actual subscription id
+            let stripe_session = match get_stripe_session(
+                checkout.stripe_session_id.clone(),
+                config
+                    .stripe_client
+                    .api_secret_key
+                    .expose_secret()
+                    .to_string(),
+            )
+            .await
+            {
+                Ok(session) => session,
+                Err(err) => {
+                    println!(
+                        "Something blew up when getting the stripe session! {:?}",
+                        err
+                    );
+                    return HttpResponse::InternalServerError().finish();
+                }
             };
 
             let subscription_result = insert_subscription(
@@ -355,6 +377,32 @@ async fn create_billing_portal_session(
             let stripe_session: StripeBillingPortalSession =
                 serde_json::from_str(response_body.as_str()).unwrap();
             Ok(stripe_session)
+        }
+        Err(err) => {
+            println!("Err: {:?}", err);
+            Err(err)
+        }
+    };
+}
+
+async fn get_stripe_session(
+    stripe_session_id: String,
+    stripe_publishable_key: String,
+) -> Result<String, Error> {
+    let response = reqwest::Client::new()
+        .post(format!(
+            "https://api.stripe.com/v1/checkout/sessions/{}",
+            stripe_session_id
+        ))
+        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
+        .send()
+        .await;
+
+    return match response {
+        Ok(response) => {
+            let response_body = response.text().await.unwrap();
+            println!("Got the following back!! {:?}", &response_body);
+            Ok(response_body.as_str().to_string())
         }
         Err(err) => {
             println!("Err: {:?}", err);
