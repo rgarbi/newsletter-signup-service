@@ -49,6 +49,17 @@ pub struct StripeBillingPortalSession {
     pub url: String,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct StripeSessionObject {
+    pub id: String,
+    pub object: String,
+    pub amount_subtotal: u128,
+    pub amount_total: u128,
+    pub client_reference_id: Option<String>,
+    pub customer: String,
+    pub subscription: Option<String>,
+}
+
 impl FromStr for CheckoutSessionState {
     type Err = ();
 
@@ -93,6 +104,12 @@ impl CheckoutSession {
 }
 
 impl CreateStripeSessionRedirect {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}
+
+impl StripeSessionObject {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }

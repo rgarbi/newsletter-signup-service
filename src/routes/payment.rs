@@ -18,6 +18,7 @@ use crate::db::subscribers_db_broker::{
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{
     CreateCheckoutSession, CreateStripeSessionRedirect, StripeBillingPortalSession,
+    StripeSessionObject,
 };
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
@@ -220,7 +221,7 @@ pub async fn complete_session(
             };
 
             //Get the actual subscription id
-            let _stripe_session = match get_stripe_session(
+            let stripe_session = match get_stripe_session(
                 checkout.stripe_session_id.clone(),
                 config
                     .stripe_client
@@ -242,7 +243,7 @@ pub async fn complete_session(
 
             let subscription_result = insert_subscription(
                 new_subscription,
-                checkout.stripe_session_id,
+                stripe_session.subscription.unwrap(),
                 &mut transaction,
             )
             .await;
@@ -388,7 +389,7 @@ async fn create_billing_portal_session(
 async fn get_stripe_session(
     stripe_session_id: String,
     stripe_publishable_key: String,
-) -> Result<String, Error> {
+) -> Result<StripeSessionObject, Error> {
     let response = reqwest::Client::new()
         .get(format!(
             "https://api.stripe.com/v1/checkout/sessions/{}",
@@ -402,7 +403,9 @@ async fn get_stripe_session(
         Ok(response) => {
             let response_body = response.text().await.unwrap();
             println!("Got the following back!! {:?}", &response_body);
-            Ok(response_body.as_str().to_string())
+            let stripe_session: StripeSessionObject =
+                serde_json::from_str(response_body.as_str()).unwrap();
+            Ok(stripe_session)
         }
         Err(err) => {
             println!("Err: {:?}", err);
