@@ -11,9 +11,6 @@ jobs:
   build:
     name: Compile, Test, fmt, Clippy, codecov
     runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
     services:
       postgres:
         image: richardgarbi/postgres-docker-more-connections:latest
@@ -71,7 +68,7 @@ jobs:
 
       - name: Migrate database
         run: |
-          apt-get install libpq-dev -y
+          sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
 
       - name: Check sqlx-data.json is up-to-date
