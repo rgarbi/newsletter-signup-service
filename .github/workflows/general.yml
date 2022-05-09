@@ -71,7 +71,7 @@ jobs:
 
       - name: Migrate database
         run: |
-          apt-get install libpq-dev -y
+          sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
 
       - name: Check sqlx-data.json is up-to-date
@@ -99,12 +99,3 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -D warnings
-
-      - name: Generate code coverage
-        run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v2
-        with:
-          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
-          fail_ci_if_error: true
