@@ -8,7 +8,7 @@ pub fn store_subscription_history_event(
     subscription_id: Uuid,
     subscription_change_event_type: HistoryEventType,
     pool: &PgPool,
-) -> {
+) {
     let new_pool = pool.clone();
     tokio::spawn(async move {
         match retrieve_subscription_by_subscription_id(subscription_id, &new_pool).await {
@@ -27,6 +27,4 @@ pub fn store_subscription_history_event(
             Err(_) => {}
         }
     });
-
-    ()
 }
