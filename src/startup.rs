@@ -131,6 +131,10 @@ pub fn run(
                 "/subscriptions/{id}",
                 web::get().to(routes::get_subscription_by_id),
             )
+            .route(
+                "/subscriptions/{id}",
+                web::delete().to(routes::cancel_subscription_by_id),
+            )
             .route("/subscribers", web::post().to(routes::post_subscriber))
             .route(
                 "/subscribers",
