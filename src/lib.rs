@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod background;
 pub mod configuration;
 pub mod db;
 pub mod domain;
@@ -7,4 +8,3 @@ pub mod routes;
 pub mod startup;
 pub mod telemetry;
 pub mod util;
-pub mod background;
