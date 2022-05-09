@@ -14,12 +14,13 @@ pub fn store_subscription_history_event(
         if let Ok(subscription) =
             retrieve_subscription_by_subscription_id(subscription_id, &new_pool).await
         {
-            if let Ok(_) = insert_subscription_history_event(
+            if insert_subscription_history_event(
                 subscription,
                 subscription_change_event_type,
                 &new_pool,
             )
             .await
+            .is_ok()
             {}
         }
     });

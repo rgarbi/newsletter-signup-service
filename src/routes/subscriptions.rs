@@ -134,7 +134,7 @@ pub async fn cancel_subscription_by_id(
                 }
                 Err(_) => {
                     transaction.rollback().await.unwrap();
-                    HttpResponse::InternalServerError().finish();
+                    HttpResponse::InternalServerError().finish()
                 }
             }
         }
