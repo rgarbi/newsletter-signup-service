@@ -7,6 +7,7 @@ use reqwest::Error;
 use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
+use tracing::Level;
 use uuid::Uuid;
 
 use crate::db::subscriptions_db_broker::{
@@ -89,6 +90,11 @@ pub async fn cancel_subscription_by_id(
                 Err(response) => return response,
             };
 
+            if !subscription.active {
+                tracing::event!(Level::INFO, "This subscription has already been cancelled!");
+                return HttpResponse::Ok().json(json!({}));
+            }
+
             let mut transaction = match pool.begin().await {
                 Ok(transaction) => transaction,
                 Err(_) => return HttpResponse::InternalServerError().finish(),
@@ -168,11 +174,11 @@ async fn cancel_stripe_subscription(
     return match response {
         Ok(response) => {
             let response_body = response.text().await.unwrap();
-            println!("Got the following back!! {:?}", &response_body);
+            tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
             Ok(())
         }
         Err(err) => {
-            println!("Err: {:?}", err);
+            tracing::event!(Level::ERROR, "Err: {:?}", err);
             Err(err)
         }
     };
