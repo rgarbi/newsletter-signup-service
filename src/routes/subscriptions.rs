@@ -1,4 +1,5 @@
 use crate::auth::token::Claims;
+use crate::background::subscription_history_storer::store_subscription_history_event;
 use crate::configuration::get_configuration;
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use actix_web::{web, HttpResponse, Responder};
@@ -12,6 +13,7 @@ use crate::db::subscriptions_db_broker::{
     cancel_subscription_by_subscription_id, retrieve_subscription_by_subscription_id,
     retrieve_subscriptions_by_subscriber_id,
 };
+use crate::domain::subscription_history_models::HistoryEventType;
 
 use crate::util::from_path_to_uuid;
 
@@ -112,14 +114,23 @@ pub async fn cancel_subscription_by_id(
             )
             .await
             {
-                Ok(_) => HttpResponse::Ok().json(json!({})),
+                Ok(_) => {
+                    if transaction.commit().await.is_err() {
+                        HttpResponse::InternalServerError().finish();
+                    }
+                    //Add a history object....
+                    store_subscription_history_event(
+                        subscription.id,
+                        HistoryEventType::Cancelled,
+                        &pool,
+                    );
+                    HttpResponse::Ok().json(json!({}))
+                }
                 Err(_) => {
                     transaction.rollback().await.unwrap();
                     return HttpResponse::InternalServerError().finish();
                 }
             }
-
-            //Add a history object....
         }
         Err(_) => HttpResponse::NotFound().finish(),
     }
