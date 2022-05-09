@@ -9,8 +9,11 @@ env:
 
 jobs:
   build:
-    name: Compile, Test, fmt, Clippy, code coverage
+    name: Compile, Test, fmt, Clippy, codecov
     runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
     services:
       postgres:
         image: richardgarbi/postgres-docker-more-connections:latest
@@ -96,3 +99,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -D warnings
+
+      - name: Generate code coverage
+        run: |
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v2
+        with:
+          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          fail_ci_if_error: true

@@ -1,6 +1,10 @@
 use crate::auth::token::Claims;
+use crate::configuration::get_configuration;
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use actix_web::{web, HttpResponse, Responder};
+use reqwest::Error;
+use secrecy::ExposeSecret;
+use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -75,6 +79,7 @@ pub async fn cancel_subscription_by_id(
     user: Claims,
 ) -> impl Responder {
     let subscription_id = from_path_to_uuid(&id).unwrap();
+    let config = get_configuration().unwrap();
     match retrieve_subscription_by_subscription_id(subscription_id, &pool).await {
         Ok(subscription) => {
             match reject_unauthorized_user(subscription.subscriber_id, user.user_id, &pool).await {
@@ -96,10 +101,25 @@ pub async fn cancel_subscription_by_id(
                 }
             }
 
-            //Add a history object....
             //Call stripe to cancel the subscription
+            match cancel_stripe_subscription(
+                subscription.stripe_subscription_id,
+                config
+                    .stripe_client
+                    .api_secret_key
+                    .expose_secret()
+                    .to_string(),
+            )
+            .await
+            {
+                Ok(_) => HttpResponse::Ok().json(json!({})),
+                Err(_) => {
+                    transaction.rollback().await.unwrap();
+                    return HttpResponse::InternalServerError().finish();
+                }
+            }
 
-            HttpResponse::Ok().json(subscription)
+            //Add a history object....
         }
         Err(_) => HttpResponse::NotFound().finish(),
     }
@@ -118,5 +138,31 @@ async fn reject_unauthorized_user(
             Ok(())
         }
         Err(_) => Err(HttpResponse::BadRequest().finish()),
+    };
+}
+
+async fn cancel_stripe_subscription(
+    subscription_id: String,
+    stripe_publishable_key: String,
+) -> Result<(), Error> {
+    let response = reqwest::Client::new()
+        .delete(format!(
+            "https://api.stripe.com/v1/subscriptions/{}",
+            subscription_id
+        ))
+        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
+        .send()
+        .await;
+
+    return match response {
+        Ok(response) => {
+            let response_body = response.text().await.unwrap();
+            println!("Got the following back!! {:?}", &response_body);
+            Ok(())
+        }
+        Err(err) => {
+            println!("Err: {:?}", err);
+            Err(err)
+        }
     };
 }
