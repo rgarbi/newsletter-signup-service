@@ -26,7 +26,7 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
-        let timeout = configuration.email_client.timeout();
+        let email_client_timeout = configuration.email_client.timeout();
         let sender_email = configuration
             .email_client
             .sender()
@@ -35,14 +35,16 @@ impl Application {
             configuration.email_client.base_url,
             sender_email,
             configuration.email_client.api_key,
-            timeout,
+            email_client_timeout,
         );
 
+        let stripe_client_timeout = configuration.stripe_client.timeout();
         let stripe_client = StripeClient::new(
             configuration.stripe_client.base_url,
             configuration.stripe_client.api_secret_key,
             configuration.stripe_client.api_public_key,
             configuration.stripe_client.webhook_key,
+            stripe_client_timeout,
         );
 
         let address = format!(
@@ -52,7 +54,7 @@ impl Application {
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, connection_pool, email_client)?;
+        let server = run(listener, connection_pool, email_client, stripe_client)?;
         Ok(Self { port, server })
     }
     pub fn port(&self) -> u16 {

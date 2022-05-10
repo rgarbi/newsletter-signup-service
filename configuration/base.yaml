@@ -23,3 +23,4 @@ stripe_client:
   api_secret_key: ""
   api_public_key: ""
   webhook_key: ""
+  timeout_milliseconds: 10000
