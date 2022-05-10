@@ -157,8 +157,8 @@ mod tests {
 
     use crate::stripe_client::stripe_models::{StripeBillingPortalSession, StripeSessionObject};
     use uuid::Uuid;
-    use wiremock::matchers::{any, header, header_exists, method, path, query_param};
-    use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+    use wiremock::matchers::{header, header_exists, method, path, query_param};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     use crate::stripe_client::{
         StripeClient, STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_SESSIONS_BASE_PATH,
