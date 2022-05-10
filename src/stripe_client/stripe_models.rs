@@ -18,8 +18,8 @@ pub struct StripeBillingPortalSession {
 pub struct StripeSessionObject {
     pub id: String,
     pub object: String,
-    pub amount_subtotal: u128,
-    pub amount_total: u128,
+    pub amount_subtotal: u64,
+    pub amount_total: u64,
     pub client_reference_id: Option<String>,
     pub customer: String,
     pub subscription: Option<String>,

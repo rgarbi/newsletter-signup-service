@@ -59,7 +59,8 @@ impl StripeClient {
                 Option::Some(String::new()),
             )
             .send()
-            .await;
+            .await?
+            .error_for_status();
 
         return match response {
             Ok(response) => {
@@ -67,7 +68,7 @@ impl StripeClient {
                 tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
                 let stripe_session: StripeSessionObject =
                     serde_json::from_str(response_body.as_str()).unwrap();
-                Ok(stripe_session)
+                return Ok(stripe_session);
             }
             Err(err) => {
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
@@ -83,6 +84,7 @@ mod tests {
     use fake::{Fake, Faker};
     use secrecy::Secret;
 
+    use crate::stripe_client::stripe_models::StripeSessionObject;
     use uuid::Uuid;
     use wiremock::matchers::{any, header, header_exists, method, path};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
@@ -105,11 +107,24 @@ mod tests {
         let session_id = Uuid::new_v4().to_string();
         let mock_server = MockServer::start().await;
         let stripe_client = stripe_client(mock_server.uri());
+        let stripe_session = StripeSessionObject {
+            id: session_id.clone(),
+            object: "something".to_string(),
+            amount_subtotal: 500,
+            amount_total: 500,
+            client_reference_id: None,
+            customer: Uuid::new_v4().to_string(),
+            subscription: Some(Uuid::new_v4().to_string()),
+        };
+
+        let response = ResponseTemplate::new(200)
+            .set_body_json(serde_json::json!(stripe_session))
+            .append_header("Content-Type", "application/json");
+
         Mock::given(header_exists("Authorization"))
-            .and(header("Content-Type", "application/json"))
-            .and(path(format!("v1/checkout/sessions/{}", &session_id)))
+            .and(path(format!("/v1/checkout/sessions/{}", &session_id)))
             .and(method("GET"))
-            .respond_with(ResponseTemplate::new(200))
+            .respond_with(response)
             .expect(1)
             .mount(&mock_server)
             .await;
