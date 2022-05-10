@@ -42,8 +42,6 @@ impl Application {
         let stripe_client = StripeClient::new(
             configuration.stripe_client.base_url,
             configuration.stripe_client.api_secret_key,
-            configuration.stripe_client.api_public_key,
-            configuration.stripe_client.webhook_key,
             stripe_client_timeout,
         );
 

@@ -14,16 +14,12 @@ pub struct StripeClient {
     http_client: Client,
     base_url: String,
     api_secret_key: Secret<String>,
-    api_public_key: Secret<String>,
-    webhook_secret: Secret<String>,
 }
 
 impl StripeClient {
     pub fn new(
         base_url: String,
         api_secret_key: Secret<String>,
-        api_public_key: Secret<String>,
-        webhook_secret: Secret<String>,
         timeout: std::time::Duration,
     ) -> Self {
         Self {
@@ -34,8 +30,6 @@ impl StripeClient {
                 .unwrap(),
             base_url,
             api_secret_key,
-            api_public_key,
-            webhook_secret,
         }
     }
 
