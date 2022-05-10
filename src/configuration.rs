@@ -53,7 +53,7 @@ pub struct EmailClientSettings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct StripeClientSettings {
-    pub base_url: Secret<String>,
+    pub base_url: String,
     pub api_secret_key: Secret<String>,
     pub api_public_key: Secret<String>,
     pub webhook_key: Secret<String>,

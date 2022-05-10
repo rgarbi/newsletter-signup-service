@@ -13,6 +13,7 @@ use tracing_actix_web::TracingLogger;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
 use crate::routes;
+use crate::stripe_client::StripeClient;
 
 pub struct Application {
     port: u16,
@@ -35,6 +36,13 @@ impl Application {
             sender_email,
             configuration.email_client.api_key,
             timeout,
+        );
+
+        let stripe_client = StripeClient::new(
+            configuration.stripe_client.base_url,
+            configuration.stripe_client.api_secret_key,
+            configuration.stripe_client.api_public_key,
+            configuration.stripe_client.webhook_key,
         );
 
         let address = format!(
