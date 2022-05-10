@@ -286,7 +286,7 @@ mod tests {
             .cancel_stripe_subscription(subscription_id)
             .await;
         // Assert
-        assert_ok!(outcome);
+        assert_err!(outcome);
     }
 
     #[tokio::test]
