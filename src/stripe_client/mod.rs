@@ -163,8 +163,6 @@ mod tests {
         StripeClient::new(
             base_url,
             Secret::new(Faker.fake()),
-            Secret::new(Faker.fake()),
-            Secret::new(Faker.fake()),
             std::time::Duration::from_millis(200),
         )
     }
