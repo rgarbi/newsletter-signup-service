@@ -1,12 +1,13 @@
 pub mod stripe_models;
 
-use crate::stripe_client::stripe_models::StripeSessionObject;
+use crate::stripe_client::stripe_models::{StripeBillingPortalSession, StripeSessionObject};
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
 use tracing::Level;
 
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
+pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions/";
 
 #[derive(Clone, Debug)]
 pub struct StripeClient {
@@ -111,6 +112,41 @@ impl StripeClient {
             }
         };
     }
+
+    pub async fn create_billing_portal_session(
+        &self,
+        stripe_customer_id: String,
+        return_url: String,
+    ) -> Result<StripeBillingPortalSession, Error> {
+        let address = format!(
+            "{}{}?customer={}&return_url={}",
+            &self.base_url, STRIPE_BILLING_PORTAL_BASE_PATH, stripe_customer_id, return_url
+        );
+        let response = reqwest::Client::new()
+            .post(address)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .basic_auth(
+                self.api_secret_key.expose_secret().to_string(),
+                Option::Some(String::new()),
+            )
+            .send()
+            .await?
+            .error_for_status();
+
+        return match response {
+            Ok(response) => {
+                let response_body = response.text().await.unwrap();
+                tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
+                let stripe_session: StripeBillingPortalSession =
+                    serde_json::from_str(response_body.as_str()).unwrap();
+                Ok(stripe_session)
+            }
+            Err(err) => {
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
+                Err(err)
+            }
+        };
+    }
 }
 
 #[cfg(test)]
@@ -124,7 +160,9 @@ mod tests {
     use wiremock::matchers::{any, header, header_exists, method, path};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
-    use crate::stripe_client::{StripeClient, STRIPE_SESSIONS_BASE_PATH};
+    use crate::stripe_client::{
+        StripeClient, STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
+    };
 
     fn stripe_client(base_url: String) -> StripeClient {
         StripeClient::new(
@@ -174,6 +212,30 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn get_stripe_session_returns_error_when_it_is_an_error() {
+        // Arrange
+        let session_id = Uuid::new_v4().to_string();
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(format!(
+                "{}{}",
+                STRIPE_SESSIONS_BASE_PATH, &session_id
+            )))
+            .and(method("GET"))
+            .respond_with(ResponseTemplate::new(500))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client.get_stripe_session(session_id).await;
+        // Assert
+        assert_err!(outcome);
+    }
+
+    #[tokio::test]
     async fn cancel_stripe_subscription_works() {
         // Arrange
         let subscription_id = Uuid::new_v4().to_string();
@@ -182,9 +244,38 @@ mod tests {
         let response = ResponseTemplate::new(200);
 
         Mock::given(header_exists("Authorization"))
-            .and(path(format!("/v1/checkout/sessions/{}", &subscription_id)))
+            .and(path(format!(
+                "{}{}",
+                STRIPE_SUBSCRIPTIONS_BASE_PATH, &subscription_id
+            )))
             .and(method("DELETE"))
             .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .cancel_stripe_subscription(subscription_id)
+            .await;
+        // Assert
+        assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn cancel_stripe_subscription_returns_returns_error_when_it_is_an_error() {
+        // Arrange
+        let subscription_id = Uuid::new_v4().to_string();
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(format!(
+                "{}{}",
+                STRIPE_SUBSCRIPTIONS_BASE_PATH, &subscription_id
+            )))
+            .and(method("DELETE"))
+            .respond_with(ResponseTemplate::new(500))
             .expect(1)
             .mount(&mock_server)
             .await;
