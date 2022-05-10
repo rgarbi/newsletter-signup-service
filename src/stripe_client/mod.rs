@@ -155,13 +155,14 @@ mod tests {
     use fake::{Fake, Faker};
     use secrecy::Secret;
 
-    use crate::stripe_client::stripe_models::StripeSessionObject;
+    use crate::stripe_client::stripe_models::{StripeBillingPortalSession, StripeSessionObject};
     use uuid::Uuid;
-    use wiremock::matchers::{any, header, header_exists, method, path};
+    use wiremock::matchers::{any, header, header_exists, method, path, query_param};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
     use crate::stripe_client::{
-        StripeClient, STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
+        StripeClient, STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_SESSIONS_BASE_PATH,
+        STRIPE_SUBSCRIPTIONS_BASE_PATH,
     };
 
     fn stripe_client(base_url: String) -> StripeClient {
@@ -263,7 +264,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cancel_stripe_subscription_returns_returns_error_when_it_is_an_error() {
+    async fn cancel_stripe_subscription_returns_error_when_it_is_an_error() {
         // Arrange
         let subscription_id = Uuid::new_v4().to_string();
         let mock_server = MockServer::start().await;
@@ -286,5 +287,74 @@ mod tests {
             .await;
         // Assert
         assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn create_billing_portal_session_works() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let customer_id = Uuid::new_v4().to_string();
+        let return_url = Uuid::new_v4().to_string();
+
+        let billing_portal = StripeBillingPortalSession {
+            id: Uuid::new_v4().to_string(),
+            object: "something".to_string(),
+            configuration: "something".to_string(),
+            created: 12341234,
+            customer: customer_id.clone(),
+            livemode: false,
+            locale: None,
+            on_behalf_of: None,
+            return_url: return_url.clone(),
+            url: Uuid::new_v4().to_string(),
+        };
+
+        let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(billing_portal));
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_BILLING_PORTAL_BASE_PATH))
+            .and(query_param("customer", &customer_id))
+            .and(query_param("return_url", &return_url))
+            .and(method("POST"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .create_billing_portal_session(customer_id, return_url)
+            .await;
+        // Assert
+        assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn create_billing_portal_session_works_returns_error_when_it_is_an_error() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let customer_id = Uuid::new_v4().to_string();
+        let return_url = Uuid::new_v4().to_string();
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_BILLING_PORTAL_BASE_PATH))
+            .and(query_param("customer", &customer_id))
+            .and(query_param("return_url", &return_url))
+            .and(method("POST"))
+            .respond_with(ResponseTemplate::new(500))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .create_billing_portal_session(customer_id, return_url)
+            .await;
+        // Assert
+        assert_err!(outcome);
     }
 }

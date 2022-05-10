@@ -5,7 +5,7 @@ pub struct StripeBillingPortalSession {
     pub id: String,
     pub object: String,
     pub configuration: String,
-    pub created: u128,
+    pub created: u64,
     pub customer: String,
     pub livemode: bool,
     pub locale: Option<String>,
