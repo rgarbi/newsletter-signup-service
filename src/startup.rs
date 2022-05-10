@@ -112,9 +112,11 @@ pub fn run(
     listener: TcpListener,
     connection: PgPool,
     email_client: EmailClient,
+    stripe_client: StripeClient,
 ) -> Result<Server, std::io::Error> {
     let connection = web::Data::new(connection);
     let email_client = Data::new(email_client);
+    let stripe_client = Data::new(stripe_client);
     let server = HttpServer::new(move || {
         App::new()
             .wrap(define_cors())
@@ -173,6 +175,7 @@ pub fn run(
             .route("/webhook", web::post().to(routes::handle_webhook))
             .app_data(connection.clone())
             .app_data(email_client.clone())
+            .app_data(stripe_client.clone())
     })
     .listen(listener)?
     .run();
