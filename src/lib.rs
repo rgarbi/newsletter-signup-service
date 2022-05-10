@@ -6,5 +6,6 @@ pub mod domain;
 pub mod email_client;
 pub mod routes;
 pub mod startup;
+pub mod stripe_client;
 pub mod telemetry;
 pub mod util;

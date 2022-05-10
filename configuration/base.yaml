@@ -11,7 +11,7 @@ database:
   database_name: "newsletter-signup-service"
 auth_config:
   audience: "https://hello-world.example.com"
-  issuer: "dev-4iy59-im.us.auth0.com"
+  issuer: "http://localhost:8000"
   signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTH"
 email_client:
   base_url: "https://api.sendgrid.com"
@@ -19,6 +19,7 @@ email_client:
   api_key: "something"
   timeout_milliseconds: 10000
 stripe_client:
+  base_url: "https://api.stripe.com"
   api_secret_key: ""
   api_public_key: ""
   webhook_key: ""
