@@ -7,7 +7,7 @@ use tracing::Level;
 
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
-pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions/";
+pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions";
 
 #[derive(Clone, Debug)]
 pub struct StripeClient {

@@ -17,8 +17,7 @@ use crate::db::subscribers_db_broker::{
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{
-    CreateCheckoutSession, CreateStripeSessionRedirect, StripeBillingPortalSession,
-    StripeSessionObject,
+    CreateCheckoutSession, CreateStripeSessionRedirect, StripeSessionObject,
 };
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
