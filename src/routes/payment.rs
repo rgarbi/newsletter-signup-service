@@ -109,7 +109,7 @@ pub async fn create_checkout_session(
 
             match checkout_session_response {
                 Ok(checkout_session_created) => {
-                    let checkout_session_url = checkout_session_created.url.clone().unwrap();
+                    let checkout_session_url = checkout_session_created.url.clone();
                     println!(
                         "Checkout session Created!!! URL: {:?}",
                         &checkout_session_created.url
