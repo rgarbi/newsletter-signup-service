@@ -10,7 +10,7 @@ use tracing::Level;
 use tracing_subscriber::fmt::format;
 use urlencoding::encode;
 
-pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
+pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
 pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions";
 pub const STRIPE_CUSTOMERS_BASE_PATH: &str = "/v1/customers";
@@ -52,7 +52,7 @@ impl StripeClient {
         stripe_session_id: String,
     ) -> Result<StripeSessionObject, Error> {
         let address = format!(
-            "{}{}{}",
+            "{}{}/{}",
             &self.base_url, STRIPE_SESSIONS_BASE_PATH, stripe_session_id
         );
 
@@ -263,14 +263,15 @@ impl StripeClient {
             STRIPE_SESSIONS_BASE_PATH,
             success_url,
             cancel_url,
-            encode("line_items[0][price]"),
+            "line_items[0][price]",
             price_id,
-            encode("line_items[0][quantity]"),
+            "line_items[0][quantity]",
             quantity,
             mode,
             stripe_customer_id,
         );
 
+        println!("SENDING -> {}", &address);
         let create_checkout_session_response = self
             .http_client
             .post(address)
@@ -292,6 +293,7 @@ impl StripeClient {
                 Ok(stripe_checkout_session)
             }
             Err(err) => {
+                println!("Err: {:?}", &err);
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(err)
             }
