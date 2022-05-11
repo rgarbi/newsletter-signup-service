@@ -113,6 +113,13 @@ impl StripeClient {
         };
     }
 
+    #[tracing::instrument(
+        name = "Create a billing portal session",
+        skip(stripe_customer_id, return_url),
+        fields(
+        stripe_customer_id = %stripe_customer_id,
+        )
+    )]
     pub async fn create_billing_portal_session(
         &self,
         stripe_customer_id: String,
@@ -149,6 +156,13 @@ impl StripeClient {
         };
     }
 
+    #[tracing::instrument(
+        name = "Create a stripe customer",
+        skip(email),
+        fields(
+            email = %email,
+        )
+    )]
     pub async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
         let address = format!(
             "{}{}?email={}",
@@ -184,6 +198,13 @@ impl StripeClient {
         };
     }
 
+    #[tracing::instrument(
+        name = "Get Stripe Price By Lookup Key",
+        skip(lookup_keys),
+        fields(
+            lookup_keys = %lookup_keys,
+        )
+    )]
     pub async fn get_stripe_price_by_lookup_key(
         &self,
         lookup_keys: Vec<String>,
@@ -227,6 +248,13 @@ impl StripeClient {
         };
     }
 
+    #[tracing::instrument(
+        name = "Create a Stripe checkout session",
+        skip(lookup_keys),
+        fields(
+            lookup_keys = %lookup_keys,
+        )
+    )]
     pub async fn create_stripe_checkout_session(&self, email: String) -> Result<(), Error> {
         let address = format!(
             "{}{}?email={}",
