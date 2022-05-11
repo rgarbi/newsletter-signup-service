@@ -6,12 +6,14 @@ use crate::stripe_client::stripe_models::{
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
 use tracing::Level;
+use tracing_subscriber::fmt::format;
 use urlencoding::encode;
 
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
 pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions";
 pub const STRIPE_CUSTOMERS_BASE_PATH: &str = "/v1/customers";
+pub const STRIPE_PRICES_BASE_PATH: &str = "/v1/prices";
 
 #[derive(Clone, Debug)]
 pub struct StripeClient {
@@ -180,6 +182,60 @@ impl StripeClient {
                 Err(err)
             }
         };
+    }
+
+    pub async fn get_stripe_price_by_lookup_key(
+        &self,
+        lookup_keys: Vec<String>,
+    ) -> Result<(), Error> {
+        let mut keys_param: String = String::new();
+        for key in lookup_keys.iter() {
+            keys_param.push_str(format!("lookup_keys[]={}&", key).as_str())
+        }
+
+        let address = format!(
+            "{}{}?email={}",
+            &self.base_url,
+            STRIPE_CUSTOMERS_BASE_PATH,
+            encode(email.as_str())
+        );
+
+        let create_customer_response = self
+            .http_client
+            .post(address)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .basic_auth(
+                self.api_secret_key.expose_secret().to_string(),
+                Option::Some(String::new()),
+            )
+            .send()
+            .await?
+            .error_for_status();
+
+        return match create_customer_response {
+            Ok(response) => {
+                let response_body = response.text().await.unwrap();
+                tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
+                let stripe_customer: StripeCustomer =
+                    serde_json::from_str(response_body.as_str()).unwrap();
+                Ok(stripe_customer)
+            }
+            Err(err) => {
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
+                Err(err)
+            }
+        };
+    }
+
+    pub async fn create_stripe_checkout_session(&self, email: String) -> Result<(), Error> {
+        let address = format!(
+            "{}{}?email={}",
+            &self.base_url,
+            STRIPE_CUSTOMERS_BASE_PATH,
+            encode(email.as_str())
+        );
+
+        todo!()
     }
 }
 

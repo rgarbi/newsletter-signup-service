@@ -34,6 +34,18 @@ pub struct StripeCustomer {
     pub email: Option<String>,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct StripeProductPrice {
+    pub id: String,
+    pub object: String,
+    pub active: bool,
+    pub billing_scheme: String,
+    pub created: u64,
+    pub currency: String,
+    pub product: String,
+    pub unit_amount: u64,
+}
+
 impl StripeSessionObject {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
