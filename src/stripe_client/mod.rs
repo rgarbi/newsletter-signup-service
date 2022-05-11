@@ -362,7 +362,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_billing_portal_session_works_returns_error_when_it_is_an_error() {
+    async fn create_billing_portal_session_returns_error_when_it_is_an_error() {
         // Arrange
         let mock_server = MockServer::start().await;
         let stripe_client = stripe_client(mock_server.uri());
@@ -420,5 +420,27 @@ mod tests {
         let outcome = stripe_client.create_stripe_customer(customer_email).await;
         // Assert
         assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn create_stripe_customer_returns_error_when_it_is_an_error() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+        let customer_email = Uuid::new_v4().to_string();
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_CUSTOMERS_BASE_PATH))
+            .and(query_param("email", &customer_email))
+            .and(method("POST"))
+            .respond_with(ResponseTemplate::new(500))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client.create_stripe_customer(customer_email).await;
+        // Assert
+        assert_err!(outcome);
     }
 }
