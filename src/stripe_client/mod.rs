@@ -1,7 +1,8 @@
 pub mod stripe_models;
 
 use crate::stripe_client::stripe_models::{
-    StripeBillingPortalSession, StripeCustomer, StripePriceList, StripeSessionObject,
+    StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
+    StripeSessionObject,
 };
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
@@ -198,13 +199,7 @@ impl StripeClient {
         };
     }
 
-    #[tracing::instrument(
-        name = "Get Stripe Price By Lookup Key",
-        skip(lookup_keys),
-        fields(
-            lookup_keys = %lookup_keys,
-        )
-    )]
+    #[tracing::instrument(name = "Get Stripe Price By Lookup Key")]
     pub async fn get_stripe_price_by_lookup_key(
         &self,
         lookup_keys: Vec<String>,
@@ -250,20 +245,59 @@ impl StripeClient {
 
     #[tracing::instrument(
         name = "Create a Stripe checkout session",
-        skip(lookup_keys),
+        skip(price_id, quantity, stripe_customer_id, success_url, cancel_url),
         fields(
-            lookup_keys = %lookup_keys,
+            stripe_customer_id = %stripe_customer_id,
         )
     )]
-    pub async fn create_stripe_checkout_session(&self, email: String) -> Result<(), Error> {
+    pub async fn create_stripe_checkout_session(
+        &self,
+        price_id: String,
+        quantity: u16,
+        stripe_customer_id: String,
+        success_url: String,
+        cancel_url: String,
+        mode: String,
+    ) -> Result<StripeCheckoutSession, Error> {
         let address = format!(
-            "{}{}?email={}",
+            "{}{}?success_url={}&cancel_url={}&{}={}&{}={}&mode={}&customer={}",
             &self.base_url,
-            STRIPE_CUSTOMERS_BASE_PATH,
-            encode(email.as_str())
+            STRIPE_SESSIONS_BASE_PATH,
+            success_url,
+            cancel_url,
+            encode("line_items[0][price]"),
+            price_id,
+            encode("line_items[0][quantity]"),
+            quantity,
+            mode,
+            stripe_customer_id,
         );
 
-        todo!()
+        let create_checkout_session_response = self
+            .http_client
+            .post(address)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .basic_auth(
+                self.api_secret_key.expose_secret().to_string(),
+                Option::Some(String::new()),
+            )
+            .send()
+            .await?
+            .error_for_status();
+
+        return match create_checkout_session_response {
+            Ok(response) => {
+                let response_body = response.text().await.unwrap();
+                tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
+                let stripe_checkout_session: StripeCheckoutSession =
+                    serde_json::from_str(response_body.as_str()).unwrap();
+                Ok(stripe_checkout_session)
+            }
+            Err(err) => {
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
+                Err(err)
+            }
+        };
     }
 }
 
