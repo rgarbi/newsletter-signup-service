@@ -88,9 +88,6 @@ pub async fn create_checkout_session(
         .await
         .unwrap();
 
-    //let mut list_prices = stripe::ListPrices::new();
-    //list_prices.lookup_keys = Some(Box::new(look_up_keys));
-    //let list_prices_response = stripe::Price::list(&client, list_prices).await;
     let list_prices_response = stripe_client
         .get_stripe_price_by_lookup_key(look_up_keys)
         .await;
@@ -99,29 +96,16 @@ pub async fn create_checkout_session(
             println!("Got prices: {:?}", &prices);
             let price_id = prices.data[0].id.to_string();
 
-            let line_item = stripe::CreateCheckoutSessionLineItems {
-                adjustable_quantity: None,
-                description: None,
-                dynamic_tax_rates: None,
-                price: Some(Box::new(price_id.to_string())),
-                price_data: None,
-                quantity: Some(Box::new(1)),
-                tax_rates: None,
-            };
-            let line_items = [line_item].to_vec();
-
-            let mut checkout_session =
-                stripe::CreateCheckoutSession::new(cancel_url.as_str(), success_url.as_str());
-            checkout_session.line_items = Some(Box::new(line_items));
-            checkout_session.mode = Some(CheckoutSessionMode::Subscription);
-            let client_ref_id = subscriber.id.to_string().clone();
-            checkout_session.client_reference_id = Option::Some(client_ref_id.as_str());
-
-            checkout_session.customer =
-                Option::Some(CustomerId::from_str(stripe_customer_id.as_str()).unwrap());
-
-            let checkout_session_response =
-                stripe::CheckoutSession::create(&client, checkout_session).await;
+            let checkout_session_response = stripe_client
+                .create_stripe_checkout_session(
+                    price_id,
+                    1,
+                    stripe_customer_id,
+                    success_url,
+                    cancel_url,
+                    "subscription".to_string(),
+                )
+                .await;
 
             match checkout_session_response {
                 Ok(checkout_session_created) => {
