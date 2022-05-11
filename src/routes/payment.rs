@@ -3,8 +3,6 @@ use reqwest::Error;
 use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
-use std::str::FromStr;
-use stripe::{CheckoutSessionMode, CustomerId};
 
 use crate::auth::token::Claims;
 use crate::configuration::get_configuration;
@@ -74,8 +72,6 @@ pub async fn create_checkout_session(
     );
 
     let look_up_keys = [create_checkout_session.price_lookup_key.clone()].to_vec();
-    let client = stripe::Client::new(configuration.stripe_client.api_secret_key.expose_secret());
-
     //Get customer
     let stripe_customer_id = match get_stripe_customer_id(&subscriber, &stripe_client).await {
         Ok(id) => id,
@@ -343,7 +339,7 @@ async fn get_stripe_session(
             "https://api.stripe.com/v1/checkout/sessions/{}",
             stripe_session_id
         ))
-        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
+        .basic_auth(stripe_publishable_key, Some(String::new()))
         .send()
         .await;
 
