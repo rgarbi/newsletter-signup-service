@@ -185,14 +185,16 @@ mod tests {
     use fake::{Fake, Faker};
     use secrecy::Secret;
 
-    use crate::stripe_client::stripe_models::{StripeBillingPortalSession, StripeSessionObject};
+    use crate::stripe_client::stripe_models::{
+        StripeBillingPortalSession, StripeCustomer, StripeSessionObject,
+    };
     use uuid::Uuid;
     use wiremock::matchers::{header_exists, method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     use crate::stripe_client::{
-        StripeClient, STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_SESSIONS_BASE_PATH,
-        STRIPE_SUBSCRIPTIONS_BASE_PATH,
+        StripeClient, STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH,
+        STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
     };
 
     fn stripe_client(base_url: String) -> StripeClient {
@@ -384,5 +386,39 @@ mod tests {
             .await;
         // Assert
         assert_err!(outcome);
+    }
+
+    #[tokio::test]
+    async fn create_stripe_customer_works() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let customer_id = Uuid::new_v4().to_string();
+        let customer_email = Uuid::new_v4().to_string();
+
+        let stripe_customer = StripeCustomer {
+            id: customer_id,
+            object: "something".to_string(),
+            created: 12341234,
+            description: None,
+            email: Some(customer_email.clone()),
+        };
+
+        let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_customer));
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_CUSTOMERS_BASE_PATH))
+            .and(query_param("email", &customer_email))
+            .and(method("POST"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client.create_stripe_customer(customer_email).await;
+        // Assert
+        assert_ok!(outcome);
     }
 }
