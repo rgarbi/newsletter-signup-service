@@ -6,6 +6,7 @@ use crate::stripe_client::stripe_models::{
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
 use tracing::Level;
+use urlencoding::encode;
 
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
@@ -149,8 +150,11 @@ impl StripeClient {
     pub async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
         let address = format!(
             "{}{}?email={}",
-            &self.base_url, STRIPE_CUSTOMERS_BASE_PATH, email
+            &self.base_url,
+            STRIPE_CUSTOMERS_BASE_PATH,
+            encode(email.as_str())
         );
+        println!("Posting to: {}", &address);
         let create_customer_response = self
             .http_client
             .post(address)
@@ -172,6 +176,7 @@ impl StripeClient {
                 Ok(stripe_customer)
             }
             Err(err) => {
+                println!("Err: {:?}", err);
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(err)
             }
