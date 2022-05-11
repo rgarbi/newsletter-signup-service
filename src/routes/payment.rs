@@ -88,10 +88,12 @@ pub async fn create_checkout_session(
         .await
         .unwrap();
 
-    let mut list_prices = stripe::ListPrices::new();
-    list_prices.lookup_keys = Some(Box::new(look_up_keys));
-    let list_prices_response = stripe::Price::list(&client, list_prices).await;
-
+    //let mut list_prices = stripe::ListPrices::new();
+    //list_prices.lookup_keys = Some(Box::new(look_up_keys));
+    //let list_prices_response = stripe::Price::list(&client, list_prices).await;
+    let list_prices_response = stripe_client
+        .get_stripe_price_by_lookup_key(look_up_keys)
+        .await;
     match list_prices_response {
         Ok(prices) => {
             println!("Got prices: {:?}", &prices);

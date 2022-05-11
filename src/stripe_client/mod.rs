@@ -190,14 +190,12 @@ impl StripeClient {
     ) -> Result<StripePriceList, Error> {
         let mut keys_param: String = String::new();
         for key in lookup_keys.iter() {
-            keys_param.push_str(format!("lookup_keys[]={}&", key).as_str())
+            keys_param.push_str(format!("{}={}&", encode("lookup_keys[]"), key).as_str())
         }
 
         let address = format!(
             "{}{}?{}",
-            &self.base_url,
-            STRIPE_PRICES_BASE_PATH,
-            encode(keys_param.as_str())
+            &self.base_url, STRIPE_PRICES_BASE_PATH, keys_param,
         );
 
         println!("SENDING {}", &address);
@@ -540,12 +538,9 @@ mod tests {
         let response =
             ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
 
-        let mut search_val = stripe_lookup_key.clone();
-        search_val.push_str("&");
-
         Mock::given(header_exists("Authorization"))
             .and(path(STRIPE_PRICES_BASE_PATH))
-            .and(query_param(encode("lookup_keys[]"), search_val))
+            .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
             .and(method("GET"))
             .respond_with(response)
             .expect(1)
