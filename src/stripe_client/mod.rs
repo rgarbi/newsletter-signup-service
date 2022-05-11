@@ -154,7 +154,7 @@ impl StripeClient {
             STRIPE_CUSTOMERS_BASE_PATH,
             encode(email.as_str())
         );
-        println!("Posting to: {}", &address);
+
         let create_customer_response = self
             .http_client
             .post(address)
@@ -176,7 +176,6 @@ impl StripeClient {
                 Ok(stripe_customer)
             }
             Err(err) => {
-                println!("Err: {:?}", err);
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(err)
             }
