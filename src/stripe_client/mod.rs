@@ -194,15 +194,17 @@ impl StripeClient {
         }
 
         let address = format!(
-            "{}{}?email={}",
+            "{}{}?{}",
             &self.base_url,
-            STRIPE_CUSTOMERS_BASE_PATH,
-            encode(email.as_str())
+            STRIPE_PRICES_BASE_PATH,
+            encode(keys_param.as_str())
         );
 
-        let create_customer_response = self
+        println!("SENDING {}", &address)
+
+        let get_prices_response = self
             .http_client
-            .post(address)
+            .get(address)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .basic_auth(
                 self.api_secret_key.expose_secret().to_string(),
@@ -212,7 +214,7 @@ impl StripeClient {
             .await?
             .error_for_status();
 
-        return match create_customer_response {
+        return match get_prices_response {
             Ok(response) => {
                 let response_body = response.text().await.unwrap();
                 tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);

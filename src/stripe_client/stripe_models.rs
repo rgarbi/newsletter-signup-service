@@ -46,6 +46,13 @@ pub struct StripeProductPrice {
     pub unit_amount: u64,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct StripePriceList {
+    pub object: String,
+    pub url: String,
+    pub data: Vec<StripeProductPrice>,
+}
+
 impl StripeSessionObject {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
