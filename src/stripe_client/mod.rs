@@ -271,7 +271,6 @@ impl StripeClient {
             stripe_customer_id,
         );
 
-        println!("SENDING -> {}", &address);
         let create_checkout_session_response = self
             .http_client
             .post(address)
@@ -293,7 +292,6 @@ impl StripeClient {
                 Ok(stripe_checkout_session)
             }
             Err(err) => {
-                println!("Err: {:?}", &err);
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(err)
             }
@@ -350,7 +348,7 @@ mod tests {
 
         Mock::given(header_exists("Authorization"))
             .and(path(format!(
-                "{}{}",
+                "{}/{}",
                 STRIPE_SESSIONS_BASE_PATH, &session_id
             )))
             .and(method("GET"))
@@ -374,7 +372,7 @@ mod tests {
 
         Mock::given(header_exists("Authorization"))
             .and(path(format!(
-                "{}{}",
+                "{}/{}",
                 STRIPE_SESSIONS_BASE_PATH, &session_id
             )))
             .and(method("GET"))
