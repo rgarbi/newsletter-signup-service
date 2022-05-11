@@ -303,7 +303,6 @@ impl StripeClient {
 
 #[cfg(test)]
 mod tests {
-    use base64::encode;
     use claim::{assert_err, assert_ok};
     use fake::{Fake, Faker};
     use secrecy::Secret;
@@ -615,5 +614,29 @@ mod tests {
             .await;
         // Assert
         assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn get_stripe_price_by_lookup_key_returns_error_when_it_is_an_error() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+        let stripe_lookup_key = Uuid::new_v4().to_string();
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_PRICES_BASE_PATH))
+            .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
+            .and(method("GET"))
+            .respond_with(ResponseTemplate::new(500))
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .get_stripe_price_by_lookup_key(vec![stripe_lookup_key])
+            .await;
+        // Assert
+        assert_err!(outcome);
     }
 }
