@@ -1,6 +1,8 @@
 pub mod stripe_models;
 
-use crate::stripe_client::stripe_models::{StripeBillingPortalSession, StripeSessionObject};
+use crate::stripe_client::stripe_models::{
+    StripeBillingPortalSession, StripeCustomer, StripeSessionObject,
+};
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
 use tracing::Level;
@@ -8,6 +10,7 @@ use tracing::Level;
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions/";
 pub const STRIPE_SUBSCRIPTIONS_BASE_PATH: &str = "/v1/subscriptions/";
 pub const STRIPE_BILLING_PORTAL_BASE_PATH: &str = "/v1/billing_portal/sessions";
+pub const STRIPE_CUSTOMERS_BASE_PATH: &str = "/v1/customers";
 
 #[derive(Clone, Debug)]
 pub struct StripeClient {
@@ -116,7 +119,8 @@ impl StripeClient {
             "{}{}?customer={}&return_url={}",
             &self.base_url, STRIPE_BILLING_PORTAL_BASE_PATH, stripe_customer_id, return_url
         );
-        let response = reqwest::Client::new()
+        let response = self
+            .http_client
             .post(address)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .basic_auth(
@@ -142,8 +146,36 @@ impl StripeClient {
         };
     }
 
-    async fn create_stripe_customer(&self, email: String) -> Result<(), Error> {
-        todo!("CREATE STRIPE CUSTOMER NEEDS IMPLEMENTED")
+    async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
+        let address = format!(
+            "{}{}?email={}",
+            &self.base_url, STRIPE_CUSTOMERS_BASE_PATH, email
+        );
+        let response = self
+            .http_client
+            .post(address)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .basic_auth(
+                self.api_secret_key.expose_secret().to_string(),
+                Option::Some(String::new()),
+            )
+            .send()
+            .await?
+            .error_for_status();
+
+        return match response {
+            Ok(response) => {
+                let response_body = response.text().await.unwrap();
+                tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
+                let stripe_customer: StripeCustomer =
+                    serde_json::from_str(response_body.as_str()).unwrap();
+                Ok(stripe_customer)
+            }
+            Err(err) => {
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
+                Err(err)
+            }
+        };
     }
 }
 
