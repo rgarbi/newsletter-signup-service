@@ -7,7 +7,6 @@ use crate::stripe_client::stripe_models::{
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
 use tracing::Level;
-use tracing_subscriber::fmt::format;
 use urlencoding::encode;
 
 pub const STRIPE_SESSIONS_BASE_PATH: &str = "/v1/checkout/sessions";
