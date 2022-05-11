@@ -44,12 +44,14 @@ pub struct StripeProductPrice {
     pub currency: String,
     pub product: String,
     pub unit_amount: u64,
+    pub lookup_key: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct StripePriceList {
     pub object: String,
     pub url: String,
+    pub has_more: bool,
     pub data: Vec<StripeProductPrice>,
 }
 

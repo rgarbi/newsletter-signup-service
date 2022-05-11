@@ -1,7 +1,7 @@
 pub mod stripe_models;
 
 use crate::stripe_client::stripe_models::{
-    StripeBillingPortalSession, StripeCustomer, StripeSessionObject,
+    StripeBillingPortalSession, StripeCustomer, StripePriceList, StripeSessionObject,
 };
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
@@ -187,7 +187,7 @@ impl StripeClient {
     pub async fn get_stripe_price_by_lookup_key(
         &self,
         lookup_keys: Vec<String>,
-    ) -> Result<(), Error> {
+    ) -> Result<StripePriceList, Error> {
         let mut keys_param: String = String::new();
         for key in lookup_keys.iter() {
             keys_param.push_str(format!("lookup_keys[]={}&", key).as_str())
@@ -200,7 +200,7 @@ impl StripeClient {
             encode(keys_param.as_str())
         );
 
-        println!("SENDING {}", &address)
+        println!("SENDING {}", &address);
 
         let get_prices_response = self
             .http_client
@@ -218,9 +218,9 @@ impl StripeClient {
             Ok(response) => {
                 let response_body = response.text().await.unwrap();
                 tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
-                let stripe_customer: StripeCustomer =
+                let stripe_price_list: StripePriceList =
                     serde_json::from_str(response_body.as_str()).unwrap();
-                Ok(stripe_customer)
+                Ok(stripe_price_list)
             }
             Err(err) => {
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
@@ -243,12 +243,14 @@ impl StripeClient {
 
 #[cfg(test)]
 mod tests {
+    use base64::encode;
     use claim::{assert_err, assert_ok};
     use fake::{Fake, Faker};
     use secrecy::Secret;
 
     use crate::stripe_client::stripe_models::{
-        StripeBillingPortalSession, StripeCustomer, StripeSessionObject,
+        StripeBillingPortalSession, StripeCustomer, StripePriceList, StripeProductPrice,
+        StripeSessionObject,
     };
     use uuid::Uuid;
     use wiremock::matchers::{header_exists, method, path, query_param};
@@ -504,5 +506,57 @@ mod tests {
         let outcome = stripe_client.create_stripe_customer(customer_email).await;
         // Assert
         assert_err!(outcome);
+    }
+
+    #[tokio::test]
+    async fn get_stripe_price_by_lookup_key_works() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let mut stripe_lookup_key = Uuid::new_v4().to_string();
+
+        let price = StripeProductPrice {
+            id: Uuid::new_v4().to_string(),
+            object: "price".to_string(),
+            active: true,
+            billing_scheme: "".to_string(),
+            created: 12341234,
+            currency: "".to_string(),
+            product: "".to_string(),
+            unit_amount: 500,
+            lookup_key: stripe_lookup_key.clone(),
+        };
+
+        let price_list: Vec<StripeProductPrice> = vec![price];
+
+        let stripe_price_search_list = StripePriceList {
+            object: "list".to_string(),
+            url: "/v1/prices".to_string(),
+            has_more: false,
+            data: price_list,
+        };
+
+        let response =
+            ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_CUSTOMERS_BASE_PATH))
+            .and(query_param(
+                encode("lookup_keys[]"),
+                stripe_lookup_key.push_str("&"),
+            ))
+            .and(method("GET"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .get_stripe_price_by_lookup_key(vec![stripe_lookup_key])
+            .await;
+        // Assert
+        assert_ok!(outcome);
     }
 }
