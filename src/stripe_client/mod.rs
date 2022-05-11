@@ -514,7 +514,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let stripe_client = stripe_client(mock_server.uri());
 
-        let mut stripe_lookup_key = Uuid::new_v4().to_string();
+        let stripe_lookup_key = Uuid::new_v4().to_string();
 
         let price = StripeProductPrice {
             id: Uuid::new_v4().to_string(),
@@ -540,12 +540,12 @@ mod tests {
         let response =
             ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
 
+        let mut search_val = stripe_lookup_key.clone();
+        search_val.push_str("&");
+
         Mock::given(header_exists("Authorization"))
             .and(path(STRIPE_CUSTOMERS_BASE_PATH))
-            .and(query_param(
-                encode("lookup_keys[]"),
-                stripe_lookup_key.push_str("&"),
-            ))
+            .and(query_param(encode("lookup_keys[]"), search_val))
             .and(method("GET"))
             .respond_with(response)
             .expect(1)
