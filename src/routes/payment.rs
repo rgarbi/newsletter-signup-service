@@ -22,6 +22,7 @@ use crate::domain::checkout_models::{
 };
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
+use crate::stripe_client::StripeClient;
 use crate::util::from_string_to_uuid;
 
 #[tracing::instrument(
@@ -271,7 +272,7 @@ pub async fn complete_session(
 
 #[tracing::instrument(
     name = "Create Stripe Portal Session",
-    skip(user_id, pool, user),
+    skip(user_id, pool, user, stripe_client),
     fields(
         user_id = %user_id,
     )
@@ -280,6 +281,7 @@ pub async fn create_stripe_portal_session(
     user_id: web::Path<String>,
     pool: web::Data<PgPool>,
     user: Claims,
+    stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let config = get_configuration().unwrap();
     if user_id.clone() != user.user_id {
@@ -301,16 +303,9 @@ pub async fn create_stripe_portal_session(
 
     let return_url = format!("{}/subscriber", config.application.web_app_host);
 
-    let result = create_billing_portal_session(
-        subscriber.stripe_customer_id.unwrap(),
-        config
-            .stripe_client
-            .api_secret_key
-            .expose_secret()
-            .to_string(),
-        return_url,
-    )
-    .await;
+    let result = stripe_client
+        .create_billing_portal_session(subscriber.stripe_customer_id.unwrap(), return_url)
+        .await;
 
     return match result {
         Ok(stripe_billing_portal_session) => {
@@ -354,36 +349,6 @@ async fn create_stripe_customer(email: String, client: &Client) -> Result<Custom
     let mut create_customer_params = CreateCustomer::new();
     create_customer_params.email = Option::Some(email.as_str());
     stripe::Customer::create(client, create_customer_params).await
-}
-
-async fn create_billing_portal_session(
-    stripe_customer_id: String,
-    stripe_publishable_key: String,
-    return_url: String,
-) -> Result<StripeBillingPortalSession, Error> {
-    let response = reqwest::Client::new()
-        .post(format!(
-            "https://api.stripe.com/v1/billing_portal/sessions?customer={}&return_url={}",
-            stripe_customer_id, return_url
-        ))
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
-        .send()
-        .await;
-
-    return match response {
-        Ok(response) => {
-            let response_body = response.text().await.unwrap();
-            println!("Got the following back!! {:?}", &response_body);
-            let stripe_session: StripeBillingPortalSession =
-                serde_json::from_str(response_body.as_str()).unwrap();
-            Ok(stripe_session)
-        }
-        Err(err) => {
-            println!("Err: {:?}", err);
-            Err(err)
-        }
-    };
 }
 
 async fn get_stripe_session(

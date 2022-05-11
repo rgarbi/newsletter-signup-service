@@ -141,6 +141,10 @@ impl StripeClient {
             }
         };
     }
+
+    async fn create_stripe_customer(&self, email: String) -> Result<(), Error> {
+        todo!("CREATE STRIPE CUSTOMER NEEDS IMPLEMENTED")
+    }
 }
 
 #[cfg(test)]
