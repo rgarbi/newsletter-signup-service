@@ -214,8 +214,6 @@ impl StripeClient {
             &self.base_url, STRIPE_PRICES_BASE_PATH, keys_param,
         );
 
-        println!("SENDING {}", &address);
-
         let get_prices_response = self
             .http_client
             .get(address)
@@ -308,8 +306,8 @@ mod tests {
     use secrecy::Secret;
 
     use crate::stripe_client::stripe_models::{
-        StripeBillingPortalSession, StripeCustomer, StripePriceList, StripeProductPrice,
-        StripeSessionObject,
+        StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
+        StripeProductPrice, StripeSessionObject,
     };
     use uuid::Uuid;
     use wiremock::matchers::{header_exists, method, path, query_param};
@@ -638,5 +636,60 @@ mod tests {
             .await;
         // Assert
         assert_err!(outcome);
+    }
+
+    #[tokio::test]
+    async fn create_stripe_checkout_session_works() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let success_url = Uuid::new_v4().to_string();
+        let cancel_url = Uuid::new_v4().to_string();
+        let price_id = Uuid::new_v4().to_string();
+        let quantity = 1;
+        let mode = "something".to_string();
+        let stripe_customer_id = Uuid::new_v4().to_string();
+
+        let checkout_session = StripeCheckoutSession {
+            id: Uuid::new_v4().to_string(),
+            object: "checkout.session".to_string(),
+            cancel_url: cancel_url.clone(),
+            url: Uuid::new_v4().to_string(),
+        };
+
+        let response =
+            ResponseTemplate::new(200).set_body_json(serde_json::json!(checkout_session));
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(STRIPE_SESSIONS_BASE_PATH))
+            .and(query_param("success_url", &success_url))
+            .and(query_param("cancel_url", &cancel_url))
+            .and(query_param("line_items[0][price]", &price_id))
+            .and(query_param(
+                "line_items[0][quantity]",
+                &quantity.to_string(),
+            ))
+            .and(query_param("mode", &mode))
+            .and(query_param("customer", &stripe_customer_id))
+            .and(method("POST"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client
+            .create_stripe_checkout_session(
+                price_id,
+                quantity,
+                stripe_customer_id,
+                success_url,
+                cancel_url,
+                mode,
+            )
+            .await;
+        // Assert
+        assert_ok!(outcome);
     }
 }
