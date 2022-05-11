@@ -258,7 +258,7 @@ mod tests {
 
     use crate::stripe_client::{
         StripeClient, STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH,
-        STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
+        STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
     };
 
     fn stripe_client(base_url: String) -> StripeClient {
@@ -544,7 +544,7 @@ mod tests {
         search_val.push_str("&");
 
         Mock::given(header_exists("Authorization"))
-            .and(path(STRIPE_CUSTOMERS_BASE_PATH))
+            .and(path(STRIPE_PRICES_BASE_PATH))
             .and(query_param(encode("lookup_keys[]"), search_val))
             .and(method("GET"))
             .respond_with(response)
