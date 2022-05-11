@@ -146,12 +146,12 @@ impl StripeClient {
         };
     }
 
-    async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
+    pub async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
         let address = format!(
             "{}{}?email={}",
             &self.base_url, STRIPE_CUSTOMERS_BASE_PATH, email
         );
-        let response = self
+        let create_customer_response = self
             .http_client
             .post(address)
             .header("Content-Type", "application/x-www-form-urlencoded")
@@ -163,7 +163,7 @@ impl StripeClient {
             .await?
             .error_for_status();
 
-        return match response {
+        return match create_customer_response {
             Ok(response) => {
                 let response_body = response.text().await.unwrap();
                 tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);

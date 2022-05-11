@@ -36,6 +36,7 @@ pub async fn create_checkout_session(
     user_id: web::Path<String>,
     pool: web::Data<PgPool>,
     user: Claims,
+    stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     if user_id.clone() != user.user_id {
         return HttpResponse::Unauthorized().finish();
@@ -76,7 +77,7 @@ pub async fn create_checkout_session(
     let client = stripe::Client::new(configuration.stripe_client.api_secret_key.expose_secret());
 
     //Get customer
-    let stripe_customer_id = match get_stripe_customer_id(&subscriber, &client).await {
+    let stripe_customer_id = match get_stripe_customer_id(&subscriber, &stripe_client).await {
         Ok(id) => id,
         Err(error_response) => {
             return error_response;
@@ -329,11 +330,14 @@ pub async fn create_stripe_portal_session(
 
 async fn get_stripe_customer_id(
     subscriber: &OverTheWireSubscriber,
-    client: &Client,
+    client: &StripeClient,
 ) -> Result<String, HttpResponse> {
     if subscriber.stripe_customer_id.is_none() {
-        return match create_stripe_customer(subscriber.email_address.clone(), client).await {
-            Ok(customer) => Ok(String::from(customer.id.as_str())),
+        return match client
+            .create_stripe_customer(subscriber.email_address.clone())
+            .await
+        {
+            Ok(customer) => Ok(customer.id),
             Err(err) => {
                 println!("Err: {:?}", err);
                 Err(HttpResponse::InternalServerError().finish())
@@ -342,12 +346,6 @@ async fn get_stripe_customer_id(
     } else {
         Ok(subscriber.stripe_customer_id.clone().unwrap())
     }
-}
-
-async fn create_stripe_customer(email: String, client: &Client) -> Result<Customer, StripeError> {
-    let mut create_customer_params = CreateCustomer::new();
-    create_customer_params.email = Option::Some(email.as_str());
-    stripe::Customer::create(client, create_customer_params).await
 }
 
 async fn get_stripe_session(
