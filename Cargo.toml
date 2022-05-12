@@ -16,8 +16,8 @@ name = "newsletter-signup-service"
 actix-web = "4"
 actix-cors = "0.6.1"
 actix-web-httpauth = "0.6.0"
-tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread"] }
-chrono = { version = "0.4.19", features = ["serde"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+chrono = { version = "0.4", features = ["serde"] }
 sqlx = { version = "0.5", features = [
     "runtime-actix-rustls",
     "macros",
@@ -27,8 +27,8 @@ sqlx = { version = "0.5", features = [
     "migrate",
     "offline",
     "json"] }
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.79"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 serde-aux = "3"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 config = "0.13"
@@ -42,14 +42,14 @@ unicode-segmentation = "1"
 validator = "0.14"
 base64 = "0.13.0"
 anyhow = "1"
-derive_more = "0.99.17"
-cached = "0.34.0"
+derive_more = "0.99"
+cached = "0.34"
 jsonwebtokens = "1"
 argon2 = "0.4"
 rand_core = { version = "0.6", features = ["std"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "multipart"] }
 rand = { version = "0.8", features = ["std_rng"] }
-urlencoding = "2.1"
+urlencoding = "2"
 
 [dev-dependencies]
 once_cell = "1"
