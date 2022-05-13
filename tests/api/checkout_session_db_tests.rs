@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claim::{assert_err, assert_ok};
 use newsletter_signup_service::db::checkout_session_db_broker::{
     cancel_checkout_session_by_stripe_session_id, insert_checkout_session,
     retrieve_checkout_session_by_stripe_session_id,
@@ -28,6 +28,33 @@ async fn insert_checkout_session_works() {
 }
 
 #[tokio::test]
+async fn insert_checkout_session_blows_up_when_stripe_session_id_is_duplicated() {
+    let app = spawn_app().await;
+
+    let stripe_session_id = Uuid::new_v4().to_string();
+    let checkout_session = generate_checkout_session(Some(stripe_session_id.clone()));
+
+    let _result = insert_checkout_session(
+        checkout_session.user_id.clone(),
+        checkout_session.price_lookup_key.clone(),
+        generate_new_subscription(Uuid::new_v4().to_string()),
+        stripe_session_id.clone(),
+        &app.db_pool,
+    )
+    .await;
+
+    let result = insert_checkout_session(
+        checkout_session.user_id,
+        checkout_session.price_lookup_key,
+        generate_new_subscription(Uuid::new_v4().to_string()),
+        stripe_session_id.clone(),
+        &app.db_pool,
+    )
+    .await;
+    assert_err!(result);
+}
+
+#[tokio::test]
 async fn retrieve_checkout_session_by_stripe_session_id_works() {
     let app = spawn_app().await;
 
@@ -50,6 +77,18 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
 
     let user_id = checkout_session_result.unwrap().user_id;
     assert_eq!(user_id, checkout_session.user_id);
+}
+
+#[tokio::test]
+async fn retrieve_checkout_session_by_stripe_session_id_throws_error_when_missing() {
+    let app = spawn_app().await;
+
+    let stripe_session_id = Uuid::new_v4().to_string();
+    let checkout_session = generate_checkout_session(Some(stripe_session_id.clone()));
+
+    let checkout_session_result =
+        retrieve_checkout_session_by_stripe_session_id(&stripe_session_id, &app.db_pool).await;
+    assert_err!(&checkout_session_result);
 }
 
 #[tokio::test]
