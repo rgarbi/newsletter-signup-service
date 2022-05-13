@@ -36,7 +36,6 @@ pub struct LoginResponse {
 #[derive(Debug, Clone)]
 pub enum TokenError {
     AuthError,
-    UnexpectedError,
 }
 
 impl fmt::Display for TokenError {
@@ -51,7 +50,6 @@ impl fmt::Display for TokenError {
 impl ResponseError for TokenError {
     fn status_code(&self) -> StatusCode {
         match self {
-            TokenError::UnexpectedError => StatusCode::INTERNAL_SERVER_ERROR,
             TokenError::AuthError => StatusCode::UNAUTHORIZED,
         }
     }
