@@ -82,9 +82,7 @@ async fn retrieve_checkout_session_by_stripe_session_id_works() {
 #[tokio::test]
 async fn retrieve_checkout_session_by_stripe_session_id_throws_error_when_missing() {
     let app = spawn_app().await;
-
     let stripe_session_id = Uuid::new_v4().to_string();
-    let checkout_session = generate_checkout_session(Some(stripe_session_id.clone()));
 
     let checkout_session_result =
         retrieve_checkout_session_by_stripe_session_id(&stripe_session_id, &app.db_pool).await;
@@ -118,6 +116,16 @@ async fn cancel_checkout_session_by_stripe_session_id_works() {
 
     let state = checkout_session_result.unwrap().session_state;
     assert_eq!(state.as_str(), CheckoutSessionState::Cancelled.as_str());
+}
+
+#[tokio::test]
+async fn cancel_checkout_session_by_stripe_session_id_blows_up_when_not_found() {
+    let app = spawn_app().await;
+    let stripe_session_id = Uuid::new_v4().to_string();
+
+    let cancel_session_result =
+        cancel_checkout_session_by_stripe_session_id(stripe_session_id.clone(), &app.db_pool).await;
+    assert_err!(&cancel_session_result);
 }
 
 #[tokio::test]
