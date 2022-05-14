@@ -17,12 +17,6 @@ impl ValidString {
     }
 }
 
-impl AsRef<str> for ValidString {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use claim::{assert_err, assert_ok};
