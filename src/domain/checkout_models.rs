@@ -157,6 +157,6 @@ mod tests {
             customer: "".to_string(),
             subscription: None,
         };
-        let stripe_session = stripe_session.to_json();
+        let _stripe_session = stripe_session.to_json();
     }
 }
