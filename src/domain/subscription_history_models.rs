@@ -14,7 +14,7 @@ pub struct SubscriptionHistoryEvent {
     pub subscription: serde_json::Value,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub enum HistoryEventType {
     Created,
     ChangedPaymentMethod,
@@ -55,5 +55,24 @@ impl FromStr for HistoryEventType {
 
         error!("Could not map string: {} to the enum HistoryEventType", val);
         Err(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::domain::subscription_history_models::HistoryEventType;
+    use claim::{assert_err, assert_ok};
+    use std::str::FromStr;
+    use uuid::Uuid;
+
+    #[test]
+    fn history_event_type_from_string_test() {
+        assert_ok!(HistoryEventType::from_str("Created"));
+        assert_ok!(HistoryEventType::from_str("Cancelled"));
+        assert_ok!(HistoryEventType::from_str("ChangedPaymentMethod"));
+        assert_ok!(HistoryEventType::from_str("UpdatedSubscriptionInformation"));
+        assert_err!(HistoryEventType::from_str(
+            Uuid::new_v4().to_string().as_str()
+        ));
     }
 }
