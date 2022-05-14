@@ -25,9 +25,15 @@ impl AsRef<str> for ValidString {
 
 #[cfg(test)]
 mod tests {
-    use claim::assert_err;
+    use claim::{assert_err, assert_ok};
 
     use crate::domain::valid_string::ValidString;
+
+    #[test]
+    fn a_normal_string_is_ok() {
+        let name = "I am a normal rust string! 😄".to_string();
+        assert_ok!(ValidString::parse(name));
+    }
 
     #[test]
     fn whitespace_only_names_are_rejected() {
