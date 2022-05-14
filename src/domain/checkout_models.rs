@@ -114,3 +114,35 @@ impl StripeSessionObject {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::domain::checkout_models::{
+        CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect,
+    };
+    use chrono::Utc;
+    use serde_json::json;
+    use uuid::Uuid;
+
+    #[test]
+    fn checkout_session_to_json_works() {
+        let checkout_session = CheckoutSession {
+            id: Uuid::new_v4(),
+            user_id: Uuid::new_v4().to_string(),
+            session_state: CheckoutSessionState::Created,
+            created_at: Utc::now(),
+            price_lookup_key: Uuid::new_v4().to_string(),
+            subscription: json!("{}"),
+            stripe_session_id: Uuid::new_v4().to_string(),
+        };
+        let _json_session = checkout_session.to_json();
+    }
+
+    #[test]
+    fn create_stripe_session_redirect_to_json_works() {
+        let redirect = CreateStripeSessionRedirect {
+            location: Uuid::new_v4().to_string(),
+        };
+        let _redir = redirect.to_json();
+    }
+}
