@@ -118,7 +118,7 @@ impl StripeSessionObject {
 #[cfg(test)]
 mod tests {
     use crate::domain::checkout_models::{
-        CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect,
+        CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect, StripeSessionObject,
     };
     use chrono::Utc;
     use serde_json::json;
@@ -144,5 +144,19 @@ mod tests {
             location: Uuid::new_v4().to_string(),
         };
         let _redir = redirect.to_json();
+    }
+
+    #[test]
+    fn stripe_session_object_to_json_works() {
+        let stripe_session = StripeSessionObject {
+            id: "".to_string(),
+            object: "".to_string(),
+            amount_subtotal: 0,
+            amount_total: 0,
+            client_reference_id: None,
+            customer: "".to_string(),
+            subscription: None,
+        };
+        let stripe_session = stripe_session.to_json();
     }
 }
