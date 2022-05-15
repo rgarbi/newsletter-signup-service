@@ -123,6 +123,7 @@ mod tests {
     use chrono::Utc;
     use claim::{assert_err, assert_ok};
     use serde_json::json;
+    use std::str::FromStr;
     use uuid::Uuid;
 
     #[test]
