@@ -121,8 +121,19 @@ mod tests {
         CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect, StripeSessionObject,
     };
     use chrono::Utc;
+    use claim::{assert_err, assert_ok};
     use serde_json::json;
     use uuid::Uuid;
+
+    #[test]
+    fn checkout_session_state_from_str_works() {
+        assert_ok!(CheckoutSessionState::from_str("Created"));
+        assert_ok!(CheckoutSessionState::from_str("Cancelled"));
+        assert_ok!(CheckoutSessionState::from_str("CompletedSuccessfully"));
+        assert_err!(CheckoutSessionState::from_str(
+            "not a part of the enum will blow up"
+        ));
+    }
 
     #[test]
     fn checkout_session_to_json_works() {
