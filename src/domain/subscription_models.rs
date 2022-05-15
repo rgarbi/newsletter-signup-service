@@ -98,3 +98,53 @@ impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::domain::subscription_models::{
+        NewSubscription, OverTheWireCreateSubscription, SubscriptionType,
+    };
+    use crate::domain::valid_email::ValidEmail;
+    use crate::domain::valid_name::ValidName;
+    use chrono::Utc;
+
+    #[test]
+    fn subscription_type_from_string_test() {
+        assert_eq!("Digital", SubscriptionType::Digital.as_str());
+        assert_eq!("Paper", SubscriptionType::Paper.as_str());
+    }
+
+    #[test]
+    fn over_the_wire_create_subscription_to_json_works() {
+        let over_the_wire_create_subscription = OverTheWireCreateSubscription {
+            subscriber_id: "".to_string(),
+            subscription_name: "".to_string(),
+            subscription_mailing_address_line_1: "".to_string(),
+            subscription_mailing_address_line_2: None,
+            subscription_city: "".to_string(),
+            subscription_state: "".to_string(),
+            subscription_postal_code: "".to_string(),
+            subscription_email_address: "".to_string(),
+            subscription_type: SubscriptionType::Digital,
+        };
+        let _json = over_the_wire_create_subscription.to_json();
+    }
+
+    #[test]
+    fn new_subscription_to_json_works() {
+        let new_subscription = NewSubscription {
+            subscriber_id: "".to_string(),
+            subscription_name: ValidName::parse("A Name".to_string()).unwrap(),
+            subscription_mailing_address_line_1: "".to_string(),
+            subscription_mailing_address_line_2: None,
+            subscription_city: "".to_string(),
+            subscription_state: "".to_string(),
+            subscription_postal_code: "".to_string(),
+            subscription_email_address: ValidEmail::parse("someone@gmail.com".to_string()).unwrap(),
+            subscription_creation_date: Utc::now(),
+            active: false,
+            subscription_type: SubscriptionType::Paper,
+        };
+        let _json = new_subscription.to_json();
+    }
+}
