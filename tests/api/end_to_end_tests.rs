@@ -7,7 +7,7 @@ use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
 use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
 use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
-use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, spawn_app};
+use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_price_lookup, spawn_app};
 
 
 
@@ -60,108 +60,4 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     let subscription_list_response_body = subscription_list_response.text().await.unwrap();
     let subscription_list: Vec<OverTheWireSubscription> = serde_json::from_str(subscription_list_response_body.as_str()).unwrap();
     assert_eq!(1, subscription_list.len());
-}
-
-
-async fn mock_stripe_create_customer(mock_server: &MockServer, customer_email: String) {
-    let stripe_customer = StripeCustomer {
-        id: Uuid::new_v4().to_string(),
-        object: "something".to_string(),
-        created: 12341234,
-        description: None,
-        email: Some(customer_email.clone()),
-    };
-
-    let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_customer));
-
-    Mock::given(header_exists("Authorization"))
-        .and(path(STRIPE_CUSTOMERS_BASE_PATH))
-        .and(query_param("email", &customer_email))
-        .and(method("POST"))
-        .respond_with(response)
-        .expect(1)
-        .mount(&mock_server)
-        .await;
-}
-
-async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_key: String) {
-    let price = StripeProductPrice {
-        id: Uuid::new_v4().to_string(),
-        object: "price".to_string(),
-        active: true,
-        billing_scheme: "".to_string(),
-        created: 12341234,
-        currency: "".to_string(),
-        product: "".to_string(),
-        unit_amount: 500,
-        lookup_key: stripe_lookup_key.clone(),
-    };
-
-    let price_list: Vec<StripeProductPrice> = vec![price];
-
-    let stripe_price_search_list = StripePriceList {
-        object: "list".to_string(),
-        url: "/v1/prices".to_string(),
-        has_more: false,
-        data: price_list,
-    };
-
-    let response =
-        ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
-
-    Mock::given(header_exists("Authorization"))
-        .and(path(STRIPE_PRICES_BASE_PATH))
-        .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
-        .and(method("GET"))
-        .respond_with(response)
-        .expect(1)
-        .mount(&mock_server)
-        .await;
-}
-
-async fn mock_create_checkout_session(mock_server: &MockServer, stripe_session_id: String) {
-    let checkout_session = StripeCheckoutSession {
-        id: stripe_session_id,
-        object: "checkout.session".to_string(),
-        cancel_url: Uuid::new_v4().to_string(),
-        url: Uuid::new_v4().to_string(),
-    };
-
-    let response =
-        ResponseTemplate::new(200).set_body_json(serde_json::json!(checkout_session));
-
-    Mock::given(header_exists("Authorization"))
-        .and(path(STRIPE_SESSIONS_BASE_PATH))
-        .and(method("POST"))
-        .respond_with(response)
-        .expect(1)
-        .mount(&mock_server)
-        .await;
-}
-
-async fn mock_get_stripe_session(mock_server: &MockServer, session_id: String) {
-    let stripe_session = StripeSessionObject {
-        id: session_id.clone(),
-        object: "something".to_string(),
-        amount_subtotal: 500,
-        amount_total: 500,
-        client_reference_id: None,
-        customer: Uuid::new_v4().to_string(),
-        subscription: Some(Uuid::new_v4().to_string()),
-    };
-
-    let response = ResponseTemplate::new(200)
-        .set_body_json(serde_json::json!(stripe_session))
-        .append_header("Content-Type", "application/json");
-
-    Mock::given(header_exists("Authorization"))
-        .and(path(format!(
-            "{}/{}",
-            STRIPE_SESSIONS_BASE_PATH, &session_id
-        )))
-        .and(method("GET"))
-        .respond_with(response)
-        .expect(1)
-        .mount(&mock_server)
-        .await;
 }
