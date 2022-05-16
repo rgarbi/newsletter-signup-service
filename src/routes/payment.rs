@@ -163,7 +163,6 @@ pub async fn complete_session(
     user: Claims,
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
-    let config = get_configuration().unwrap();
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
     let session_id = param_tuple.clone().1;
