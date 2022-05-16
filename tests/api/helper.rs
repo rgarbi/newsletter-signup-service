@@ -209,6 +209,21 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn post_complete_session(
+        &self,
+        user_id: String,
+        session_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .post(&format!("{}/checkout/{}/session/{}", &self.address, user_id, session_id))
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn response_to_over_the_wire_subscriber(
         &self,
         response: Response,

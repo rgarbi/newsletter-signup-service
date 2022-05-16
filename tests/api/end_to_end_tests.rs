@@ -32,10 +32,12 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     let subscriber_response_body = get_subscriber_by_user_id_response.text().await.unwrap();
     let subscriber: OverTheWireSubscriber = serde_json::from_str(subscriber_response_body.as_str()).unwrap();
 
-    //SUBSCRIBE! EXPECT TO GET
+    //SUBSCRIBE!
     let price_lookup_key = Uuid::new_v4().to_string();
+    let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
 
     let subscription = generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
     let create_checkout_session = CreateCheckoutSession {
@@ -43,27 +45,12 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
         subscription
     };
 
-
-
     let checkout_response = app.post_checkout(create_checkout_session.to_json(), login.user_id.clone(), login.token.clone()).await;
     assert_eq!(&200, &checkout_response.status().as_u16());
-    let checkout_response_body = checkout_response.text().await.unwrap();
-    let redirect: CreateStripeSessionRedirect = serde_json::from_str(checkout_response_body.as_str()).unwrap();
 
-
-    let subscriber = app.store_subscriber(Option::None).await;
-
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
-
-    let saved =
-        sqlx::query!("SELECT subscription_name, subscription_postal_code, id FROM subscriptions")
-            .fetch_one(&app.db_pool)
-            .await
-            .expect("Failed to fetch saved subscription.");
-    assert_eq!(
-        saved.subscription_name,
-        stored_subscription.subscription_name
-    );
+    //COMPLETE SUBSCRIPTION
+    let complete_session_response = app.post_complete_session(login.user_id.clone(), stripe_session_id.clone(), login.token.clone()).await;
+    assert_eq!(&200, &complete_session_response.status().as_u16());
 }
 
 
@@ -123,9 +110,9 @@ async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_key: S
         .await;
 }
 
-async fn mock_create_checkout_session(mock_server: &MockServer) {
+async fn mock_create_checkout_session(mock_server: &MockServer, stripe_session_id: String) {
     let checkout_session = StripeCheckoutSession {
-        id: Uuid::new_v4().to_string(),
+        id: stripe_session_id,
         object: "checkout.session".to_string(),
         cancel_url: Uuid::new_v4().to_string(),
         url: Uuid::new_v4().to_string(),
