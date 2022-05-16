@@ -3,7 +3,6 @@ use newsletter_signup_service::auth::token::LoginResponse;
 use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession};
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
-use newsletter_signup_service::stripe_client::stripe_models::{StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
 use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_price_lookup, spawn_app};
 
 
