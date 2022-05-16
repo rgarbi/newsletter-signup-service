@@ -5,7 +5,7 @@ use newsletter_signup_service::auth::token::LoginResponse;
 use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
-use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice};
+use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
 use crate::helper::{generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, spawn_app};
 
 
@@ -124,6 +124,33 @@ async fn mock_create_checkout_session(mock_server: &MockServer, stripe_session_i
     Mock::given(header_exists("Authorization"))
         .and(path(STRIPE_SESSIONS_BASE_PATH))
         .and(method("POST"))
+        .respond_with(response)
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
+
+async fn mock_get_stripe_session(mock_server: &MockServer) {
+    let stripe_session = StripeSessionObject {
+        id: session_id.clone(),
+        object: "something".to_string(),
+        amount_subtotal: 500,
+        amount_total: 500,
+        client_reference_id: None,
+        customer: Uuid::new_v4().to_string(),
+        subscription: Some(Uuid::new_v4().to_string()),
+    };
+
+    let response = ResponseTemplate::new(200)
+        .set_body_json(serde_json::json!(stripe_session))
+        .append_header("Content-Type", "application/json");
+
+    Mock::given(header_exists("Authorization"))
+        .and(path(format!(
+            "{}/{}",
+            STRIPE_SESSIONS_BASE_PATH, &session_id
+        )))
+        .and(method("GET"))
         .respond_with(response)
         .expect(1)
         .mount(&mock_server)

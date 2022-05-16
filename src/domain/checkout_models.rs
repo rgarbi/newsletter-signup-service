@@ -49,17 +49,6 @@ pub struct StripeBillingPortalSession {
     pub url: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct StripeSessionObject {
-    pub id: String,
-    pub object: String,
-    pub amount_subtotal: u128,
-    pub amount_total: u128,
-    pub client_reference_id: Option<String>,
-    pub customer: String,
-    pub subscription: Option<String>,
-}
-
 impl FromStr for CheckoutSessionState {
     type Err = ();
 
@@ -109,12 +98,6 @@ impl CreateStripeSessionRedirect {
     }
 }
 
-impl StripeSessionObject {
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(self).expect("Was not able to serialize.")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::domain::checkout_models::{
@@ -156,19 +139,5 @@ mod tests {
             location: Uuid::new_v4().to_string(),
         };
         let _redir = redirect.to_json();
-    }
-
-    #[test]
-    fn stripe_session_object_to_json_works() {
-        let stripe_session = StripeSessionObject {
-            id: "".to_string(),
-            object: "".to_string(),
-            amount_subtotal: 0,
-            amount_total: 0,
-            client_reference_id: None,
-            customer: "".to_string(),
-            subscription: None,
-        };
-        let _stripe_session = stripe_session.to_json();
     }
 }
