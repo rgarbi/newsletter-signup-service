@@ -1,9 +1,12 @@
 use uuid::Uuid;
 use wiremock::{Mock, MockServer, ResponseTemplate};
 use wiremock::matchers::{header_exists, method, path, query_param};
-use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH};
-use newsletter_signup_service::stripe_client::stripe_models::{StripeCustomer, StripePriceList, StripeProductPrice};
-use crate::helper::{spawn_app, TestApp};
+use newsletter_signup_service::auth::token::LoginResponse;
+use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
+use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
+use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
+use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice};
+use crate::helper::{generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, spawn_app};
 
 
 
@@ -15,6 +18,38 @@ use crate::helper::{spawn_app, TestApp};
 #[tokio::test]
 async fn subscriptions_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
+
+    //SIGN UP
+    let sign_up = generate_signup();
+    let sign_up_response= app.user_signup(sign_up.to_json()).await;
+    assert_eq!(&200, &sign_up_response.status().as_u16());
+    let sign_up_response_body = sign_up_response.text().await.unwrap();
+    let login: LoginResponse = serde_json::from_str(sign_up_response_body.as_str()).unwrap();
+
+    //GET SUBSCRIBER BY USER ID
+    let get_subscriber_by_user_id_response = app.get_subscriber_by_user_id(login.user_id.clone(), login.token.clone()).await;
+    assert_eq!(&200, &get_subscriber_by_user_id_response.status().as_u16());
+    let subscriber_response_body = get_subscriber_by_user_id_response.text().await.unwrap();
+    let subscriber: OverTheWireSubscriber = serde_json::from_str(subscriber_response_body.as_str()).unwrap();
+
+    //SUBSCRIBE! EXPECT TO GET
+    let price_lookup_key = Uuid::new_v4().to_string();
+    mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+
+    let subscription = generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let create_checkout_session = CreateCheckoutSession {
+        price_lookup_key: price_lookup_key.clone(),
+        subscription
+    };
+
+
+
+    let checkout_response = app.post_checkout(create_checkout_session.to_json(), login.user_id.clone(), login.token.clone()).await;
+    assert_eq!(&200, &checkout_response.status().as_u16());
+    let checkout_response_body = checkout_response.text().await.unwrap();
+    let redirect: CreateStripeSessionRedirect = serde_json::from_str(checkout_response_body.as_str()).unwrap();
+
 
     let subscriber = app.store_subscriber(Option::None).await;
 
@@ -32,9 +67,9 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 }
 
 
-async fn mock_stripe_create_customer(mock_server: MockServer, customer_email: String, customer_id: String) {
+async fn mock_stripe_create_customer(mock_server: &MockServer, customer_email: String) {
     let stripe_customer = StripeCustomer {
-        id: customer_id,
+        id: Uuid::new_v4().to_string(),
         object: "something".to_string(),
         created: 12341234,
         description: None,
@@ -53,7 +88,7 @@ async fn mock_stripe_create_customer(mock_server: MockServer, customer_email: St
         .await;
 }
 
-async fn mock_stripe_price_lookup(mock_server: MockServer, stripe_lookup_key: String) {
+async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_key: String) {
     let price = StripeProductPrice {
         id: Uuid::new_v4().to_string(),
         object: "price".to_string(),
@@ -82,6 +117,26 @@ async fn mock_stripe_price_lookup(mock_server: MockServer, stripe_lookup_key: St
         .and(path(STRIPE_PRICES_BASE_PATH))
         .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
         .and(method("GET"))
+        .respond_with(response)
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
+
+async fn mock_create_checkout_session(mock_server: &MockServer) {
+    let checkout_session = StripeCheckoutSession {
+        id: Uuid::new_v4().to_string(),
+        object: "checkout.session".to_string(),
+        cancel_url: Uuid::new_v4().to_string(),
+        url: Uuid::new_v4().to_string(),
+    };
+
+    let response =
+        ResponseTemplate::new(200).set_body_json(serde_json::json!(checkout_session));
+
+    Mock::given(header_exists("Authorization"))
+        .and(path(STRIPE_SESSIONS_BASE_PATH))
+        .and(method("POST"))
         .respond_with(response)
         .expect(1)
         .mount(&mock_server)
