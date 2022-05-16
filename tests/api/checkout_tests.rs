@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::helper::{
     generate_over_the_wire_create_subscription, generate_signup, mock_stripe_create_customer,
-    mock_stripe_create_customer_returns_a_500, mock_stripe_price_lookup,
-    mock_stripe_price_lookup_returns_a_500, spawn_app,
+    mock_stripe_create_customer_returns_a_500, mock_stripe_price_lookup_returns_a_500, spawn_app,
 };
 use newsletter_signup_service::util::generate_random_token;
 
@@ -103,7 +102,6 @@ async fn create_checkout_session_cannot_find_prices() {
 
     //SUBSCRIBE!
     let price_lookup_key = Uuid::new_v4().to_string();
-    let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup_returns_a_500(&app.stripe_server, price_lookup_key.clone()).await;
 

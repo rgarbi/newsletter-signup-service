@@ -1,5 +1,5 @@
 use crate::helper::{
-    generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session,
+    generate_over_the_wire_create_subscription, mock_create_checkout_session,
     mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_price_lookup, spawn_app,
 };
 use newsletter_signup_service::auth::token::LoginResponse;
