@@ -2,8 +2,9 @@ use uuid::Uuid;
 use wiremock::{Mock, MockServer, ResponseTemplate};
 use wiremock::matchers::{header_exists, method, path, query_param};
 use newsletter_signup_service::auth::token::LoginResponse;
-use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
+use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession};
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
+use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
 use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
 use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
 use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, spawn_app};
@@ -52,6 +53,13 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     //COMPLETE SUBSCRIPTION
     let complete_session_response = app.post_complete_session(login.user_id.clone(), stripe_session_id.clone(), login.token.clone()).await;
     assert_eq!(&200, &complete_session_response.status().as_u16());
+
+    //ASSERT WE HAVE 1 SUBSCRIPTION IN THE LIST!
+    let subscription_list_response = app.get_subscriptions_by_subscriber_id(subscriber.id.to_string().clone(), login.token.clone()).await;
+    assert_eq!(&200, &subscription_list_response.status().as_u16());
+    let subscription_list_response_body = subscription_list_response.text().await.unwrap();
+    let subscription_list: Vec<OverTheWireSubscription> = serde_json::from_str(subscription_list_response_body.as_str()).unwrap();
+    assert_eq!(1, subscription_list.len());
 }
 
 
