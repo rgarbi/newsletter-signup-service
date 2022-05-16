@@ -6,7 +6,7 @@ use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession, 
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
 use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
-use crate::helper::{generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, spawn_app};
+use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, spawn_app};
 
 
 
