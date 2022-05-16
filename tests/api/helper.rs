@@ -8,7 +8,7 @@ use uuid::Uuid;
 use wiremock::{Mock, MockServer, ResponseTemplate};
 use wiremock::matchers::{header_exists, method, path, query_param};
 
-use newsletter_signup_service::auth::token::generate_token;
+use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
 use newsletter_signup_service::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use newsletter_signup_service::domain::subscriber_models::{
@@ -138,7 +138,7 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
-    pub async fn get_subscriber_by_user_id(
+    pub async fn get_subscriber_by_user_id_rest_call(
         &self,
         user_id: String,
         token: String,
@@ -257,6 +257,23 @@ impl TestApp {
         )
         .await
     }
+
+    pub async fn sign_up(&self) -> LoginResponse {
+        let sign_up = generate_signup();
+        let sign_up_response= self.user_signup(sign_up.to_json()).await;
+        assert_eq!(&200, &sign_up_response.status().as_u16());
+        let sign_up_response_body = sign_up_response.text().await.unwrap();
+        serde_json::from_str(sign_up_response_body.as_str()).unwrap()
+    }
+
+    pub async fn get_subscriber_by_user_id(&self, user_id: String, token: String) -> OverTheWireSubscriber {
+        let get_subscriber_by_user_id_response = self.get_subscriber_by_user_id_rest_call(user_id, token).await;
+        assert_eq!(&200, &get_subscriber_by_user_id_response.status().as_u16());
+        let subscriber_response_body = get_subscriber_by_user_id_response.text().await.unwrap();
+        serde_json::from_str(subscriber_response_body.as_str()).unwrap()
+    }
+
+
 }
 
 pub async fn spawn_app() -> TestApp {

@@ -42,5 +42,10 @@ async fn create_checkout_session_subscriber_not_found() {
 
     let checkout_response = app.post_checkout(create_checkout_session.to_json(), login.user_id.clone(), login.token.clone()).await;
     assert_eq!(400, checkout_response.status().as_u16());
-
 }
+
+#[tokio::test]
+async fn create_checkout_session_stripe_customer_blows_up() {
+}
+
+

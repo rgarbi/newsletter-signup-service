@@ -64,7 +64,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_user_id() {
     let subscriber = app.store_subscriber(Option::None).await;
 
     let response = app
-        .get_subscriber_by_user_id(
+        .get_subscriber_by_user_id_rest_call(
             subscriber.user_id.clone(),
             generate_token(subscriber.user_id.clone()),
         )

@@ -17,17 +17,10 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
 
     //SIGN UP
-    let sign_up = generate_signup();
-    let sign_up_response= app.user_signup(sign_up.to_json()).await;
-    assert_eq!(&200, &sign_up_response.status().as_u16());
-    let sign_up_response_body = sign_up_response.text().await.unwrap();
-    let login: LoginResponse = serde_json::from_str(sign_up_response_body.as_str()).unwrap();
+    let login: LoginResponse = app.sign_up().await;
 
     //GET SUBSCRIBER BY USER ID
-    let get_subscriber_by_user_id_response = app.get_subscriber_by_user_id(login.user_id.clone(), login.token.clone()).await;
-    assert_eq!(&200, &get_subscriber_by_user_id_response.status().as_u16());
-    let subscriber_response_body = get_subscriber_by_user_id_response.text().await.unwrap();
-    let subscriber: OverTheWireSubscriber = serde_json::from_str(subscriber_response_body.as_str()).unwrap();
+    let subscriber: OverTheWireSubscriber = app.get_subscriber_by_user_id(login.user_id.clone(), login.token.clone()).await;
 
     //SUBSCRIBE!
     let price_lookup_key = Uuid::new_v4().to_string();
