@@ -521,3 +521,14 @@ pub async fn mock_stripe_create_customer_returns_a_500(mock_server: &MockServer,
         .await;
 }
 
+pub async fn mock_stripe_price_lookup_returns_a_500(mock_server: &MockServer, stripe_lookup_key: String) {
+    Mock::given(header_exists("Authorization"))
+        .and(path(STRIPE_PRICES_BASE_PATH))
+        .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
+        .and(method("GET"))
+        .respond_with(ResponseTemplate::new(500))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
+
