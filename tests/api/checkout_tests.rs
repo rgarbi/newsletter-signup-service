@@ -2,9 +2,9 @@ use uuid::Uuid;
 use newsletter_signup_service::auth::token::LoginResponse;
 use newsletter_signup_service::domain::checkout_models::{CreateCheckoutSession};
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
-use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
+
 use newsletter_signup_service::util::generate_random_token;
-use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_price_lookup, spawn_app};
+use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_price_lookup, spawn_app};
 
 
 
@@ -46,6 +46,25 @@ async fn create_checkout_session_subscriber_not_found() {
 
 #[tokio::test]
 async fn create_checkout_session_stripe_customer_blows_up() {
+    let app = spawn_app().await;
+
+    //SIGN UP
+    let login: LoginResponse = app.sign_up().await;
+
+    //GET SUBSCRIBER BY USER ID
+    let subscriber: OverTheWireSubscriber = app.get_subscriber_by_user_id(login.user_id.clone(), login.token.clone()).await;
+
+    //SUBSCRIBE!
+    mock_stripe_create_customer_returns_a_500(&app.stripe_server, subscriber.email_address.clone()).await;
+    let subscription = generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let create_checkout_session = CreateCheckoutSession {
+        price_lookup_key: Uuid::new_v4().to_string(),
+        subscription
+    };
+
+    let checkout_response = app.post_checkout(create_checkout_session.to_json(), login.user_id.clone(), login.token.clone()).await;
+    assert_eq!(500, checkout_response.status().as_u16());
+
 }
 
 

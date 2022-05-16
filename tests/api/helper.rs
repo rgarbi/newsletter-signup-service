@@ -510,3 +510,14 @@ pub async fn mock_get_stripe_session(mock_server: &MockServer, session_id: Strin
         .await;
 }
 
+pub async fn mock_stripe_create_customer_returns_a_500(mock_server: &MockServer, customer_email: String) {
+    Mock::given(header_exists("Authorization"))
+        .and(path(STRIPE_CUSTOMERS_BASE_PATH))
+        .and(query_param("email", &customer_email))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(500))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
+
