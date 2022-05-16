@@ -30,7 +30,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
     assert_eq!(200, find_response.status().as_u16());
 
     let saved: OverTheWireSubscriber = app
-        .from_response_to_over_the_wire_subscriber(find_response)
+        .response_to_over_the_wire_subscriber(find_response)
         .await;
     assert_eq!(saved.email_address, subscriber.email_address);
     assert_eq!(saved.name, subscriber.name);
@@ -225,7 +225,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     assert!(response.status().is_success());
 
     let saved_subscriber = app
-        .from_response_to_over_the_wire_subscriber(response)
+        .response_to_over_the_wire_subscriber(response)
         .await;
 
     assert_eq!(saved_subscriber.id, subscriber.id);

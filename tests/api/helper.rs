@@ -184,7 +184,7 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
-    pub async fn get_subscription_by_id(&self, id: String, token: String) -> reqwest::Response {
+    pub async fn get_subscription_by_id(&self, id: String, token: String) -> Response {
         reqwest::Client::new()
             .get(&format!("{}/subscriptions/{}", &self.address, id))
             .bearer_auth(token)
@@ -209,7 +209,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn from_response_to_over_the_wire_subscriber(
+    pub async fn response_to_over_the_wire_subscriber(
         &self,
         response: Response,
     ) -> OverTheWireSubscriber {
@@ -230,7 +230,7 @@ impl TestApp {
             .await;
         assert_eq!(200, response.status().as_u16());
 
-        self.from_response_to_over_the_wire_subscriber(
+        self.response_to_over_the_wire_subscriber(
             self.get_subscriber_by_email(
                 subscriber.email_address.clone(),
                 generate_token(subscriber.user_id.clone()),
