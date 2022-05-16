@@ -41,7 +41,7 @@ pub struct TestApp {
 }
 
 impl TestApp {
-    pub async fn user_signup(&self, body: String) -> reqwest::Response {
+    pub async fn user_signup(&self, body: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/sign_up", &self.address))
             .header("Content-Type", "application/json")
@@ -51,7 +51,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn login(&self, body: String) -> reqwest::Response {
+    pub async fn login(&self, body: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/login", &self.address))
             .header("Content-Type", "application/json")
@@ -61,7 +61,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn reset_password(&self, body: String, token: String) -> reqwest::Response {
+    pub async fn reset_password(&self, body: String, token: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/reset_password", &self.address))
             .header("Content-Type", "application/json")
@@ -72,7 +72,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn forgot_password(&self, body: String) -> reqwest::Response {
+    pub async fn forgot_password(&self, body: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/forgot_password", &self.address))
             .header("Content-Type", "application/json")
@@ -82,7 +82,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn forgot_password_login(&self, otp: String) -> reqwest::Response {
+    pub async fn forgot_password_login(&self, otp: String) -> Response {
         reqwest::Client::new()
             .get(&format!("{}/forgot_password/otp/{}", &self.address, otp))
             .header("Content-Type", "application/json")
@@ -95,7 +95,7 @@ impl TestApp {
         &self,
         body: String,
         token: String,
-    ) -> reqwest::Response {
+    ) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/forgot_password/reset_password", &self.address))
             .header("Content-Type", "application/json")
@@ -106,7 +106,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn post_subscriber(&self, body: String, token: String) -> reqwest::Response {
+    pub async fn post_subscriber(&self, body: String, token: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/subscribers", &self.address))
             .header("Content-Type", "application/json")
@@ -117,7 +117,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn get_subscriber_by_id(&self, id: String, token: String) -> reqwest::Response {
+    pub async fn get_subscriber_by_id(&self, id: String, token: String) -> Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers/{}", &self.address, id))
             .bearer_auth(token)
@@ -126,7 +126,7 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
-    pub async fn get_subscriber_by_email(&self, email: String, token: String) -> reqwest::Response {
+    pub async fn get_subscriber_by_email(&self, email: String, token: String) -> Response {
         reqwest::Client::new()
             .get(&format!("{}/subscribers?email={}", &self.address, email))
             .bearer_auth(token)
@@ -139,7 +139,7 @@ impl TestApp {
         &self,
         user_id: String,
         token: String,
-    ) -> reqwest::Response {
+    ) -> Response {
         reqwest::Client::new()
             .get(&format!(
                 "{}/subscribers?user_id={}",
@@ -156,7 +156,7 @@ impl TestApp {
         user_id: String,
         email: String,
         token: String,
-    ) -> reqwest::Response {
+    ) -> Response {
         reqwest::Client::new()
             .get(&format!(
                 "{}/subscribers?user_id={}&email={}",
@@ -172,7 +172,7 @@ impl TestApp {
         &self,
         subscriber_id: String,
         token: String,
-    ) -> reqwest::Response {
+    ) -> Response {
         reqwest::Client::new()
             .get(&format!(
                 "{}/subscribers/{}/subscriptions",
@@ -198,7 +198,7 @@ impl TestApp {
         body: String,
         user_id: String,
         token: String,
-    ) -> reqwest::Response {
+    ) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/checkout/{}", &self.address, user_id))
             .header("Content-Type", "application/json")
