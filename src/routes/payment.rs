@@ -206,12 +206,7 @@ pub async fn complete_session(
 
             //Get the actual subscription id
             let stripe_session = match stripe_client.get_stripe_session(
-                checkout.stripe_session_id.clone(),
-                config
-                    .stripe_client
-                    .api_secret_key
-                    .expose_secret()
-                    .to_string(),
+                checkout.stripe_session_id.clone()
             )
             .await
             {
