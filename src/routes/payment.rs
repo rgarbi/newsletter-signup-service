@@ -153,7 +153,7 @@ pub async fn create_checkout_session(
 
 #[tracing::instrument(
     name = "Complete Session",
-    skip(params, pool, user),
+    skip(params, pool, user, stripe_client),
     fields(
         user_id = %params.0,
         session_id = %params.1,
@@ -163,6 +163,7 @@ pub async fn complete_session(
     params: web::Path<(String, String)>,
     pool: web::Data<PgPool>,
     user: Claims,
+    stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let config = get_configuration().unwrap();
     let param_tuple: (String, String) = params.into_inner();
@@ -204,7 +205,7 @@ pub async fn complete_session(
             };
 
             //Get the actual subscription id
-            let stripe_session = match get_stripe_session(
+            let stripe_session = match stripe_client.get_stripe_session(
                 checkout.stripe_session_id.clone(),
                 config
                     .stripe_client
@@ -328,32 +329,4 @@ async fn get_stripe_customer_id(
     } else {
         Ok(subscriber.stripe_customer_id.clone().unwrap())
     }
-}
-
-async fn get_stripe_session(
-    stripe_session_id: String,
-    stripe_publishable_key: String,
-) -> Result<StripeSessionObject, Error> {
-    let response = reqwest::Client::new()
-        .get(format!(
-            "https://api.stripe.com/v1/checkout/sessions/{}",
-            stripe_session_id
-        ))
-        .basic_auth(stripe_publishable_key, Some(String::new()))
-        .send()
-        .await;
-
-    return match response {
-        Ok(response) => {
-            let response_body = response.text().await.unwrap();
-            println!("Got the following back!! {:?}", &response_body);
-            let stripe_session: StripeSessionObject =
-                serde_json::from_str(response_body.as_str()).unwrap();
-            Ok(stripe_session)
-        }
-        Err(err) => {
-            println!("Err: {:?}", err);
-            Err(err)
-        }
-    };
 }
