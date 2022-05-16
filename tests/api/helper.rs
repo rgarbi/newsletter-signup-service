@@ -37,6 +37,7 @@ pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
     pub email_server: MockServer,
+    pub stripe_server: MockServer,
 }
 
 impl TestApp {
@@ -244,6 +245,7 @@ pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 
     let email_server = MockServer::start().await;
+    let stripe_server = MockServer::start().await;
 
     let configuration = {
         let mut c = get_configuration().expect("Failed to read configuration.");
@@ -265,6 +267,7 @@ pub async fn spawn_app() -> TestApp {
         address,
         db_pool: pool,
         email_server,
+        stripe_server,
     }
 }
 

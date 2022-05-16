@@ -1,4 +1,5 @@
 mod checkout_session_db_tests;
+mod end_to_end_tests;
 mod health_check;
 mod helper;
 mod otp_db_test;
