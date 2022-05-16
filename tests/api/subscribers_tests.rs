@@ -224,9 +224,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
         .await;
     assert!(response.status().is_success());
 
-    let saved_subscriber = app
-        .response_to_over_the_wire_subscriber(response)
-        .await;
+    let saved_subscriber = app.response_to_over_the_wire_subscriber(response).await;
 
     assert_eq!(saved_subscriber.id, subscriber.id);
 }

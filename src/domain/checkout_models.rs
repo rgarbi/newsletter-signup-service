@@ -101,7 +101,7 @@ impl CreateStripeSessionRedirect {
 #[cfg(test)]
 mod tests {
     use crate::domain::checkout_models::{
-        CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect, StripeSessionObject,
+        CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect,
     };
     use chrono::Utc;
     use claim::{assert_err, assert_ok};

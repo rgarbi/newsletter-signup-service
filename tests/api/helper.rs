@@ -5,8 +5,8 @@ use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
-use wiremock::{Mock, MockServer, ResponseTemplate};
 use wiremock::matchers::{header_exists, method, path, query_param};
+use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
@@ -19,8 +19,12 @@ use newsletter_signup_service::domain::subscription_models::{
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::Application;
-use newsletter_signup_service::stripe_client::stripe_models::{StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
-use newsletter_signup_service::stripe_client::{STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
+use newsletter_signup_service::stripe_client::stripe_models::{
+    StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject,
+};
+use newsletter_signup_service::stripe_client::{
+    STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH,
+};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
@@ -94,11 +98,7 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn forgot_password_rest_password(
-        &self,
-        body: String,
-        token: String,
-    ) -> Response {
+    pub async fn forgot_password_rest_password(&self, body: String, token: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/forgot_password/reset_password", &self.address))
             .header("Content-Type", "application/json")
@@ -196,12 +196,7 @@ impl TestApp {
             .expect("Got a subscriber back")
     }
 
-    pub async fn post_checkout(
-        &self,
-        body: String,
-        user_id: String,
-        token: String,
-    ) -> Response {
+    pub async fn post_checkout(&self, body: String, user_id: String, token: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/checkout/{}", &self.address, user_id))
             .header("Content-Type", "application/json")
@@ -219,7 +214,10 @@ impl TestApp {
         token: String,
     ) -> Response {
         reqwest::Client::new()
-            .post(&format!("{}/checkout/{}/session/{}", &self.address, user_id, session_id))
+            .post(&format!(
+                "{}/checkout/{}/session/{}",
+                &self.address, user_id, session_id
+            ))
             .header("Content-Type", "application/json")
             .bearer_auth(token)
             .send()
@@ -260,20 +258,24 @@ impl TestApp {
 
     pub async fn sign_up(&self) -> LoginResponse {
         let sign_up = generate_signup();
-        let sign_up_response= self.user_signup(sign_up.to_json()).await;
+        let sign_up_response = self.user_signup(sign_up.to_json()).await;
         assert_eq!(&200, &sign_up_response.status().as_u16());
         let sign_up_response_body = sign_up_response.text().await.unwrap();
         serde_json::from_str(sign_up_response_body.as_str()).unwrap()
     }
 
-    pub async fn get_subscriber_by_user_id(&self, user_id: String, token: String) -> OverTheWireSubscriber {
-        let get_subscriber_by_user_id_response = self.get_subscriber_by_user_id_rest_call(user_id, token).await;
+    pub async fn get_subscriber_by_user_id(
+        &self,
+        user_id: String,
+        token: String,
+    ) -> OverTheWireSubscriber {
+        let get_subscriber_by_user_id_response = self
+            .get_subscriber_by_user_id_rest_call(user_id, token)
+            .await;
         assert_eq!(&200, &get_subscriber_by_user_id_response.status().as_u16());
         let subscriber_response_body = get_subscriber_by_user_id_response.text().await.unwrap();
         serde_json::from_str(subscriber_response_body.as_str()).unwrap()
     }
-
-
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -471,8 +473,7 @@ pub async fn mock_create_checkout_session(mock_server: &MockServer, stripe_sessi
         url: Uuid::new_v4().to_string(),
     };
 
-    let response =
-        ResponseTemplate::new(200).set_body_json(serde_json::json!(checkout_session));
+    let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(checkout_session));
 
     Mock::given(header_exists("Authorization"))
         .and(path(STRIPE_SESSIONS_BASE_PATH))
@@ -510,7 +511,10 @@ pub async fn mock_get_stripe_session(mock_server: &MockServer, session_id: Strin
         .await;
 }
 
-pub async fn mock_stripe_create_customer_returns_a_500(mock_server: &MockServer, customer_email: String) {
+pub async fn mock_stripe_create_customer_returns_a_500(
+    mock_server: &MockServer,
+    customer_email: String,
+) {
     Mock::given(header_exists("Authorization"))
         .and(path(STRIPE_CUSTOMERS_BASE_PATH))
         .and(query_param("email", &customer_email))
@@ -521,7 +525,10 @@ pub async fn mock_stripe_create_customer_returns_a_500(mock_server: &MockServer,
         .await;
 }
 
-pub async fn mock_stripe_price_lookup_returns_a_500(mock_server: &MockServer, stripe_lookup_key: String) {
+pub async fn mock_stripe_price_lookup_returns_a_500(
+    mock_server: &MockServer,
+    stripe_lookup_key: String,
+) {
     Mock::given(header_exists("Authorization"))
         .and(path(STRIPE_PRICES_BASE_PATH))
         .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
@@ -531,4 +538,3 @@ pub async fn mock_stripe_price_lookup_returns_a_500(mock_server: &MockServer, st
         .mount(&mock_server)
         .await;
 }
-

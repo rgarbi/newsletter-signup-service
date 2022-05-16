@@ -12,9 +12,7 @@ use crate::db::subscribers_db_broker::{
     retrieve_subscriber_by_id, retrieve_subscriber_by_user_id, set_stripe_customer_id,
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
-use crate::domain::checkout_models::{
-    CreateCheckoutSession, CreateStripeSessionRedirect,
-};
+use crate::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::stripe_client::StripeClient;
@@ -202,10 +200,9 @@ pub async fn complete_session(
             };
 
             //Get the actual subscription id
-            let stripe_session = match stripe_client.get_stripe_session(
-                checkout.stripe_session_id.clone()
-            )
-            .await
+            let stripe_session = match stripe_client
+                .get_stripe_session(checkout.stripe_session_id.clone())
+                .await
             {
                 Ok(session) => session,
                 Err(err) => {
