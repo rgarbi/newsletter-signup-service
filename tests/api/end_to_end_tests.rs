@@ -38,6 +38,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
+    mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
     let subscription = generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
     let create_checkout_session = CreateCheckoutSession {
@@ -130,7 +131,7 @@ async fn mock_create_checkout_session(mock_server: &MockServer, stripe_session_i
         .await;
 }
 
-async fn mock_get_stripe_session(mock_server: &MockServer) {
+async fn mock_get_stripe_session(mock_server: &MockServer, session_id: String) {
     let stripe_session = StripeSessionObject {
         id: session_id.clone(),
         object: "something".to_string(),
