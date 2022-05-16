@@ -1,6 +1,4 @@
 use actix_web::{web, HttpResponse, Responder};
-use reqwest::Error;
-use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 
@@ -15,7 +13,7 @@ use crate::db::subscribers_db_broker::{
 };
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{
-    CreateCheckoutSession, CreateStripeSessionRedirect, StripeSessionObject,
+    CreateCheckoutSession, CreateStripeSessionRedirect,
 };
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
