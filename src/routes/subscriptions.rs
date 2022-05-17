@@ -1,10 +1,7 @@
 use crate::auth::token::Claims;
 use crate::background::subscription_history_storer::store_subscription_history_event;
-use crate::configuration::get_configuration;
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use actix_web::{web, HttpResponse, Responder};
-use reqwest::Error;
-use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::PgPool;
 use tracing::Level;
