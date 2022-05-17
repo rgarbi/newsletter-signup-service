@@ -19,12 +19,8 @@ use newsletter_signup_service::domain::subscription_models::{
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::Application;
-use newsletter_signup_service::stripe_client::stripe_models::{
-    StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject,
-};
-use newsletter_signup_service::stripe_client::{
-    STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH,
-};
+use newsletter_signup_service::stripe_client::stripe_models::{StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
+use newsletter_signup_service::stripe_client::{STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
@@ -217,6 +213,23 @@ impl TestApp {
             .post(&format!(
                 "{}/checkout/{}/session/{}",
                 &self.address, user_id, session_id
+            ))
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn post_create_stripe_portal_session(
+        &self,
+        user_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .post(&format!(
+                "{}/checkout/{}/manage",
+                &self.address, user_id
             ))
             .header("Content-Type", "application/json")
             .bearer_auth(token)
@@ -544,6 +557,34 @@ pub async fn mock_stripe_create_session_returns_a_500(mock_server: &MockServer) 
         .and(path(STRIPE_SESSIONS_BASE_PATH))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(500))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
+
+pub async fn mock_create_stripe_billing_portal_session(mock_server: &MockServer, customer_id: String) {
+    let return_url = Uuid::new_v4().to_string();
+
+    let billing_portal = StripeBillingPortalSession {
+        id: Uuid::new_v4().to_string(),
+        object: "something".to_string(),
+        configuration: "something".to_string(),
+        created: 12341234,
+        customer: customer_id.clone(),
+        livemode: false,
+        locale: None,
+        on_behalf_of: None,
+        return_url: return_url.clone(),
+        url: Uuid::new_v4().to_string(),
+    };
+
+    let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(billing_portal));
+
+    Mock::given(header_exists("Authorization"))
+        .and(path(STRIPE_BILLING_PORTAL_BASE_PATH))
+        .and(query_param("customer", &customer_id))
+        .and(method("POST"))
+        .respond_with(response)
         .expect(1)
         .mount(&mock_server)
         .await;
