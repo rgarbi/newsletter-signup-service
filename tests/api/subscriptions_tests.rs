@@ -178,6 +178,30 @@ async fn cancel_subscription_by_id_not_found() {
 
 }
 
+#[tokio::test]
+async fn cancel_subscription_by_id_2x() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.stripe_subscription_id.clone()).await;
+
+    let mut cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    assert_eq!(200, cancel_subscription_response.status().as_u16());
+    cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    assert_eq!(200, cancel_subscription_response.status().as_u16());
+
+}
+
 async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
     let over_the_wire_create_subscription =
         generate_over_the_wire_create_subscription(subscriber_id);
