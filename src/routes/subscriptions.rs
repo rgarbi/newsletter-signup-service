@@ -157,29 +157,3 @@ async fn reject_unauthorized_user(
         Err(_) => Err(HttpResponse::BadRequest().finish()),
     };
 }
-
-async fn cancel_stripe_subscription(
-    subscription_id: String,
-    stripe_publishable_key: String,
-) -> Result<(), Error> {
-    let response = reqwest::Client::new()
-        .delete(format!(
-            "https://api.stripe.com/v1/subscriptions/{}",
-            subscription_id
-        ))
-        .basic_auth(stripe_publishable_key, Option::Some(String::new()))
-        .send()
-        .await;
-
-    return match response {
-        Ok(response) => {
-            let response_body = response.text().await.unwrap();
-            tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
-            Ok(())
-        }
-        Err(err) => {
-            tracing::event!(Level::ERROR, "Err: {:?}", err);
-            Err(err)
-        }
-    };
-}
