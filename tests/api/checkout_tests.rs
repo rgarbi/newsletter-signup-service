@@ -5,7 +5,7 @@ use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use uuid::Uuid;
 use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 
-use crate::helper::{generate_checkout_session, generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
+use crate::helper::{generate_checkout_session, generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
 
 
 #[tokio::test]
