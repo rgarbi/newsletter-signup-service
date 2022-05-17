@@ -108,10 +108,9 @@ pub async fn cancel_subscription_by_id(
             }
 
             //Call stripe to cancel the subscription
-            match stripe_client.cancel_stripe_subscription(
-                subscription.stripe_subscription_id,
-            )
-            .await
+            match stripe_client
+                .cancel_stripe_subscription(subscription.stripe_subscription_id)
+                .await
             {
                 Ok(_) => {
                     if transaction.commit().await.is_err() {

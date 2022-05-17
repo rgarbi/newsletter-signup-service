@@ -7,7 +7,9 @@ use newsletter_signup_service::domain::subscription_models::{
     NewSubscription, OverTheWireSubscription,
 };
 
-use crate::helper::{generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp};
+use crate::helper::{
+    generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp,
+};
 
 #[tokio::test]
 async fn subscriptions_returns_a_200_for_valid_form_data() {
@@ -142,11 +144,19 @@ async fn cancel_subscription_by_id() {
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
-    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.stripe_subscription_id.clone()).await;
+    mock_cancel_stripe_subscription(
+        &app.stripe_server,
+        stored_subscription.stripe_subscription_id.clone(),
+    )
+    .await;
 
-    let cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    let cancel_subscription_response = app
+        .cancel_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
-
 }
 
 #[tokio::test]
@@ -164,18 +174,26 @@ async fn cancel_subscription_by_id_not_authorized() {
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
-    let cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(Uuid::new_v4().to_string())).await;
+    let cancel_subscription_response = app
+        .cancel_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
     assert_eq!(401, cancel_subscription_response.status().as_u16());
-
 }
 
 #[tokio::test]
 async fn cancel_subscription_by_id_not_found() {
     let app = spawn_app().await;
 
-    let cancel_subscription_response = app.cancel_subscription_by_id(Uuid::new_v4().to_string(), generate_token(Uuid::new_v4().to_string())).await;
+    let cancel_subscription_response = app
+        .cancel_subscription_by_id(
+            Uuid::new_v4().to_string(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
     assert_eq!(404, cancel_subscription_response.status().as_u16());
-
 }
 
 #[tokio::test]
@@ -193,13 +211,26 @@ async fn cancel_subscription_by_id_2x() {
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
-    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.stripe_subscription_id.clone()).await;
+    mock_cancel_stripe_subscription(
+        &app.stripe_server,
+        stored_subscription.stripe_subscription_id.clone(),
+    )
+    .await;
 
-    let mut cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    let mut cancel_subscription_response = app
+        .cancel_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
-    cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    cancel_subscription_response = app
+        .cancel_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
-
 }
 
 async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
