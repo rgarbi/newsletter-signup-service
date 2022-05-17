@@ -4,7 +4,7 @@ use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use uuid::Uuid;
 
 use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
-use newsletter_signup_service::util::generate_random_token;
+
 
 #[tokio::test]
 async fn create_checkout_session_not_authorized() {
