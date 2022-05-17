@@ -142,7 +142,7 @@ async fn cancel_subscription_by_id() {
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
 
-    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.id.to_string().clone()).await;
+    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.stripe_subscription_id.clone()).await;
 
     let cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
