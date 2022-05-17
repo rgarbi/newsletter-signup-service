@@ -3,7 +3,7 @@ use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use uuid::Uuid;
 
-use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
+use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
 use newsletter_signup_service::util::generate_random_token;
 
 #[tokio::test]
@@ -153,4 +153,47 @@ async fn create_checkout_session_fails() {
         )
         .await;
     assert_eq!(500, checkout_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn store_create_checkout_result_fails() {
+    let app = spawn_app().await;
+
+    //SIGN UP
+    let login: LoginResponse = app.sign_up().await;
+
+    //GET SUBSCRIBER BY USER ID
+    let subscriber: OverTheWireSubscriber = app
+        .get_subscriber_by_user_id(login.user_id.clone(), login.token.clone())
+        .await;
+
+    //SUBSCRIBE!
+    let price_lookup_key = Uuid::new_v4().to_string();
+    let stripe_session_id = Uuid::new_v4().to_string();
+    mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
+
+    let subscription =
+        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let create_checkout_session = CreateCheckoutSession {
+        price_lookup_key: price_lookup_key.clone(),
+        subscription,
+    };
+
+    // Sabotage the database
+    sqlx::query!("ALTER TABLE checkout_session DROP COLUMN subscription;",)
+        .execute(&app.db_pool)
+        .await
+        .unwrap();
+
+    let checkout_response = app
+        .post_checkout(
+            create_checkout_session.to_json(),
+            login.user_id.clone(),
+            login.token.clone(),
+        )
+        .await;
+    assert_eq!(500, checkout_response.status().as_u16());
+
 }
