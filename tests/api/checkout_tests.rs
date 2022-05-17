@@ -1,4 +1,4 @@
-use newsletter_signup_service::auth::token::LoginResponse;
+use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use uuid::Uuid;
@@ -23,7 +23,7 @@ async fn create_checkout_session_not_authorized() {
         .post_checkout(
             create_checkout_session.to_json(),
             Uuid::new_v4().to_string(),
-            generate_random_token(),
+            generate_token(Uuid::new_v4().to_string()),
         )
         .await;
     assert_eq!(401, checkout_response.status().as_u16());
