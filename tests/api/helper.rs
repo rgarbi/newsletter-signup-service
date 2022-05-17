@@ -23,10 +23,7 @@ use newsletter_signup_service::stripe_client::stripe_models::{
     StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
     StripeProductPrice, StripeSessionObject,
 };
-use newsletter_signup_service::stripe_client::{
-    STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH,
-    STRIPE_SESSIONS_BASE_PATH,
-};
+use newsletter_signup_service::stripe_client::{STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
@@ -234,6 +231,20 @@ impl TestApp {
     ) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/checkout/{}/manage", &self.address, user_id))
+            .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn cancel_subscription_by_id(
+        &self,
+        id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .delete(&format!("{}/subscriptions/{}", &self.address, id))
             .header("Content-Type", "application/json")
             .bearer_auth(token)
             .send()
@@ -595,3 +606,23 @@ pub async fn mock_create_stripe_billing_portal_session(
         .mount(&mock_server)
         .await;
 }
+
+pub async fn mock_cancel_stripe_subscription(
+    mock_server: &MockServer,
+    subscription_id: String,
+) {
+    let response = ResponseTemplate::new(200);
+
+    Mock::given(header_exists("Authorization"))
+        .and(path(format!(
+            "{}{}",
+            STRIPE_SUBSCRIPTIONS_BASE_PATH, &subscription_id
+        )))
+        .and(method("DELETE"))
+        .respond_with(response)
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+}
+

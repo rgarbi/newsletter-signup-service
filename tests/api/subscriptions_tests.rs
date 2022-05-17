@@ -7,7 +7,7 @@ use newsletter_signup_service::domain::subscription_models::{
     NewSubscription, OverTheWireSubscription,
 };
 
-use crate::helper::{generate_over_the_wire_create_subscription, spawn_app, TestApp};
+use crate::helper::{generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp};
 
 #[tokio::test]
 async fn subscriptions_returns_a_200_for_valid_form_data() {
@@ -125,6 +125,28 @@ async fn get_subscription_by_id() {
         stored_subscription.subscriber_id.to_string(),
         subscription.subscriber_id.to_string()
     )
+}
+
+#[tokio::test]
+async fn cancel_subscription_by_id() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    mock_cancel_stripe_subscription(&app.stripe_server, stored_subscription.id.to_string().clone()).await;
+
+    let cancel_subscription_response = app.cancel_subscription_by_id(stored_subscription.id.to_string(), generate_token(subscriber.user_id.clone())).await;
+    assert_eq!(200, cancel_subscription_response.status().as_u16());
+
 }
 
 async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
