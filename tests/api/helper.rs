@@ -538,3 +538,13 @@ pub async fn mock_stripe_price_lookup_returns_a_500(
         .mount(&mock_server)
         .await;
 }
+
+pub async fn mock_stripe_create_session_returns_a_500(mock_server: &MockServer) {
+    Mock::given(header_exists("Authorization"))
+        .and(path(STRIPE_SESSIONS_BASE_PATH))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(500))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+}
