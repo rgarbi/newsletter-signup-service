@@ -271,3 +271,4 @@ async fn complete_session_not_found() {
         .await;
     assert_eq!(404, complete_session_response.status().as_u16());
 }
+
