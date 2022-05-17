@@ -239,6 +239,35 @@ async fn complete_session_not_authorized() {
         )
         .await;
     assert_eq!(401, complete_session_different_user_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn complete_session_not_found() {
+    let app = spawn_app().await;
+
+    let user_id = Uuid::new_v4().to_string();
+    let stripe_session_id = Uuid::new_v4().to_string();
+
+    //store subscription
+    let checkout_session = generate_checkout_session(Some(stripe_session_id.clone()));
+    let result = insert_checkout_session(
+        user_id.clone(),
+        checkout_session.price_lookup_key,
+        generate_new_subscription(Uuid::new_v4().to_string()),
+        stripe_session_id.clone(),
+        &app.db_pool,
+    )
+        .await;
+    assert_ok!(result);
 
 
+    //COMPLETE SUBSCRIPTION
+    let complete_session_response = app
+        .post_complete_session(
+            user_id.clone(),
+            Uuid::new_v4().to_string(),
+            generate_token(user_id),
+        )
+        .await;
+    assert_eq!(404, complete_session_response.status().as_u16());
 }
