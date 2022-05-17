@@ -84,7 +84,6 @@ pub async fn cancel_subscription_by_id(
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let subscription_id = from_path_to_uuid(&id).unwrap();
-    let config = get_configuration().unwrap();
     match retrieve_subscription_by_subscription_id(subscription_id, &pool).await {
         Ok(subscription) => {
             match reject_unauthorized_user(subscription.subscriber_id, user.user_id, &pool).await {
