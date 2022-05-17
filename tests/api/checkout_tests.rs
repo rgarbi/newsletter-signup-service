@@ -1,13 +1,19 @@
 use claim::assert_ok;
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
+use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
-use uuid::Uuid;
-use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
+use uuid::Uuid;
 
-use crate::helper::{generate_checkout_session, generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_create_stripe_billing_portal_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
-
+use crate::helper::{
+    generate_checkout_session, generate_new_subscription,
+    generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session,
+    mock_create_stripe_billing_portal_session, mock_get_stripe_session,
+    mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500,
+    mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup,
+    mock_stripe_price_lookup_returns_a_500, spawn_app,
+};
 
 #[tokio::test]
 async fn create_checkout_session_not_authorized() {
@@ -140,7 +146,6 @@ async fn create_checkout_session_fails() {
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_stripe_create_session_returns_a_500(&app.stripe_server).await;
 
-
     let subscription =
         generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
     let create_checkout_session = CreateCheckoutSession {
@@ -198,7 +203,6 @@ async fn store_create_checkout_result_fails() {
         )
         .await;
     assert_eq!(500, checkout_response.status().as_u16());
-
 }
 
 #[tokio::test]
@@ -217,9 +221,8 @@ async fn complete_session_not_authorized() {
         stripe_session_id.clone(),
         &app.db_pool,
     )
-        .await;
+    .await;
     assert_ok!(result);
-
 
     //COMPLETE SUBSCRIPTION
     let complete_session_response = app
@@ -239,7 +242,10 @@ async fn complete_session_not_authorized() {
             generate_token(someone_else),
         )
         .await;
-    assert_eq!(401, complete_session_different_user_response.status().as_u16());
+    assert_eq!(
+        401,
+        complete_session_different_user_response.status().as_u16()
+    );
 }
 
 #[tokio::test]
@@ -258,9 +264,8 @@ async fn complete_session_not_found() {
         stripe_session_id.clone(),
         &app.db_pool,
     )
-        .await;
+    .await;
     assert_ok!(result);
-
 
     //COMPLETE SUBSCRIPTION
     let complete_session_response = app
@@ -334,11 +339,14 @@ async fn create_stripe_portal_session_works() {
         serde_json::from_str(subscription_list_response_body.as_str()).unwrap();
     assert_eq!(1, subscription_list.len());
 
-
     //Create Portal session
-    mock_create_stripe_billing_portal_session(&app.stripe_server, subscriber.stripe_customer_id.unwrap().to_string()).await;
-    let create_portal_session_response = app.post_create_stripe_portal_session(login.user_id.clone(), login.token.clone()).await;
+    mock_create_stripe_billing_portal_session(
+        &app.stripe_server,
+        subscriber.stripe_customer_id.unwrap().to_string(),
+    )
+    .await;
+    let create_portal_session_response = app
+        .post_create_stripe_portal_session(login.user_id.clone(), login.token.clone())
+        .await;
     assert_eq!(&200, &create_portal_session_response.status().as_u16());
-
 }
-

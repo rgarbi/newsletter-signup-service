@@ -19,8 +19,14 @@ use newsletter_signup_service::domain::subscription_models::{
 };
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
 use newsletter_signup_service::startup::Application;
-use newsletter_signup_service::stripe_client::stripe_models::{StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList, StripeProductPrice, StripeSessionObject};
-use newsletter_signup_service::stripe_client::{STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH, STRIPE_SESSIONS_BASE_PATH};
+use newsletter_signup_service::stripe_client::stripe_models::{
+    StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
+    StripeProductPrice, StripeSessionObject,
+};
+use newsletter_signup_service::stripe_client::{
+    STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH,
+    STRIPE_SESSIONS_BASE_PATH,
+};
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
@@ -227,10 +233,7 @@ impl TestApp {
         token: String,
     ) -> Response {
         reqwest::Client::new()
-            .post(&format!(
-                "{}/checkout/{}/manage",
-                &self.address, user_id
-            ))
+            .post(&format!("{}/checkout/{}/manage", &self.address, user_id))
             .header("Content-Type", "application/json")
             .bearer_auth(token)
             .send()
@@ -562,7 +565,10 @@ pub async fn mock_stripe_create_session_returns_a_500(mock_server: &MockServer) 
         .await;
 }
 
-pub async fn mock_create_stripe_billing_portal_session(mock_server: &MockServer, customer_id: String) {
+pub async fn mock_create_stripe_billing_portal_session(
+    mock_server: &MockServer,
+    customer_id: String,
+) {
     let return_url = Uuid::new_v4().to_string();
 
     let billing_portal = StripeBillingPortalSession {
