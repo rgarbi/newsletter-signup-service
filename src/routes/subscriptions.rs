@@ -15,6 +15,7 @@ use crate::db::subscriptions_db_broker::{
     retrieve_subscriptions_by_subscriber_id,
 };
 use crate::domain::subscription_history_models::HistoryEventType;
+use crate::stripe_client::StripeClient;
 
 use crate::util::from_path_to_uuid;
 
@@ -71,7 +72,7 @@ pub async fn get_subscription_by_id(
 
 #[tracing::instrument(
     name = "Cancel subscription by subscription id",
-    skip(id, pool, user),
+    skip(id, pool, user, stripe_client),
     fields(
         id = %id,
     )
@@ -80,6 +81,7 @@ pub async fn cancel_subscription_by_id(
     id: web::Path<String>,
     pool: web::Data<PgPool>,
     user: Claims,
+    stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let subscription_id = from_path_to_uuid(&id).unwrap();
     let config = get_configuration().unwrap();
@@ -110,13 +112,8 @@ pub async fn cancel_subscription_by_id(
             }
 
             //Call stripe to cancel the subscription
-            match cancel_stripe_subscription(
+            match stripe_client.cancel_stripe_subscription(
                 subscription.stripe_subscription_id,
-                config
-                    .stripe_client
-                    .api_secret_key
-                    .expose_secret()
-                    .to_string(),
             )
             .await
             {
