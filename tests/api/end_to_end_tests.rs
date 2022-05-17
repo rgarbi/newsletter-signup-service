@@ -126,7 +126,6 @@ async fn end_to_end_subscribe_test_2x() {
     //SUBSCRIBE again!
     let _x = &app.stripe_server.reset().await;
     let stripe_session_id_again = Uuid::new_v4().to_string();
-    mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id_again.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id_again.clone()).await;
@@ -151,7 +150,7 @@ async fn end_to_end_subscribe_test_2x() {
     let complete_session_response_again = app
         .post_complete_session(
             login.user_id.clone(),
-            stripe_session_id.clone(),
+            stripe_session_id_again.clone(),
             login.token.clone(),
         )
         .await;
