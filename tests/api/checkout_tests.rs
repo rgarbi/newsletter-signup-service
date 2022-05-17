@@ -1,9 +1,11 @@
+use claim::assert_ok;
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use uuid::Uuid;
+use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 
-use crate::helper::{generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
+use crate::helper::{generate_checkout_session, generate_new_subscription, generate_over_the_wire_create_subscription, generate_signup, mock_create_checkout_session, mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500, mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup, mock_stripe_price_lookup_returns_a_500, spawn_app};
 
 
 #[tokio::test]
@@ -195,5 +197,48 @@ async fn store_create_checkout_result_fails() {
         )
         .await;
     assert_eq!(500, checkout_response.status().as_u16());
+
+}
+
+#[tokio::test]
+async fn complete_session_not_authorized() {
+    let app = spawn_app().await;
+
+    let user_id = Uuid::new_v4().to_string();
+    let stripe_session_id = Uuid::new_v4().to_string();
+
+    //store subscription
+    let checkout_session = generate_checkout_session(Some(stripe_session_id.clone()));
+    let result = insert_checkout_session(
+        user_id.clone(),
+        checkout_session.price_lookup_key,
+        generate_new_subscription(Uuid::new_v4().to_string()),
+        stripe_session_id.clone(),
+        &app.db_pool,
+    )
+        .await;
+    assert_ok!(result);
+
+
+    //COMPLETE SUBSCRIPTION
+    let complete_session_response = app
+        .post_complete_session(
+            user_id.clone(),
+            stripe_session_id.clone(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
+    assert_eq!(401, complete_session_response.status().as_u16());
+
+    let someone_else = Uuid::new_v4().to_string();
+    let complete_session_different_user_response = app
+        .post_complete_session(
+            someone_else.clone(),
+            stripe_session_id.clone(),
+            generate_token(someone_else),
+        )
+        .await;
+    assert_eq!(401, complete_session_different_user_response.status().as_u16());
+
 
 }
