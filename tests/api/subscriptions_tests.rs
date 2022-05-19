@@ -251,7 +251,7 @@ async fn update_subscription() {
     let update_subscription_response = app
         .update_subscription_by_id(
             stored_subscription.id.to_string(), stored_subscription.to_json(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(subscriber.user_id.clone()),
         )
         .await;
     assert_eq!(200, update_subscription_response.status().as_u16());
