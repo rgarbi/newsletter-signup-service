@@ -250,7 +250,8 @@ async fn update_subscription() {
 
     let update_subscription_response = app
         .update_subscription_by_id(
-            stored_subscription.id.to_string(), stored_subscription.to_json(),
+            stored_subscription.id.to_string(),
+            stored_subscription.to_json(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -266,7 +267,8 @@ async fn update_subscription_not_found() {
 
     let update_subscription_response = app
         .update_subscription_by_id(
-            Uuid::new_v4().to_string(), stored_subscription.to_json(),
+            Uuid::new_v4().to_string(),
+            stored_subscription.to_json(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -290,7 +292,8 @@ async fn update_subscription_not_authorized() {
 
     let update_subscription_response = app
         .update_subscription_by_id(
-            stored_subscription.id.to_string(), stored_subscription.to_json(),
+            stored_subscription.id.to_string(),
+            stored_subscription.to_json(),
             generate_token(Uuid::new_v4().to_string()),
         )
         .await;
@@ -316,17 +319,22 @@ async fn update_subscription_bad_request() {
     bad_email_subscription.subscription_email_address = "a bad email address".to_string();
     let update_subscription_bad_email_response = app
         .update_subscription_by_id(
-            stored_subscription.id.to_string(), bad_email_subscription.to_json(),
+            stored_subscription.id.to_string(),
+            bad_email_subscription.to_json(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
-    assert_eq!(400, update_subscription_bad_email_response.status().as_u16());
+    assert_eq!(
+        400,
+        update_subscription_bad_email_response.status().as_u16()
+    );
 
     let mut bad_name_subscription = stored_subscription.clone();
     bad_name_subscription.subscription_name = "      ".to_string();
     let update_subscription_bad_name_response = app
         .update_subscription_by_id(
-            stored_subscription.id.to_string(), bad_name_subscription.to_json(),
+            stored_subscription.id.to_string(),
+            bad_name_subscription.to_json(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;
@@ -336,7 +344,8 @@ async fn update_subscription_bad_request() {
     bad_id_subscription.id = Uuid::new_v4();
     let update_subscription_bad_id_response = app
         .update_subscription_by_id(
-            stored_subscription.id.to_string(), bad_id_subscription.to_json(),
+            stored_subscription.id.to_string(),
+            bad_id_subscription.to_json(),
             generate_token(subscriber.user_id.clone()),
         )
         .await;

@@ -251,7 +251,12 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn update_subscription_by_id(&self, id: String, body: String, token: String) -> Response {
+    pub async fn update_subscription_by_id(
+        &self,
+        id: String,
+        body: String,
+        token: String,
+    ) -> Response {
         reqwest::Client::new()
             .put(&format!("{}/subscriptions/{}", &self.address, id))
             .header("Content-Type", "application/json")

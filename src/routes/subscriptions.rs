@@ -93,7 +93,10 @@ pub async fn update_subscription(
             let valid_name = ValidName::parse(subscription.subscription_name.clone());
             let valid_email = ValidEmail::parse(subscription.subscription_email_address.clone());
 
-            if valid_email.is_err() || valid_name.is_err() || stored_subscription.id.clone() != subscription.id.clone() {
+            if valid_email.is_err()
+                || valid_name.is_err()
+                || stored_subscription.id != subscription.id.clone()
+            {
                 return HttpResponse::BadRequest().finish();
             }
 
