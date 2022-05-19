@@ -77,6 +77,12 @@ impl NewSubscription {
     }
 }
 
+impl OverTheWireSubscription {
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self).expect("Was not able to serialize.")
+    }
+}
+
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
     type Error = String;
     fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {
@@ -102,7 +108,7 @@ impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
 #[cfg(test)]
 mod tests {
     use crate::domain::subscription_models::{
-        NewSubscription, OverTheWireCreateSubscription, SubscriptionType,
+        NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
     };
     use crate::domain::valid_email::ValidEmail;
     use crate::domain::valid_name::ValidName;
@@ -146,5 +152,25 @@ mod tests {
             subscription_type: SubscriptionType::Paper,
         };
         let _json = new_subscription.to_json();
+    }
+
+    #[test]
+    fn over_the_wire_subscription_to_json_works() {
+        let over_the_wire_subscription = OverTheWireSubscription {
+            id: Default::default(),
+            subscriber_id: Default::default(),
+            subscription_name: "".to_string(),
+            subscription_mailing_address_line_1: "".to_string(),
+            subscription_mailing_address_line_2: "".to_string(),
+            subscription_city: "".to_string(),
+            subscription_state: "".to_string(),
+            subscription_postal_code: "".to_string(),
+            subscription_email_address: "".to_string(),
+            subscription_creation_date: (),
+            active: false,
+            subscription_type: SubscriptionType::Digital,
+            stripe_subscription_id: "".to_string(),
+        };
+        let _json = over_the_wire_subscription.to_json();
     }
 }
