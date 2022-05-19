@@ -95,7 +95,7 @@ pub async fn update_subscription(
 
             if valid_email.is_err()
                 || valid_name.is_err()
-                || stored_subscription.id != subscription.id.clone()
+                || stored_subscription.id != subscription.id
             {
                 return HttpResponse::BadRequest().finish();
             }

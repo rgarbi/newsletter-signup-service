@@ -166,7 +166,7 @@ mod tests {
             subscription_state: "".to_string(),
             subscription_postal_code: "".to_string(),
             subscription_email_address: "".to_string(),
-            subscription_creation_date: (),
+            subscription_creation_date: Utc::now(),
             active: false,
             subscription_type: SubscriptionType::Digital,
             stripe_subscription_id: "".to_string(),
