@@ -119,7 +119,7 @@ pub async fn update_password(
     )
     .execute(pool)
     .await
-    .map_err(|e: sqlx::Error| {
+    .map_err(|e: Error| {
         tracing::error!("{:?}", e);
         e
     })?;
@@ -128,7 +128,7 @@ pub async fn update_password(
 }
 
 #[derive(Debug)]
-pub struct UserDatabaseError(sqlx::Error);
+pub struct UserDatabaseError(Error);
 
 impl ResponseError for UserDatabaseError {}
 
