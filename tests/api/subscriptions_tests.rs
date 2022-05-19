@@ -257,6 +257,92 @@ async fn update_subscription() {
     assert_eq!(200, update_subscription_response.status().as_u16());
 }
 
+#[tokio::test]
+async fn update_subscription_not_found() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let update_subscription_response = app
+        .update_subscription_by_id(
+            Uuid::new_v4().to_string(), stored_subscription.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(404, update_subscription_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn update_subscription_not_authorized() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    let update_subscription_response = app
+        .update_subscription_by_id(
+            stored_subscription.id.to_string(), stored_subscription.to_json(),
+            generate_token(Uuid::new_v4().to_string()),
+        )
+        .await;
+    assert_eq!(401, update_subscription_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn update_subscription_bad_request() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    let mut bad_email_subscription = stored_subscription.clone();
+    bad_email_subscription.subscription_email_address = "a bad email address".to_string();
+    let update_subscription_bad_email_response = app
+        .update_subscription_by_id(
+            stored_subscription.id.to_string(), bad_email_subscription.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(400, update_subscription_bad_email_response.status().as_u16());
+
+    let mut bad_name_subscription = stored_subscription.clone();
+    bad_name_subscription.subscription_name = "      ".to_string();
+    let update_subscription_bad_name_response = app
+        .update_subscription_by_id(
+            stored_subscription.id.to_string(), bad_name_subscription.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(400, update_subscription_bad_name_response.status().as_u16());
+
+    let mut bad_id_subscription = stored_subscription.clone();
+    bad_id_subscription.id = Uuid::new_v4();
+    let update_subscription_bad_id_response = app
+        .update_subscription_by_id(
+            stored_subscription.id.to_string(), bad_id_subscription.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(400, update_subscription_bad_id_response.status().as_u16());
+}
+
 async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
     let over_the_wire_create_subscription =
         generate_over_the_wire_create_subscription(subscriber_id);
