@@ -12,6 +12,9 @@ use crate::db::subscriptions_db_broker::{
     retrieve_subscriptions_by_subscriber_id,
 };
 use crate::domain::subscription_history_models::HistoryEventType;
+use crate::domain::subscription_models::OverTheWireSubscription;
+use crate::domain::valid_email::ValidEmail;
+use crate::domain::valid_name::ValidName;
 use crate::stripe_client::StripeClient;
 
 use crate::util::from_path_to_uuid;
@@ -62,6 +65,39 @@ pub async fn get_subscription_by_id(
                 Err(response) => return response,
             };
             HttpResponse::Ok().json(subscription)
+        }
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Updating subscription",
+    skip(id, subscription, pool, user),
+    fields(
+        id = %id,
+    )
+)]
+pub async fn update_subscription(
+    id: web::Path<String>,
+    subscription: web::Json<OverTheWireSubscription>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    match retrieve_subscription_by_subscription_id(from_path_to_uuid(&id).unwrap(), &pool).await {
+        Ok(stored_subscription) => {
+            match reject_unauthorized_user(subscription.subscriber_id, user.user_id, &pool).await {
+                Ok(_) => {}
+                Err(response) => return response,
+            };
+
+            let valid_name = ValidName::parse(subscription.subscription_name.clone());
+            let valid_email = ValidEmail::parse(subscription.subscription_email_address.clone());
+
+            if valid_email.is_err() || valid_name.is_err() || stored_subscription.id.clone() != subscription.id.clone() {
+                return HttpResponse::BadRequest().finish();
+            }
+
+            HttpResponse::Ok().json(json!({}))
         }
         Err(_) => HttpResponse::NotFound().finish(),
     }
