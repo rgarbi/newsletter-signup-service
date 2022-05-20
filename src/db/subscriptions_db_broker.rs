@@ -77,6 +77,45 @@ pub async fn insert_subscription(
     Ok(subscription_to_be_saved)
 }
 
+#[tracing::instrument(
+    name = "Update a subscription by subscription id",
+    skip(id, subscription, pool)
+)]
+pub async fn update_subscription_by_subscription_id(
+    id: Uuid,
+    subscription: OverTheWireSubscription,
+    pool: &PgPool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"UPDATE subscriptions
+            SET
+                subscription_name = $1,
+                subscription_mailing_address_line_1 = $2,
+                subscription_mailing_address_line_2 = $3,
+                subscription_city = $4,
+                subscription_state = $5,
+                subscription_postal_code = $6,
+                subscription_email_address = $7
+            WHERE id = $8"#,
+        subscription.subscription_name,
+        subscription.subscription_mailing_address_line_1,
+        subscription.subscription_mailing_address_line_2,
+        subscription.subscription_city,
+        subscription.subscription_state,
+        subscription.subscription_postal_code,
+        subscription.subscription_email_address,
+        id,
+    )
+        .execute(pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {:?}", e);
+            e
+        })?;
+
+    Ok(())
+}
+
 #[tracing::instrument(name = "Get all subscriptions by subscriber id", skip(id, pool))]
 pub async fn retrieve_subscriptions_by_subscriber_id(
     id: Uuid,
