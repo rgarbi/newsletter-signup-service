@@ -1,6 +1,4 @@
 use std::str::FromStr;
-
-use actix_web::ResponseError;
 use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
@@ -93,7 +91,7 @@ pub async fn insert_user(
     )
     .execute(transaction)
     .await
-    .map_err(|e: sqlx::Error| {
+    .map_err(|e: Error| {
         tracing::error!("{:?}", e);
         e
     })?;
@@ -125,15 +123,4 @@ pub async fn update_password(
     })?;
 
     Ok(())
-}
-
-#[derive(Debug)]
-pub struct UserDatabaseError(Error);
-
-impl ResponseError for UserDatabaseError {}
-
-impl std::fmt::Display for UserDatabaseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}\nCaused by:\n\t{:?}", self, self.0)
-    }
 }
