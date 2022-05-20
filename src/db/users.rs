@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use sqlx::{Error, PgPool, Postgres, Transaction};
+use std::str::FromStr;
 use uuid::Uuid;
 
 use crate::domain::user_models::User;
