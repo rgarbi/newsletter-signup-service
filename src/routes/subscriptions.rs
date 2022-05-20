@@ -7,10 +7,7 @@ use sqlx::PgPool;
 use tracing::Level;
 use uuid::Uuid;
 
-use crate::db::subscriptions_db_broker::{
-    cancel_subscription_by_subscription_id, retrieve_subscription_by_subscription_id,
-    retrieve_subscriptions_by_subscriber_id,
-};
+use crate::db::subscriptions_db_broker::{cancel_subscription_by_subscription_id, retrieve_subscription_by_subscription_id, retrieve_subscriptions_by_subscriber_id, update_subscription_by_subscription_id};
 use crate::domain::subscription_history_models::HistoryEventType;
 use crate::domain::subscription_models::OverTheWireSubscription;
 use crate::domain::valid_email::ValidEmail;
@@ -100,7 +97,10 @@ pub async fn update_subscription(
                 return HttpResponse::BadRequest().finish();
             }
 
-            HttpResponse::Ok().json(json!({}))
+            match update_subscription_by_subscription_id(stored_subscription.id, subscription.0, &pool).await {
+                Ok(_) => HttpResponse::Ok().json(json!({})),
+                Err(_) => HttpResponse::InternalServerError().finish(),
+            }
         }
         Err(_) => HttpResponse::NotFound().finish(),
     }
