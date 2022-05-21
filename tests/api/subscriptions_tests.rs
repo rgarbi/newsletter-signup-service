@@ -15,7 +15,7 @@ async fn subscriptions_returns_a_200_for_valid_form_data() {
 
     let subscriber = app.store_subscriber(Option::None).await;
 
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let saved =
         sqlx::query!("SELECT subscription_name, subscription_postal_code, id FROM subscriptions")
@@ -33,7 +33,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let _stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let _stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
@@ -107,7 +107,7 @@ async fn get_subscription_by_id() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -132,7 +132,7 @@ async fn cancel_subscription_by_id() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -162,7 +162,7 @@ async fn cancel_subscription_by_id_not_authorized() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -199,7 +199,7 @@ async fn cancel_subscription_by_id_2x() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -236,7 +236,7 @@ async fn update_subscription() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -261,7 +261,7 @@ async fn update_subscription_not_found() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let update_subscription_response = app
         .update_subscription_by_id(
@@ -278,7 +278,7 @@ async fn update_subscription_not_authorized() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None,&app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -303,7 +303,7 @@ async fn update_subscription_bad_request() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None, &app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
@@ -355,7 +355,7 @@ async fn update_subscription_fails() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(Option::None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Option::None, &app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
