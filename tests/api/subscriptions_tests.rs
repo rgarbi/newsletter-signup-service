@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
-use newsletter_signup_service::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription};
+use newsletter_signup_service::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType};
 
 use crate::helper::{
     generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp,
@@ -355,7 +355,18 @@ async fn update_subscription_fails() {
     let app = spawn_app().await;
 
     let subscriber = app.store_subscriber(None).await;
-    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+    let over_the_wire_create_subscription = OverTheWireCreateSubscription {
+        subscriber_id: subscriber.id.clone().to_string(),
+        subscription_name: "1".to_string(),
+        subscription_mailing_address_line_1: "".to_string(),
+        subscription_mailing_address_line_2: None,
+        subscription_city: "".to_string(),
+        subscription_state: "".to_string(),
+        subscription_postal_code: "".to_string(),
+        subscription_email_address: "".to_string(),
+        subscription_type: SubscriptionType::Digital
+    };
+    let stored_subscription = store_subscription(subscriber.id.to_string(), Some(over_the_wire_create_subscription), &app).await;
 
     let subscriptions_response = app
         .get_subscription_by_id(
