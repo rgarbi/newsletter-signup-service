@@ -350,47 +350,6 @@ async fn update_subscription_bad_request() {
     assert_eq!(400, update_subscription_bad_id_response.status().as_u16());
 }
 
-#[tokio::test]
-async fn update_subscription_fails() {
-    let app = spawn_app().await;
-
-    let subscriber = app.store_subscriber(None).await;
-    let over_the_wire_create_subscription = OverTheWireCreateSubscription {
-        subscriber_id: subscriber.id.clone().to_string(),
-        subscription_name: "1".to_string(),
-        subscription_mailing_address_line_1: "".to_string(),
-        subscription_mailing_address_line_2: None,
-        subscription_city: "".to_string(),
-        subscription_state: "".to_string(),
-        subscription_postal_code: "".to_string(),
-        subscription_email_address: "".to_string(),
-        subscription_type: SubscriptionType::Digital
-    };
-    let stored_subscription = store_subscription(subscriber.id.to_string(), Some(over_the_wire_create_subscription), &app).await;
-
-    let subscriptions_response = app
-        .get_subscription_by_id(
-            stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
-        )
-        .await;
-    assert_eq!(200, subscriptions_response.status().as_u16());
-
-    sqlx::query!("ALTER TABLE subscriptions ALTER COLUMN subscription_name type character varying(1);",)
-        .execute(&app.db_pool)
-        .await
-        .unwrap();
-
-    let update_subscription_response = app
-        .update_subscription_by_id(
-            stored_subscription.id.to_string(),
-            stored_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
-        )
-        .await;
-    assert_eq!(500, update_subscription_response.status().as_u16());
-}
-
 async fn store_subscription(subscriber_id: String, subscription: Option<OverTheWireCreateSubscription>, app: &TestApp) -> OverTheWireSubscription {
     let over_the_wire_create_subscription =
         subscription.unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id));

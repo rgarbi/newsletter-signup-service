@@ -194,6 +194,7 @@ pub async fn retrieve_subscription_by_subscription_id(
     .fetch_one(pool)
     .await
     .map_err(|e| {
+        println!("{:?}", e);
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
