@@ -3,10 +3,15 @@ use claim::{assert_err, assert_ok};
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
 };
+use newsletter_signup_service::db::subscriptions_db_broker::{
+    insert_subscription, retrieve_subscription_by_subscription_id,
+    update_subscription_by_subscription_id,
+};
 use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
+use newsletter_signup_service::domain::subscription_models::{
+    OverTheWireSubscription, SubscriptionType,
+};
 use uuid::Uuid;
-use newsletter_signup_service::db::subscriptions_db_broker::{insert_subscription, retrieve_subscription_by_subscription_id, update_subscription_by_subscription_id};
-use newsletter_signup_service::domain::subscription_models::{OverTheWireSubscription, SubscriptionType};
 
 use crate::helper::{generate_new_subscription, generate_over_the_wire_subscriber, spawn_app};
 
@@ -28,7 +33,8 @@ async fn update_subscription_by_subscription_id_works() {
 
     transaction = app.db_pool.clone().begin().await.unwrap();
     let subscription = generate_new_subscription(stored_subscriber.id.to_string());
-    let insert_subscription_result = insert_subscription(subscription, Uuid::new_v4().to_string(), &mut transaction).await;
+    let insert_subscription_result =
+        insert_subscription(subscription, Uuid::new_v4().to_string(), &mut transaction).await;
     assert_ok!(&insert_subscription_result);
     assert_ok!(transaction.commit().await);
 
@@ -50,13 +56,21 @@ async fn update_subscription_by_subscription_id_works() {
         stripe_subscription_id: subscription.stripe_subscription_id.clone(),
     };
 
-    let update_subscription_result = update_subscription_by_subscription_id(subscription.id, updates.clone(), &app.db_pool).await;
+    let update_subscription_result =
+        update_subscription_by_subscription_id(subscription.id, updates.clone(), &app.db_pool)
+            .await;
     assert_ok!(update_subscription_result);
 
-    let updated_subscription_retrieval_result = retrieve_subscription_by_subscription_id(subscription.id.clone(), &app.db_pool).await;
+    let updated_subscription_retrieval_result =
+        retrieve_subscription_by_subscription_id(subscription.id.clone(), &app.db_pool).await;
     assert_ok!(&updated_subscription_retrieval_result);
 
-    assert_eq!(updates.clone().subscription_name, updated_subscription_retrieval_result.unwrap().subscription_name);
+    assert_eq!(
+        updates.clone().subscription_name,
+        updated_subscription_retrieval_result
+            .unwrap()
+            .subscription_name
+    );
 }
 
 #[tokio::test]
@@ -85,6 +99,8 @@ async fn update_subscription_by_subscription_id_err() {
         .await
         .unwrap();
 
-    let update_subscription_result = update_subscription_by_subscription_id(updates.id.clone(), updates.clone(), &app.db_pool).await;
+    let update_subscription_result =
+        update_subscription_by_subscription_id(updates.id.clone(), updates.clone(), &app.db_pool)
+            .await;
     assert_err!(update_subscription_result);
 }
