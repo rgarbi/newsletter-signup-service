@@ -3,9 +3,7 @@ use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
-use newsletter_signup_service::domain::subscription_models::{
-    NewSubscription, OverTheWireSubscription,
-};
+use newsletter_signup_service::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription};
 
 use crate::helper::{
     generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp,
@@ -352,9 +350,39 @@ async fn update_subscription_bad_request() {
     assert_eq!(400, update_subscription_bad_id_response.status().as_u16());
 }
 
-async fn store_subscription(subscriber_id: String, app: &TestApp) -> OverTheWireSubscription {
+#[tokio::test]
+async fn update_subscription_fails() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), &app).await;
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(200, subscriptions_response.status().as_u16());
+
+    sqlx::query!("ALTER TABLE subscriptions ALTER COLUMN subscription_name type character varying(1);",)
+        .execute(&app.db_pool)
+        .await
+        .unwrap();
+
+    let update_subscription_response = app
+        .update_subscription_by_id(
+            stored_subscription.id.to_string(),
+            stored_subscription.to_json(),
+            generate_token(subscriber.user_id.clone()),
+        )
+        .await;
+    assert_eq!(500, update_subscription_response.status().as_u16());
+}
+
+async fn store_subscription(subscriber_id: String, subscription: Option<OverTheWireCreateSubscription>, app: &TestApp) -> OverTheWireSubscription {
     let over_the_wire_create_subscription =
-        generate_over_the_wire_create_subscription(subscriber_id);
+        subscription.unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id));
 
     let mut transaction_result = app.db_pool.begin().await;
     assert_ok!(&mut transaction_result);
