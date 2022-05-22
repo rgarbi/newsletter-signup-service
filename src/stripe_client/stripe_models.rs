@@ -74,3 +74,21 @@ impl StripeCustomer {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::stripe_client::stripe_models::StripeCustomer;
+    use uuid::Uuid;
+
+    #[test]
+    fn stripe_customer_to_json_works() {
+        let stripe_customer = StripeCustomer {
+            id: Uuid::new_v4().to_string(),
+            object: Uuid::new_v4().to_string(),
+            created: 1233222,
+            description: None,
+            email: None,
+        };
+        let _json = stripe_customer.to_json();
+    }
+}
