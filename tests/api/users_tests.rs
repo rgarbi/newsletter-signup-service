@@ -427,13 +427,14 @@ async fn forgot_password_reset_password_given_when_then() {
     assert_eq!(&200, &login_response.status().as_u16());
 }
 
-
 #[tokio::test]
 async fn check_token_works() {
     let app = spawn_app().await;
 
     let user_id = Uuid::new_v4().to_string();
-    let response = app.check_token(user_id.clone(), generate_token(user_id.clone())).await;
+    let response = app
+        .check_token(user_id.clone(), generate_token(user_id.clone()))
+        .await;
     assert_eq!(&200, &response.status().as_u16());
 }
 
@@ -442,6 +443,8 @@ async fn check_token_does_not_work() {
     let app = spawn_app().await;
 
     let user_id = Uuid::new_v4().to_string();
-    let response = app.check_token(user_id.clone(), generate_token(Uuid::new_v4().to_string())).await;
+    let response = app
+        .check_token(user_id.clone(), generate_token(Uuid::new_v4().to_string()))
+        .await;
     assert_eq!(&401, &response.status().as_u16());
 }
