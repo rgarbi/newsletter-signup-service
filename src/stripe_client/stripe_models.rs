@@ -77,7 +77,7 @@ impl StripeCustomer {
 
 #[cfg(test)]
 mod tests {
-    use crate::stripe_client::stripe_models::StripeCustomer;
+    use crate::stripe_client::stripe_models::{StripeCustomer, StripeSessionObject};
     use uuid::Uuid;
 
     #[test]
@@ -90,5 +90,19 @@ mod tests {
             email: None,
         };
         let _json = stripe_customer.to_json();
+    }
+
+    #[test]
+    fn stripe_session_object_to_json_works() {
+        let stripe_session_object = StripeSessionObject {
+            id: Uuid::new_v4().to_string(),
+            object: Uuid::new_v4().to_string(),
+            amount_subtotal: 0,
+            amount_total: 0,
+            client_reference_id: None,
+            customer: "".to_string(),
+            subscription: None,
+        };
+        let _json = stripe_session_object.to_json();
     }
 }
