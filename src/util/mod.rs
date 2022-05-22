@@ -42,7 +42,7 @@ mod tests {
     use actix_web::web::Path;
     use uuid::Uuid;
 
-    use crate::util::from_path_to_uuid;
+    use crate::util::{from_path_to_uuid, from_string_to_uuid};
 
     #[test]
     fn a_uuid_is_valid() {
@@ -52,10 +52,17 @@ mod tests {
             uuid,
             from_path_to_uuid(&Path::try_from(uuid.to_string()).unwrap()).unwrap()
         );
+
+        assert_eq!(uuid, from_string_to_uuid(&uuid.to_string()).unwrap());
     }
 
     #[quickcheck_macros::quickcheck]
     fn anything_not_a_uuid_is_invalid(invalid_uuid: String) -> bool {
         from_path_to_uuid(&Path::try_from(invalid_uuid).unwrap()).is_err()
+    }
+
+    #[quickcheck_macros::quickcheck]
+    fn anything_not_a_uuid_is_invalid_from_string(invalid_uuid: String) -> bool {
+        from_string_to_uuid(&Path::try_from(invalid_uuid).unwrap()).is_err()
     }
 }
