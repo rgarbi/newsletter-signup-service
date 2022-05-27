@@ -229,7 +229,7 @@ pub async fn complete_session(
                         HttpResponse::InternalServerError().finish()
                     } else {
                         store_subscription_history_event(
-                            subscription.id.clone(),
+                            subscription.id,
                             HistoryEventType::Created,
                             &pool,
                         );
