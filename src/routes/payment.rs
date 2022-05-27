@@ -3,6 +3,7 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::auth::token::Claims;
+use crate::background::subscription_history_storer::store_subscription_history_event;
 use crate::configuration::get_configuration;
 use crate::db::checkout_session_db_broker::{
     insert_checkout_session, retrieve_checkout_session_by_stripe_session_id,
@@ -14,6 +15,7 @@ use crate::db::subscribers_db_broker::{
 use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
+use crate::domain::subscription_history_models::HistoryEventType;
 use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
 use crate::stripe_client::StripeClient;
 use crate::util::from_string_to_uuid;
@@ -222,10 +224,15 @@ pub async fn complete_session(
             .await;
 
             match subscription_result {
-                Ok(_) => {
+                Ok(subscription) => {
                     if transaction.commit().await.is_err() {
                         HttpResponse::InternalServerError().finish()
                     } else {
+                        store_subscription_history_event(
+                            subscription.id.clone(),
+                            HistoryEventType::Created,
+                            &pool,
+                        );
                         HttpResponse::Ok().json(json!({}))
                     }
                 }
