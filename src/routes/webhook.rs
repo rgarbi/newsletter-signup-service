@@ -1,6 +1,7 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde_json::json;
 use sqlx::PgPool;
+use tracing::Level;
 
 use crate::configuration::get_configuration;
 

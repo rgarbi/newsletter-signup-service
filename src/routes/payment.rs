@@ -134,19 +134,19 @@ pub async fn create_checkout_session(
                             HttpResponse::Ok().json(redirect_response)
                         }
                         Err(err) => {
-                            tracing::event!(Level::Error, "Err: {:?}", err);
+                            tracing::event!(Level::ERROR, "Err: {:?}", err);
                             HttpResponse::InternalServerError().finish()
                         }
                     }
                 }
                 Err(stripe_error) => {
-                    tracing::event!(Level::Error, "Err: {:?}", stripe_error);
+                    tracing::event!(Level::ERROR, "Err: {:?}", stripe_error);
                     HttpResponse::InternalServerError().finish()
                 }
             }
         }
         Err(err) => {
-            tracing::event!(Level::Error, "Err: {:?}", err);
+            tracing::event!(Level::ERROR, "Err: {:?}", err);
             HttpResponse::InternalServerError().finish()
         }
     }
@@ -212,7 +212,7 @@ pub async fn complete_session(
                 Ok(session) => session,
                 Err(err) => {
                     tracing::event!(
-                        Level::Error,
+                        Level::ERROR,
                         "Something blew up when getting the stripe session! {:?}",
                         err
                     );
@@ -247,7 +247,7 @@ pub async fn complete_session(
             }
         }
         Err(err) => {
-            tracing::event!(Level::Error, "Err: {:?}", err);
+            tracing::event!(Level::ERROR, "Err: {:?}", err);
             HttpResponse::NotFound().finish()
         }
     };
@@ -275,7 +275,7 @@ pub async fn create_stripe_portal_session(
         match retrieve_subscriber_by_user_id(user_id.into_inner().as_str(), &pool).await {
             Ok(subscriber) => subscriber,
             Err(err) => {
-                tracing::event!(Level::Error, "Err: {:?}", err);
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
                 return HttpResponse::BadRequest().finish();
             }
         };
@@ -304,7 +304,7 @@ pub async fn create_stripe_portal_session(
         }
         Err(err) => {
             tracing::event!(
-                Level::Error,
+                Level::ERROR,
                 "Something blew up when creating the portal session! {:?}",
                 err
             );
