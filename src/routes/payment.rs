@@ -1,6 +1,7 @@
 use actix_web::{web, HttpResponse, Responder};
 use serde_json::json;
 use sqlx::PgPool;
+use tracing::Level;
 
 use crate::auth::token::Claims;
 use crate::background::subscription_history_storer::store_subscription_history_event;
@@ -53,7 +54,7 @@ pub async fn create_checkout_session(
     {
         Ok(subscriber) => subscriber,
         Err(err) => {
-            println!("Err: {:?}", err);
+            tracing::event!(Level::ERROR, "Err: {:?}", err);
             return HttpResponse::BadRequest().finish();
         }
     };
@@ -87,7 +88,7 @@ pub async fn create_checkout_session(
         .await;
     match list_prices_response {
         Ok(prices) => {
-            println!("Got prices: {:?}", &prices);
+            tracing::event!(Level::INFO, "Got prices: {:?}", &prices);
             let price_id = prices.data[0].id.to_string();
 
             let checkout_session_response = stripe_client
@@ -104,11 +105,13 @@ pub async fn create_checkout_session(
             match checkout_session_response {
                 Ok(checkout_session_created) => {
                     let checkout_session_url = checkout_session_created.url.clone();
-                    println!(
+                    tracing::event!(
+                        Level::INFO,
                         "Checkout session Created!!! URL: {:?}",
                         &checkout_session_created.url
                     );
-                    println!(
+                    tracing::event!(
+                        Level::INFO,
                         "Checkout session Created!!! ID: {:?}",
                         &checkout_session_created.id
                     );
@@ -124,26 +127,26 @@ pub async fn create_checkout_session(
 
                     match store_checkout_result {
                         Ok(_) => {
-                            println!("REDIRECTING!!!");
+                            tracing::event!(Level::INFO, "REDIRECTING!!!");
                             let redirect_response = CreateStripeSessionRedirect {
                                 location: checkout_session_url.as_str().to_string(),
                             };
                             HttpResponse::Ok().json(redirect_response)
                         }
                         Err(err) => {
-                            println!("Err: {:?}", err);
+                            tracing::event!(Level::Error, "Err: {:?}", err);
                             HttpResponse::InternalServerError().finish()
                         }
                     }
                 }
                 Err(stripe_error) => {
-                    println!("Err: {:?}", stripe_error);
+                    tracing::event!(Level::Error, "Err: {:?}", stripe_error);
                     HttpResponse::InternalServerError().finish()
                 }
             }
         }
         Err(err) => {
-            println!("Err: {:?}", err);
+            tracing::event!(Level::Error, "Err: {:?}", err);
             HttpResponse::InternalServerError().finish()
         }
     }
@@ -208,7 +211,8 @@ pub async fn complete_session(
             {
                 Ok(session) => session,
                 Err(err) => {
-                    println!(
+                    tracing::event!(
+                        Level::Error,
                         "Something blew up when getting the stripe session! {:?}",
                         err
                     );
@@ -243,7 +247,7 @@ pub async fn complete_session(
             }
         }
         Err(err) => {
-            println!("Err: {:?}", err);
+            tracing::event!(Level::Error, "Err: {:?}", err);
             HttpResponse::NotFound().finish()
         }
     };
@@ -271,7 +275,7 @@ pub async fn create_stripe_portal_session(
         match retrieve_subscriber_by_user_id(user_id.into_inner().as_str(), &pool).await {
             Ok(subscriber) => subscriber,
             Err(err) => {
-                println!("Err: {:?}", err);
+                tracing::event!(Level::Error, "Err: {:?}", err);
                 return HttpResponse::BadRequest().finish();
             }
         };
@@ -288,7 +292,8 @@ pub async fn create_stripe_portal_session(
 
     return match result {
         Ok(stripe_billing_portal_session) => {
-            println!(
+            tracing::event!(
+                Level::INFO,
                 "Got the following back {:?}",
                 &stripe_billing_portal_session.url
             );
@@ -298,7 +303,8 @@ pub async fn create_stripe_portal_session(
             HttpResponse::Ok().json(redirect_response)
         }
         Err(err) => {
-            println!(
+            tracing::event!(
+                Level::Error,
                 "Something blew up when creating the portal session! {:?}",
                 err
             );
@@ -318,7 +324,7 @@ async fn get_stripe_customer_id(
         {
             Ok(customer) => Ok(customer.id),
             Err(err) => {
-                println!("Err: {:?}", err);
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(HttpResponse::InternalServerError().finish())
             }
         };

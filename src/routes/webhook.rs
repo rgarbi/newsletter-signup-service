@@ -17,7 +17,7 @@ pub async fn handle_webhook(
         let _signature = stripe_signature_header.unwrap().to_str().ok().unwrap();
         let _body = std::str::from_utf8(&body).unwrap();
 
-        println!("Got a webhook")
+        tracing::event!(Level::INFO, "Got a webhook")
     }
 
     HttpResponse::Ok().json(json!({}))
