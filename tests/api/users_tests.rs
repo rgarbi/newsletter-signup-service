@@ -6,7 +6,7 @@ use wiremock::{Mock, ResponseTemplate};
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::user_models::{
-    ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp,
+    ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
 use newsletter_signup_service::email_client::SendEmailRequest;
 
@@ -128,7 +128,10 @@ async fn sign_up_then_reset_password() {
 
     let reset_password = generate_reset_password(signup.email_address, signup.password);
     let reset_password_response = app
-        .reset_password(reset_password.to_json(), generate_token(login.user_id))
+        .reset_password(
+            reset_password.to_json(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
         .await;
     assert_eq!(200, reset_password_response.status().as_u16());
 }
@@ -145,7 +148,10 @@ async fn reset_password_with_wrong_username_gives_a_400() {
 
     let reset_password = generate_reset_password(Uuid::new_v4().to_string(), signup.password);
     let reset_password_response = app
-        .reset_password(reset_password.to_json(), generate_token(login.user_id))
+        .reset_password(
+            reset_password.to_json(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
         .await;
     assert_eq!(400, reset_password_response.status().as_u16());
 }
@@ -162,7 +168,10 @@ async fn reset_password_with_wrong_password_gives_a_400() {
 
     let reset_password = generate_reset_password(signup.email_address, Uuid::new_v4().to_string());
     let reset_password_response = app
-        .reset_password(reset_password.to_json(), generate_token(login.user_id))
+        .reset_password(
+            reset_password.to_json(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
         .await;
     assert_eq!(400, reset_password_response.status().as_u16());
 }
@@ -179,7 +188,7 @@ async fn reset_password_with_wrong_token_gives_a_401() {
     let reset_password_response = app
         .reset_password(
             reset_password.to_json(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, reset_password_response.status().as_u16());
@@ -433,7 +442,10 @@ async fn check_token_works() {
 
     let user_id = Uuid::new_v4().to_string();
     let response = app
-        .check_token(user_id.clone(), generate_token(user_id.clone()))
+        .check_token(
+            user_id.clone(),
+            generate_token(user_id.clone(), UserGroup::USER),
+        )
         .await;
     assert_eq!(&200, &response.status().as_u16());
 }
@@ -444,7 +456,10 @@ async fn check_token_does_not_work() {
 
     let user_id = Uuid::new_v4().to_string();
     let response = app
-        .check_token(user_id.clone(), generate_token(Uuid::new_v4().to_string()))
+        .check_token(
+            user_id.clone(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
+        )
         .await;
     assert_eq!(&401, &response.status().as_u16());
 }

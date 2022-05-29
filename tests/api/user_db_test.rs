@@ -4,7 +4,7 @@ use uuid::Uuid;
 use newsletter_signup_service::db::users::{
     count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
 };
-use newsletter_signup_service::domain::user_models::SignUp;
+use newsletter_signup_service::domain::user_models::{SignUp, UserGroup};
 
 use crate::helper::spawn_app;
 
@@ -20,8 +20,41 @@ async fn insert_user_works() {
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
 
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
+    assert_ok!(transaction.commit().await);
+}
+
+#[tokio::test]
+async fn insert_admin_user_works() {
+    let app = spawn_app().await;
+
+    let sign_up = SignUp {
+        email_address: Uuid::new_v4().to_string(),
+        password: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
+    };
+
+    let mut transaction = app.db_pool.clone().begin().await.unwrap();
+
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::ADMIN,
+        &mut transaction,
+    )
+    .await;
+    assert_ok!(&result);
+    assert_ok!(transaction.commit().await);
+
+    let user_id = result.unwrap();
+    assert_ok!(get_user_by_user_id(user_id.as_str(), &app.db_pool).await);
 }
 
 #[tokio::test]
@@ -35,10 +68,22 @@ async fn insert_user_two_times_does_not_work() {
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
 
-    let err = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let err = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_err!(&err);
     println!("{:?}", err);
 }
@@ -54,7 +99,13 @@ async fn count_users() {
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
 
     let ok =
@@ -74,7 +125,13 @@ async fn get_user_by_username_test() {
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
     assert_ok!(transaction.commit().await);
 
@@ -92,7 +149,13 @@ async fn get_user_by_username_not_found_test() {
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
 
     assert_err!(get_user_by_email_address(&Uuid::new_v4().to_string(), &app.db_pool).await);
@@ -109,7 +172,13 @@ async fn get_user_by_user_id_test() {
     };
 
     let mut transaction = app.db_pool.clone().begin().await.unwrap();
-    let result = insert_user(&sign_up.email_address, &sign_up.password, &mut transaction).await;
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
     assert_ok!(result);
     assert_ok!(transaction.commit().await);
 

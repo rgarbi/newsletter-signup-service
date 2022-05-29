@@ -49,8 +49,8 @@ pub enum UserGroup {
 impl UserGroup {
     pub fn as_str(&self) -> &'static str {
         match self {
-            UserGroup::USER => "User",
-            UserGroup::ADMIN => "Admin",
+            UserGroup::USER => "USER",
+            UserGroup::ADMIN => "ADMIN",
         }
     }
 }

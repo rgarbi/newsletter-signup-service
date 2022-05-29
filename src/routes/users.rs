@@ -64,18 +64,24 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
             };
 
             let hashed_password = hash_password(sign_up.clone().password).await;
-            let login_response =
-                match insert_user(&transformed_email, &hashed_password, &mut transaction).await {
-                    Ok(user_id) => LoginResponse {
-                        user_id: user_id.clone(),
-                        token: generate_token(user_id, UserGroup::USER),
-                        expires_on: get_expires_at(Option::None),
-                    },
-                    Err(_) => {
-                        transaction.rollback().await.unwrap();
-                        return HttpResponse::InternalServerError().finish();
-                    }
-                };
+            let login_response = match insert_user(
+                &transformed_email,
+                &hashed_password,
+                UserGroup::USER,
+                &mut transaction,
+            )
+            .await
+            {
+                Ok(user_id) => LoginResponse {
+                    user_id: user_id.clone(),
+                    token: generate_token(user_id, UserGroup::USER),
+                    expires_on: get_expires_at(Option::None),
+                },
+                Err(_) => {
+                    transaction.rollback().await.unwrap();
+                    return HttpResponse::InternalServerError().finish();
+                }
+            };
 
             new_subscriber.user_id = login_response.user_id.clone();
             match insert_subscriber(&new_subscriber, &mut transaction).await {

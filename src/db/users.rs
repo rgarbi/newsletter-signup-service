@@ -75,21 +75,23 @@ pub async fn get_user_by_user_id(user_id: &str, pool: &PgPool) -> Result<User, E
 
 #[tracing::instrument(
     name = "Saving new user in the database",
-    skip(email_address, hashed_password, transaction)
+    skip(email_address, hashed_password, user_group, transaction)
 )]
 pub async fn insert_user(
     email_address: &str,
     hashed_password: &str,
+    user_group: UserGroup,
     transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<String, Error> {
     let user_id = Uuid::new_v4();
     sqlx::query!(
         r#"INSERT 
-            INTO users (user_id, email_address, password) 
-            VALUES ($1, $2, $3)"#,
+            INTO users (user_id, email_address, password, user_group) 
+            VALUES ($1, $2, $3, $4)"#,
         user_id,
         email_address,
         hashed_password,
+        user_group.as_str(),
     )
     .execute(transaction)
     .await
@@ -136,6 +138,6 @@ pub fn from_str_to_user_group(val: String) -> UserGroup {
         return UserGroup::ADMIN;
     }
 
-    error!("Could not map string: {} to the enum UserGroup", val);
+    tracing::error!("Could not map string: {} to the enum UserGroup", val);
     UserGroup::USER
 }

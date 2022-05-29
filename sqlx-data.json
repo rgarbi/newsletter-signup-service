@@ -44,38 +44,6 @@
     },
     "query": "SELECT\n            id, \n            subscription_id, \n            subscription_change_event_date, \n            subscription_change_event_type, \n            subscription\n            FROM subscription_event_history WHERE subscription_id = $1"
   },
-  "0604d03a719417dbcb24660b8663853e48910df6f895ff9024e47574c5274e4f": {
-    "describe": {
-      "columns": [
-        {
-          "name": "user_id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "password",
-          "ordinal": 2,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE email_address = $1"
-  },
   "1ddd46e16dfaca18cb40f90227bfe250523119c7ca203b568a8eb9694ae3b7c2": {
     "describe": {
       "columns": [],
@@ -359,38 +327,6 @@
     },
     "query": "SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE user_id = $1 AND email_address = $2"
   },
-  "9f9e36426a6c968a4c3f29033b173e40003a6ecae0e431920ee640b0f9dc0de9": {
-    "describe": {
-      "columns": [
-        {
-          "name": "user_id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "email_address",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "password",
-          "ordinal": 2,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "SELECT user_id, email_address, password\n            FROM users \n            WHERE user_id = $1"
-  },
   "a2a08aa828ddea78a11b97f832ba0394a63178e8d3d0c9a5ad3e143c5e66d10e": {
     "describe": {
       "columns": [
@@ -558,6 +494,44 @@
     },
     "query": "SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE email_address = $1"
   },
+  "c353dea54129349c803085cfe7149d4a9b67ad416116f80fc565e04a3e3410ab": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_group",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT user_id, email_address, password, user_group\n            FROM users \n            WHERE user_id = $1"
+  },
   "c4c4a86508160552322fc4fa19bab4bbdc352648011bd636545b732e48f62e47": {
     "describe": {
       "columns": [
@@ -626,6 +600,44 @@
       }
     },
     "query": "UPDATE subscribers\n            SET stripe_customer_id = $1\n            WHERE id = $2"
+  },
+  "dd5c95445686c69cad6c5d48563c0081ccc1ec487cbc1441372a7eec4ff1196d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_address",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "user_group",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT user_id, email_address, password, user_group\n            FROM users \n            WHERE email_address = $1"
   },
   "e439cae1d8e3efcbd4e986a7faf230172a7e8a3c2bc4aee756d58f891ca42307": {
     "describe": {
