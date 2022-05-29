@@ -421,20 +421,6 @@
     },
     "query": "SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE user_id = $1"
   },
-  "b240fa7ad0bf191778acef620998314c360c8c9b7bef1e042d3b321e2e5b29fa": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "INSERT \n            INTO users (user_id, email_address, password) \n            VALUES ($1, $2, $3)"
-  },
   "bc94521b6940ec0a99805622a95977f73bdeb73517ac7fa9ad4fa9a883df974f": {
     "describe": {
       "columns": [],
@@ -600,6 +586,21 @@
       }
     },
     "query": "UPDATE subscribers\n            SET stripe_customer_id = $1\n            WHERE id = $2"
+  },
+  "ca1988789912be726faaa2cc94693b62f7f968ad6d7dcd68d7c4319c390e10f3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT \n            INTO users (user_id, email_address, password, user_group) \n            VALUES ($1, $2, $3, $4)"
   },
   "dd5c95445686c69cad6c5d48563c0081ccc1ec487cbc1441372a7eec4ff1196d": {
     "describe": {
