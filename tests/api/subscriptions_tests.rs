@@ -6,6 +6,7 @@ use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::subscription_models::{
     NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription,
 };
+use newsletter_signup_service::domain::user_models::UserGroup;
 
 use crate::helper::{
     generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp,
@@ -40,7 +41,7 @@ async fn get_subscriptions_by_subscriber_id_one() {
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
             subscriber.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -59,7 +60,7 @@ async fn get_subscriptions_by_subscriber_id_not_found_returns_bad_request() {
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
             Uuid::new_v4().to_string(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(400, subscriptions_response.status().as_u16());
@@ -72,7 +73,7 @@ async fn get_subscription_by_id_not_found() {
     let subscriptions_response = app
         .get_subscription_by_id(
             Uuid::new_v4().to_string(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, subscriptions_response.status().as_u16());
@@ -92,7 +93,7 @@ async fn get_subscriptions_by_subscriber_id_many() {
     let subscriptions_response = app
         .get_subscriptions_by_subscriber_id(
             subscriber.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -114,7 +115,7 @@ async fn get_subscription_by_id() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -139,7 +140,7 @@ async fn cancel_subscription_by_id() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -153,7 +154,7 @@ async fn cancel_subscription_by_id() {
     let cancel_subscription_response = app
         .cancel_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
@@ -169,7 +170,7 @@ async fn cancel_subscription_by_id_not_authorized() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -177,7 +178,7 @@ async fn cancel_subscription_by_id_not_authorized() {
     let cancel_subscription_response = app
         .cancel_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, cancel_subscription_response.status().as_u16());
@@ -190,7 +191,7 @@ async fn cancel_subscription_by_id_not_found() {
     let cancel_subscription_response = app
         .cancel_subscription_by_id(
             Uuid::new_v4().to_string(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, cancel_subscription_response.status().as_u16());
@@ -206,7 +207,7 @@ async fn cancel_subscription_by_id_2x() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -220,14 +221,14 @@ async fn cancel_subscription_by_id_2x() {
     let mut cancel_subscription_response = app
         .cancel_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
     cancel_subscription_response = app
         .cancel_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, cancel_subscription_response.status().as_u16());
@@ -243,7 +244,7 @@ async fn update_subscription() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -252,7 +253,7 @@ async fn update_subscription() {
         .update_subscription_by_id(
             stored_subscription.id.to_string(),
             stored_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, update_subscription_response.status().as_u16());
@@ -269,7 +270,7 @@ async fn update_subscription_not_found() {
         .update_subscription_by_id(
             Uuid::new_v4().to_string(),
             stored_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, update_subscription_response.status().as_u16());
@@ -285,7 +286,7 @@ async fn update_subscription_not_authorized() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -294,7 +295,7 @@ async fn update_subscription_not_authorized() {
         .update_subscription_by_id(
             stored_subscription.id.to_string(),
             stored_subscription.to_json(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, update_subscription_response.status().as_u16());
@@ -310,7 +311,7 @@ async fn update_subscription_bad_request() {
     let subscriptions_response = app
         .get_subscription_by_id(
             stored_subscription.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, subscriptions_response.status().as_u16());
@@ -321,7 +322,7 @@ async fn update_subscription_bad_request() {
         .update_subscription_by_id(
             stored_subscription.id.to_string(),
             bad_email_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(
@@ -335,7 +336,7 @@ async fn update_subscription_bad_request() {
         .update_subscription_by_id(
             stored_subscription.id.to_string(),
             bad_name_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(400, update_subscription_bad_name_response.status().as_u16());
@@ -346,7 +347,7 @@ async fn update_subscription_bad_request() {
         .update_subscription_by_id(
             stored_subscription.id.to_string(),
             bad_id_subscription.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(400, update_subscription_bad_id_response.status().as_u16());

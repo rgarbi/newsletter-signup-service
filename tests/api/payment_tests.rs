@@ -6,6 +6,7 @@ use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscription_models::{
     OverTheWireCreateSubscription, SubscriptionType,
 };
+use newsletter_signup_service::domain::user_models::UserGroup;
 
 use crate::helper::spawn_app;
 
@@ -72,7 +73,7 @@ async fn checkout_returns_a_400_when_fields_are_present_but_empty() {
             .post_checkout(
                 body.to_json(),
                 subscriber.user_id.clone(),
-                generate_token(subscriber.user_id.clone()),
+                generate_token(subscriber.user_id.clone(), UserGroup::USER),
             )
             .await;
         // Assert

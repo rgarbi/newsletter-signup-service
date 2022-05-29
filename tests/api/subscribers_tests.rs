@@ -4,6 +4,7 @@ use newsletter_signup_service::auth::token::generate_token;
 use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
 };
+use newsletter_signup_service::domain::user_models::UserGroup;
 
 use crate::helper::{generate_over_the_wire_subscriber, spawn_app};
 
@@ -15,7 +16,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
     let response = app
         .post_subscriber(
             subscriber.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
 
@@ -24,7 +25,7 @@ async fn subscribers_returns_a_200_for_valid_form_data() {
     let find_response = app
         .get_subscriber_by_email(
             subscriber.email_address.clone(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(200, find_response.status().as_u16());
@@ -45,7 +46,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_email() {
     let response = app
         .get_subscriber_by_email(
             subscriber.email_address.clone(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert!(response.status().is_success());
@@ -66,7 +67,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_user_id() {
     let response = app
         .get_subscriber_by_user_id_rest_call(
             subscriber.user_id.clone(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert!(response.status().is_success());
@@ -88,7 +89,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_user_id_and_email() {
         .get_subscriber_by_user_id_and_email(
             subscriber.user_id.clone(),
             subscriber.email_address.clone(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert!(response.status().is_success());
@@ -110,7 +111,7 @@ async fn empty_user_id_and_email_gives_404() {
         .get_subscriber_by_user_id_and_email(
             String::new(),
             String::new(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, response.status().as_u16());
@@ -126,7 +127,7 @@ async fn bad_user_id_and_email_gives_404() {
         .get_subscriber_by_user_id_and_email(
             Uuid::new_v4().to_string(),
             Uuid::new_v4().to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, response.status().as_u16());
@@ -142,7 +143,7 @@ async fn bad_user_id_gives_404() {
         .get_subscriber_by_user_id_and_email(
             Uuid::new_v4().to_string(),
             subscriber.email_address.clone(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, response.status().as_u16());
@@ -158,7 +159,7 @@ async fn bad_email_gives_404() {
         .get_subscriber_by_user_id_and_email(
             subscriber.user_id.clone(),
             Uuid::new_v4().to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(404, response.status().as_u16());
@@ -174,7 +175,7 @@ async fn bad_token_gives_401() {
         .get_subscriber_by_user_id_and_email(
             subscriber.user_id.clone(),
             subscriber.email_address.clone(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, response.status().as_u16());
@@ -189,7 +190,7 @@ async fn incorrect_email_returns_404() {
     let response = app
         .get_subscriber_by_email(
             Uuid::new_v4().to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(response.status().as_u16(), 404);
@@ -204,7 +205,7 @@ async fn incorrect_id_returns_404() {
     let response = app
         .get_subscriber_by_id(
             Uuid::new_v4().to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert_eq!(response.status().as_u16(), 404);
@@ -219,7 +220,7 @@ async fn given_a_stored_subscriber_i_can_get_it_by_id() {
     let response = app
         .get_subscriber_by_id(
             subscriber.id.to_string(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     assert!(response.status().is_success());
@@ -263,7 +264,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         let response = app
             .post_subscriber(
                 invalid_body.to_json(),
-                generate_token(invalid_body.user_id.clone()),
+                generate_token(invalid_body.user_id.clone(), UserGroup::USER),
             )
             .await;
 
@@ -290,7 +291,7 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     let response = app
         .post_subscriber(
             subscriber.to_json(),
-            generate_token(subscriber.user_id.clone()),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
         )
         .await;
     // Assert
