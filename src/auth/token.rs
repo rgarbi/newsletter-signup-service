@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::configuration::get_configuration;
+use crate::domain::user_models::UserGroup;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
@@ -70,11 +71,12 @@ impl FromRequest for Claims {
     }
 }
 
-pub fn generate_token(user_id: String) -> String {
+pub fn generate_token(user_id: String, user_group: UserGroup) -> String {
     let auth_config = get_configuration().unwrap().auth_config;
     let now = get_now_in_seconds();
     let claims: Claims = Claims {
         user_id: user_id.clone(),
+        group: user_group.as_str().to_string(),
         iss: auth_config.issuer,
         aud: auth_config.audience,
         sub: user_id,
