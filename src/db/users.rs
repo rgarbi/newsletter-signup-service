@@ -29,7 +29,7 @@ pub async fn count_users_with_email_address(
 #[tracing::instrument(name = "Get user by email address", skip(email_address, pool))]
 pub async fn get_user_by_email_address(email_address: &str, pool: &PgPool) -> Result<User, Error> {
     let result = sqlx::query!(
-        r#"SELECT user_id, email_address, password
+        r#"SELECT user_id, email_address, password, user_group
             FROM users 
             WHERE email_address = $1"#,
         email_address,
@@ -53,7 +53,7 @@ pub async fn get_user_by_email_address(email_address: &str, pool: &PgPool) -> Re
 pub async fn get_user_by_user_id(user_id: &str, pool: &PgPool) -> Result<User, Error> {
     let id = Uuid::from_str(user_id).unwrap();
     let result = sqlx::query!(
-        r#"SELECT user_id, email_address, password
+        r#"SELECT user_id, email_address, password, user_group
             FROM users 
             WHERE user_id = $1"#,
         id,
