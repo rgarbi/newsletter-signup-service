@@ -17,7 +17,7 @@ use newsletter_signup_service::domain::subscriber_models::{
 use newsletter_signup_service::domain::subscription_models::{
     NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription, SubscriptionType,
 };
-use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp};
+use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp, UserGroup};
 use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::stripe_client::stripe_models::{
     StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
@@ -293,7 +293,7 @@ impl TestApp {
         let response = self
             .post_subscriber(
                 subscriber.to_json(),
-                generate_token(subscriber.user_id.clone()),
+                generate_token(subscriber.user_id.clone(), UserGroup::USER),
             )
             .await;
         assert_eq!(200, response.status().as_u16());
@@ -301,7 +301,7 @@ impl TestApp {
         self.response_to_over_the_wire_subscriber(
             self.get_subscriber_by_email(
                 subscriber.email_address.clone(),
-                generate_token(subscriber.user_id.clone()),
+                generate_token(subscriber.user_id.clone(), UserGroup::USER),
             )
             .await,
         )
