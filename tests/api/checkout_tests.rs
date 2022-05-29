@@ -4,6 +4,7 @@ use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_s
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
 use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
+use newsletter_signup_service::domain::user_models::UserGroup;
 use uuid::Uuid;
 
 use crate::helper::{
@@ -29,7 +30,7 @@ async fn create_checkout_session_not_authorized() {
         .post_checkout(
             create_checkout_session.to_json(),
             Uuid::new_v4().to_string(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, checkout_response.status().as_u16());
@@ -229,7 +230,7 @@ async fn complete_session_not_authorized() {
         .post_complete_session(
             user_id.clone(),
             stripe_session_id.clone(),
-            generate_token(Uuid::new_v4().to_string()),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
         )
         .await;
     assert_eq!(401, complete_session_response.status().as_u16());
@@ -239,7 +240,7 @@ async fn complete_session_not_authorized() {
         .post_complete_session(
             someone_else.clone(),
             stripe_session_id.clone(),
-            generate_token(someone_else),
+            generate_token(someone_else, UserGroup::USER),
         )
         .await;
     assert_eq!(
@@ -272,7 +273,7 @@ async fn complete_session_not_found() {
         .post_complete_session(
             user_id.clone(),
             Uuid::new_v4().to_string(),
-            generate_token(user_id),
+            generate_token(user_id, UserGroup::USER),
         )
         .await;
     assert_eq!(404, complete_session_response.status().as_u16());
