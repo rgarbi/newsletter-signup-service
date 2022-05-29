@@ -18,7 +18,7 @@ use crate::db::users::{
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::subscriber_models::NewSubscriber;
 use crate::domain::user_models::{
-    ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp,
+    ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
@@ -68,7 +68,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                 match insert_user(&transformed_email, &hashed_password, &mut transaction).await {
                     Ok(user_id) => LoginResponse {
                         user_id: user_id.clone(),
-                        token: generate_token(user_id),
+                        token: generate_token(user_id, UserGroup::USER),
                         expires_on: get_expires_at(Option::None),
                     },
                     Err(_) => {
@@ -114,7 +114,7 @@ pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Re
 
             HttpResponse::Ok().json(LoginResponse {
                 user_id: user.user_id.to_string(),
-                token: generate_token(user.user_id.to_string()),
+                token: generate_token(user.user_id.to_string(), UserGroup::USER),
                 expires_on: get_expires_at(Option::None),
             })
         }
@@ -238,7 +238,7 @@ pub async fn forgot_password_login(
             match set_to_used_by_otp(passcode.one_time_passcode.as_str(), &pool).await {
                 Ok(_) => HttpResponse::Ok().json(LoginResponse {
                     user_id: passcode.user_id.clone(),
-                    token: generate_token(passcode.user_id.clone()),
+                    token: generate_token(passcode.user_id.clone(), UserGroup::USER),
                     expires_on: get_expires_at(Option::None),
                 }),
                 Err(_) => HttpResponse::InternalServerError().finish(),

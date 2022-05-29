@@ -69,6 +69,7 @@ pub async fn get_user_by_user_id(user_id: &str, pool: &PgPool) -> Result<User, E
         user_id: result.user_id,
         email_address: result.email_address,
         password: result.password,
+        user_group: result.user_group,
     })
 }
 
