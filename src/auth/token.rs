@@ -19,6 +19,7 @@ use crate::configuration::get_configuration;
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
     pub user_id: String,
+    pub group: String,
     pub iss: String,
     pub aud: String,
     pub sub: String,
