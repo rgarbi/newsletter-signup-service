@@ -6,6 +6,7 @@ pub struct User {
     pub user_id: Uuid,
     pub email_address: String,
     pub password: String,
+    pub user_group: UserGroup,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -37,6 +38,21 @@ pub struct ResetPasswordFromForgotPassword {
 #[derive(Deserialize, Serialize)]
 pub struct ForgotPassword {
     pub email_address: String,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum UserGroup {
+    USER,
+    ADMIN,
+}
+
+impl UserGroup {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            UserGroup::USER => "User",
+            UserGroup::ADMIN => "Admin",
+        }
+    }
 }
 
 impl SignUp {
