@@ -45,6 +45,7 @@ pub async fn get_user_by_email_address(email_address: &str, pool: &PgPool) -> Re
         user_id: result.user_id,
         email_address: result.email_address,
         password: result.password,
+        user_group: result.user_group,
     })
 }
 
