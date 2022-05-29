@@ -84,3 +84,17 @@ impl ResetPasswordFromForgotPassword {
         serde_json::to_string(self).expect("Was not able to serialize.")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::domain::user_models::UserGroup;
+
+    #[test]
+    fn user_group_as_str() {
+        let user = UserGroup::USER.as_str();
+        let admin = UserGroup::ADMIN.as_str();
+
+        assert_eq!("USER", user);
+        assert_eq!("ADMIN", admin);
+    }
+}

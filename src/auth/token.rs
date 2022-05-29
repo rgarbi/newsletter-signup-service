@@ -132,11 +132,12 @@ mod tests {
     use uuid::Uuid;
 
     use crate::auth::token::{generate_token, validate_token};
+    use crate::domain::user_models::UserGroup;
 
     #[test]
     fn given_a_user_id_i_can_generate_a_token() {
         let user_id = Uuid::new_v4().to_string();
-        let token = generate_token(user_id.clone());
+        let token = generate_token(user_id.clone(), UserGroup::USER);
         println!("{}", user_id.clone());
         println!("{}", token);
     }
@@ -144,7 +145,7 @@ mod tests {
     #[test]
     fn given_a_valid_token_i_can_get_claims() {
         let user_id = Uuid::new_v4().to_string();
-        let token = generate_token(user_id.clone());
+        let token = generate_token(user_id.clone(), UserGroup::ADMIN);
         let claims = validate_token(token);
         assert_ok!(&claims);
         assert_eq!(user_id.clone(), *claims.unwrap().user_id)
