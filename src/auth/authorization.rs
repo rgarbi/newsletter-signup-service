@@ -11,7 +11,7 @@ pub fn is_authorized_admin_only(user_id: String, token: Claims) -> bool {
         "User ID: {} is not authorized on an admin API",
         user_id
     );
-    return false;
+    false
 }
 
 pub fn is_authorized_user_or_admin(user_id: String, token: Claims) -> bool {
@@ -25,7 +25,7 @@ pub fn is_authorized_user_or_admin(user_id: String, token: Claims) -> bool {
         "User ID: {} is not authorized on an admin API",
         user_id
     );
-    return false;
+    false
 }
 
 #[cfg(test)]
