@@ -40,7 +40,7 @@ pub struct ForgotPassword {
     pub email_address: String,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub enum UserGroup {
     USER,
     ADMIN,
