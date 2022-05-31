@@ -29,7 +29,7 @@ pub fn is_authorized_user_or_admin(user_id: String, token: Claims) -> bool {
 }
 
 pub fn is_authorized_user_only(user_id: String, token: Claims) -> bool {
-    if (user_id == token.user_id) && token.group == UserGroup::USER.as_str() {
+    if (user_id == token.user_id) && token.group == UserGroup::USER {
         return true;
     }
     tracing::event!(
@@ -46,7 +46,9 @@ mod tests {
         is_authorized_admin_only, is_authorized_user_only, is_authorized_user_or_admin,
     };
     use crate::auth::token::Claims;
+    use crate::domain::user_models::UserGroup;
     use uuid::Uuid;
+    use UserGroup::USER;
 
     #[test]
     fn is_authorized_admin_only_passes() {
@@ -54,7 +56,7 @@ mod tests {
 
         let claims = Claims {
             user_id: user_id.clone(),
-            group: "ADMIN".to_string(),
+            group: UserGroup::ADMIN,
             iss: "".to_string(),
             aud: "".to_string(),
             sub: "".to_string(),
@@ -75,7 +77,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: user_id.clone(),
-                    group: "USER".to_string(),
+                    group: USER,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -91,7 +93,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: Uuid::new_v4().to_string(),
-                    group: "ADMIN".to_string(),
+                    group: UserGroup::ADMIN,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -107,23 +109,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: Uuid::new_v4().to_string(),
-                    group: "USER".to_string(),
-                    iss: "".to_string(),
-                    aud: "".to_string(),
-                    sub: "".to_string(),
-                    exp: 0,
-                    iat: 0,
-                }
-            )
-        );
-
-        assert_eq!(
-            false,
-            is_authorized_admin_only(
-                user_id.clone(),
-                Claims {
-                    user_id: Uuid::new_v4().to_string(),
-                    group: Uuid::new_v4().to_string(),
+                    group: UserGroup::USER,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -144,7 +130,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: user_id.clone(),
-                    group: "ADMIN".to_string(),
+                    group: UserGroup::ADMIN,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -160,7 +146,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: user_id.clone(),
-                    group: "USER".to_string(),
+                    group: UserGroup::USER,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -181,7 +167,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: Uuid::new_v4().to_string(),
-                    group: "ADMIN".to_string(),
+                    group: UserGroup::ADMIN,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -202,7 +188,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: user_id.clone(),
-                    group: "USER".to_string(),
+                    group: UserGroup::USER,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -223,7 +209,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: user_id.clone(),
-                    group: "ADMIN".to_string(),
+                    group: UserGroup::ADMIN,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
@@ -239,7 +225,7 @@ mod tests {
                 user_id.clone(),
                 Claims {
                     user_id: Uuid::new_v4().to_string(),
-                    group: "USER".to_string(),
+                    group: UserGroup::USER,
                     iss: "".to_string(),
                     aud: "".to_string(),
                     sub: "".to_string(),
