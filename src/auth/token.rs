@@ -20,7 +20,7 @@ use crate::domain::user_models::UserGroup;
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
     pub user_id: String,
-    pub group: String,
+    pub group: UserGroup,
     pub iss: String,
     pub aud: String,
     pub sub: String,
@@ -76,7 +76,7 @@ pub fn generate_token(user_id: String, user_group: UserGroup) -> String {
     let now = get_now_in_seconds();
     let claims: Claims = Claims {
         user_id: user_id.clone(),
-        group: user_group.as_str().to_string(),
+        group: user_group,
         iss: auth_config.issuer,
         aud: auth_config.audience,
         sub: user_id,
