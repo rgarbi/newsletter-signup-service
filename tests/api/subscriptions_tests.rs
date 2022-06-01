@@ -1,6 +1,4 @@
 use claim::assert_ok;
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
