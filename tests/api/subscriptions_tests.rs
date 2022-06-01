@@ -1,4 +1,6 @@
 use claim::assert_ok;
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
@@ -112,6 +114,32 @@ async fn get_subscription_by_id_not_found() {
         )
         .await;
     assert_eq!(404, subscriptions_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_subscription_by_id_subscriber_not_found_not_found() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    sqlx::query!("ALTER TABLE subscriptions DROP CONSTRAINT subscriptions_subscriber_id_fkey")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscription.");
+
+    sqlx::query!("TRUNCATE TABLE subscribers")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscription.");
+
+    let subscriptions_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
+        )
+        .await;
+    assert_eq!(400, subscriptions_response.status().as_u16());
 }
 
 #[tokio::test]
