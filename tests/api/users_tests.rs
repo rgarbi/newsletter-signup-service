@@ -441,13 +441,21 @@ async fn check_token_works() {
     let app = spawn_app().await;
 
     let user_id = Uuid::new_v4().to_string();
-    let response = app
+    let user_response = app
         .check_token(
             user_id.clone(),
             generate_token(user_id.clone(), UserGroup::USER),
         )
         .await;
-    assert_eq!(&200, &response.status().as_u16());
+    assert_eq!(&200, &user_response.status().as_u16());
+
+    let admin_response = app
+        .check_token(
+            user_id.clone(),
+            generate_token(user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(&200, &admin_response.status().as_u16());
 }
 
 #[tokio::test]
@@ -462,4 +470,65 @@ async fn check_token_does_not_work() {
         )
         .await;
     assert_eq!(&401, &response.status().as_u16());
+}
+
+#[tokio::test]
+async fn check_admin_token_works() {
+    let app = spawn_app().await;
+
+    let user_id = Uuid::new_v4().to_string();
+    let admin_response = app
+        .check_admin_token(
+            user_id.clone(),
+            generate_token(user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(&200, &admin_response.status().as_u16());
+
+    let admin_response = app
+        .check_token(
+            user_id.clone(),
+            generate_token(user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(&200, &admin_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn check_admin_token_does_not_work() {
+    let app = spawn_app().await;
+
+    let user_id = Uuid::new_v4().to_string();
+    assert_eq!(
+        401,
+        app.check_admin_token(
+            user_id.clone(),
+            generate_token(user_id.clone(), UserGroup::USER),
+        )
+        .await
+        .status()
+        .as_u16()
+    );
+
+    assert_eq!(
+        401,
+        app.check_admin_token(
+            Uuid::new_v4().to_string(),
+            generate_token(user_id.clone(), UserGroup::USER),
+        )
+        .await
+        .status()
+        .as_u16()
+    );
+
+    assert_eq!(
+        401,
+        app.check_admin_token(
+            Uuid::new_v4().to_string(),
+            generate_token(user_id.clone(), UserGroup::ADMIN),
+        )
+        .await
+        .status()
+        .as_u16()
+    );
 }

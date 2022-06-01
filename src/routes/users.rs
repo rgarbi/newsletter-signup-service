@@ -1,3 +1,4 @@
+use crate::auth::authorization::is_authorized_admin_only;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{Duration, Utc};
@@ -141,6 +142,21 @@ pub async fn check_token(user_id: web::Path<String>, user: Claims) -> impl Respo
     }
 
     HttpResponse::Ok().json(json!({}))
+}
+
+#[tracing::instrument(
+    name = "Check Admin token",
+    skip(user_id, user),
+    fields(
+        user_id = %user_id,
+    )
+)]
+pub async fn check_admin_token(user_id: web::Path<String>, user: Claims) -> impl Responder {
+    if is_authorized_admin_only(user_id.into_inner(), user) {
+        return HttpResponse::Ok().json(json!({}));
+    }
+
+    HttpResponse::Unauthorized().finish()
 }
 
 #[tracing::instrument(

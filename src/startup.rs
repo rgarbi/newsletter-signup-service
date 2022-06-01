@@ -125,6 +125,10 @@ pub fn run(
                 "/check_token/{user_id}",
                 web::post().to(routes::check_token),
             )
+            .route(
+                "/check_admin_token/{user_id}",
+                web::post().to(routes::check_admin_token),
+            )
             .route("/login", web::post().to(routes::login))
             .route("/forgot_password", web::post().to(routes::forgot_password))
             .route(
