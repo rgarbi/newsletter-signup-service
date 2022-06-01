@@ -67,6 +67,41 @@ async fn get_subscriptions_by_subscriber_id_not_found_returns_bad_request() {
 }
 
 #[tokio::test]
+async fn get_subscriptions_by_subscriber_id_with_mismatched_user_ids_not_authorized() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let _stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    let subscriptions_response = app
+        .get_subscriptions_by_subscriber_id(
+            subscriber.id.to_string(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::USER),
+        )
+        .await;
+    assert_eq!(401, subscriptions_response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_subscriptions_by_subscriber_id_subscription_does_not_exist() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    sqlx::query!("DROP TABLE subscriptions")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscription.");
+
+    let subscriptions_response = app
+        .get_subscriptions_by_subscriber_id(
+            subscriber.id.to_string(),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
+        )
+        .await;
+    assert_eq!(404, subscriptions_response.status().as_u16());
+}
+
+#[tokio::test]
 async fn get_subscription_by_id_not_found() {
     let app = spawn_app().await;
 
