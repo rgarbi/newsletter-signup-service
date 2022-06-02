@@ -1,3 +1,4 @@
+use crate::auth::authorization::is_authorized_user_only;
 use actix_web::{web, HttpResponse, Responder};
 use serde_json::json;
 use sqlx::PgPool;
@@ -35,7 +36,7 @@ pub async fn create_checkout_session(
     user: Claims,
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
-    if user_id.clone() != user.user_id {
+    if !is_authorized_user_only(user_id.into_inner().clone(), user) {
         return HttpResponse::Unauthorized().finish();
     }
 
@@ -169,9 +170,10 @@ pub async fn complete_session(
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
     let session_id = param_tuple.clone().1;
-    if user_id != user.user_id {
+    if !is_authorized_user_only(user_id.clone(), user) {
         return HttpResponse::Unauthorized().finish();
     }
+
     let checkout_session = retrieve_checkout_session_by_stripe_session_id(&session_id, &pool).await;
 
     return match checkout_session {
@@ -267,7 +269,7 @@ pub async fn create_stripe_portal_session(
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let config = get_configuration().unwrap();
-    if user_id.clone() != user.user_id {
+    if !is_authorized_user_only(user_id.into_inner().clone(), user) {
         return HttpResponse::Unauthorized().finish();
     }
 
