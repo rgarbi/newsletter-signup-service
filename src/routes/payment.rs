@@ -36,7 +36,8 @@ pub async fn create_checkout_session(
     user: Claims,
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
-    if !is_authorized_user_only(user_id.into_inner().clone(), user) {
+    let user_id = user_id.into_inner();
+    if !is_authorized_user_only(user_id.clone(), user) {
         return HttpResponse::Unauthorized().finish();
     }
 
@@ -118,7 +119,7 @@ pub async fn create_checkout_session(
                     );
 
                     let store_checkout_result = insert_checkout_session(
-                        user_id.into_inner().clone(),
+                        user_id.clone(),
                         create_checkout_session.price_lookup_key.clone(),
                         new_subscription,
                         checkout_session_created.id.as_str().to_string(),
@@ -269,18 +270,18 @@ pub async fn create_stripe_portal_session(
     stripe_client: web::Data<StripeClient>,
 ) -> impl Responder {
     let config = get_configuration().unwrap();
-    if !is_authorized_user_only(user_id.into_inner().clone(), user) {
+    let user_id = user_id.into_inner();
+    if !is_authorized_user_only(user_id.clone(), user) {
         return HttpResponse::Unauthorized().finish();
     }
 
-    let subscriber =
-        match retrieve_subscriber_by_user_id(user_id.into_inner().as_str(), &pool).await {
-            Ok(subscriber) => subscriber,
-            Err(err) => {
-                tracing::event!(Level::ERROR, "Err: {:?}", err);
-                return HttpResponse::BadRequest().finish();
-            }
-        };
+    let subscriber = match retrieve_subscriber_by_user_id(user_id.as_str(), &pool).await {
+        Ok(subscriber) => subscriber,
+        Err(err) => {
+            tracing::event!(Level::ERROR, "Err: {:?}", err);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
 
     if subscriber.stripe_customer_id.is_none() {
         return HttpResponse::BadRequest().finish();
