@@ -449,11 +449,14 @@ pub fn generate_over_the_wire_subscription() -> OverTheWireSubscription {
         subscription_city: Uuid::new_v4().to_string(),
         subscription_email_address: format!("{}@gmail.com", Uuid::new_v4().to_string()),
         subscription_creation_date: Utc::now(),
+        subscription_cancelled_on_date: None,
+        subscription_anniversary_day: 0,
         subscription_postal_code: Uuid::new_v4().to_string(),
         subscription_mailing_address_line_2: Uuid::new_v4().to_string(),
         subscription_mailing_address_line_1: Uuid::new_v4().to_string(),
         active: false,
         stripe_subscription_id: Uuid::new_v4().to_string(),
+        subscription_anniversary_month: 0,
     }
 }
 
