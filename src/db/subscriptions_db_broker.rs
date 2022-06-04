@@ -133,9 +133,12 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             subscription_postal_code,
             subscription_email_address,
             subscription_creation_date,
+            subscription_cancelled_on_date,
+            subscription_anniversary_day,
             active,
             subscription_type,
-            stripe_subscription_id
+            stripe_subscription_id,
+            subscription_anniversary_month
             FROM subscriptions WHERE subscriber_id = $1"#,
         id
     )
@@ -160,9 +163,12 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             subscription_state: row.subscription_state,
             subscription_postal_code: row.subscription_postal_code,
             subscription_creation_date: row.subscription_creation_date,
+            subscription_cancelled_on_date: row.subscription_cancelled_on_date,
+            subscription_anniversary_day: row.subscription_anniversary_day,
             subscription_type: from_str_to_subscription_type(row.subscription_type),
             active: row.active,
             stripe_subscription_id: row.stripe_subscription_id,
+            subscription_anniversary_month: row.subscription_anniversary_month,
         })
     }
     Ok(subscriptions)
@@ -185,9 +191,12 @@ pub async fn retrieve_subscription_by_subscription_id(
             subscription_postal_code,
             subscription_email_address,
             subscription_creation_date,
+            subscription_cancelled_on_date,
+            subscription_anniversary_day,
             active,
             subscription_type,
-            stripe_subscription_id
+            stripe_subscription_id,
+            subscription_anniversary_month
             FROM subscriptions WHERE id = $1"#,
         id
     )
@@ -209,9 +218,12 @@ pub async fn retrieve_subscription_by_subscription_id(
         subscription_state: result.subscription_state,
         subscription_postal_code: result.subscription_postal_code,
         subscription_creation_date: result.subscription_creation_date,
+        subscription_cancelled_on_date: result.subscription_cancelled_on_date,
+        subscription_anniversary_day: result.subscription_anniversary_day,
         subscription_type: from_str_to_subscription_type(result.subscription_type),
         active: result.active,
         stripe_subscription_id: result.stripe_subscription_id,
+        subscription_anniversary_month: result.subscription_anniversary_month,
     })
 }
 

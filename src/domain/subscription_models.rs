@@ -49,6 +49,8 @@ pub struct NewSubscription {
     pub subscription_postal_code: String,
     pub subscription_email_address: ValidEmail,
     pub subscription_creation_date: DateTime<Utc>,
+    pub subscription_anniversary_day: u8,
+    pub subscription_anniversary_month: u8,
     pub active: bool,
     pub subscription_type: SubscriptionType,
 }
