@@ -105,6 +105,8 @@ impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
             subscription_postal_code: subscription.subscription_postal_code,
             subscription_type: subscription.subscription_type,
             subscription_creation_date: Utc::now(),
+            subscription_anniversary_day: 0,
+            subscription_anniversary_month: 0,
             active: true,
         })
     }
@@ -153,6 +155,8 @@ mod tests {
             subscription_postal_code: "".to_string(),
             subscription_email_address: ValidEmail::parse("someone@gmail.com".to_string()).unwrap(),
             subscription_creation_date: Utc::now(),
+            subscription_anniversary_day: 0,
+            subscription_anniversary_month: 0,
             active: false,
             subscription_type: SubscriptionType::Paper,
         };
