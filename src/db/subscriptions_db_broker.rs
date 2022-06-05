@@ -54,8 +54,11 @@ pub async fn insert_subscription(
             subscription_creation_date,
             active,
             subscription_type,
-            stripe_subscription_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
+            stripe_subscription_id,
+            subscription_cancelled_on_date,
+            subscription_anniversary_day,
+            subscription_anniversary_month
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)"#,
         subscription_to_be_saved.id,
         subscription_to_be_saved.subscriber_id,
         subscription_to_be_saved.subscription_name,
@@ -68,7 +71,10 @@ pub async fn insert_subscription(
         subscription_to_be_saved.subscription_creation_date,
         subscription_to_be_saved.active,
         subscription_to_be_saved.subscription_type.as_str(),
-        subscription_to_be_saved.stripe_subscription_id
+        subscription_to_be_saved.stripe_subscription_id,
+        subscription_to_be_saved.subscription_cancelled_on_date,
+        subscription_to_be_saved.subscription_anniversary_day as i32,
+        subscription_to_be_saved.subscription_anniversary_month as i32
     )
     .execute(transaction)
     .await
@@ -167,11 +173,11 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             subscription_postal_code: row.subscription_postal_code,
             subscription_creation_date: row.subscription_creation_date,
             subscription_cancelled_on_date: row.subscription_cancelled_on_date,
-            subscription_anniversary_day: row.subscription_anniversary_day,
+            subscription_anniversary_day: row.subscription_anniversary_day as u32,
             subscription_type: from_str_to_subscription_type(row.subscription_type),
             active: row.active,
             stripe_subscription_id: row.stripe_subscription_id,
-            subscription_anniversary_month: row.subscription_anniversary_month,
+            subscription_anniversary_month: row.subscription_anniversary_month as u32,
         })
     }
     Ok(subscriptions)
