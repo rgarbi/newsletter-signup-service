@@ -222,11 +222,11 @@ pub async fn retrieve_subscription_by_subscription_id(
         subscription_postal_code: result.subscription_postal_code,
         subscription_creation_date: result.subscription_creation_date,
         subscription_cancelled_on_date: result.subscription_cancelled_on_date,
-        subscription_anniversary_day: result.subscription_anniversary_day,
+        subscription_anniversary_day: result.subscription_anniversary_day as u32,
         subscription_type: from_str_to_subscription_type(result.subscription_type),
         active: result.active,
         stripe_subscription_id: result.stripe_subscription_id,
-        subscription_anniversary_month: result.subscription_anniversary_month,
+        subscription_anniversary_month: result.subscription_anniversary_month as u32,
     })
 }
 

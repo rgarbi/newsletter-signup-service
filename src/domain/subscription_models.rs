@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -31,8 +31,8 @@ pub struct OverTheWireSubscription {
     pub subscription_email_address: String,
     pub subscription_creation_date: DateTime<Utc>,
     pub subscription_cancelled_on_date: Option<DateTime<Utc>>,
-    pub subscription_anniversary_day: i32,
-    pub subscription_anniversary_month: i32,
+    pub subscription_anniversary_day: u32,
+    pub subscription_anniversary_month: u32,
     pub active: bool,
     pub subscription_type: SubscriptionType,
     pub stripe_subscription_id: String,
@@ -49,8 +49,8 @@ pub struct NewSubscription {
     pub subscription_postal_code: String,
     pub subscription_email_address: ValidEmail,
     pub subscription_creation_date: DateTime<Utc>,
-    pub subscription_anniversary_day: i32,
-    pub subscription_anniversary_month: i32,
+    pub subscription_anniversary_day: u32,
+    pub subscription_anniversary_month: u32,
     pub active: bool,
     pub subscription_type: SubscriptionType,
 }
@@ -91,6 +91,10 @@ impl OverTheWireSubscription {
 impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
     type Error = String;
     fn try_from(subscription: OverTheWireCreateSubscription) -> Result<Self, Self::Error> {
+        let subscription_creation_date = Utc::now();
+        let subscription_anniversary_day = subscription_creation_date.clone().day();
+        let subscription_anniversary_month = subscription_creation_date.month();
+
         let subscription_name = ValidName::parse(subscription.subscription_name)?;
         let subscription_email_address =
             ValidEmail::parse(subscription.subscription_email_address)?;
@@ -105,8 +109,8 @@ impl TryFrom<OverTheWireCreateSubscription> for NewSubscription {
             subscription_postal_code: subscription.subscription_postal_code,
             subscription_type: subscription.subscription_type,
             subscription_creation_date: Utc::now(),
-            subscription_anniversary_day: 0,
-            subscription_anniversary_month: 0,
+            subscription_anniversary_day,
+            subscription_anniversary_month,
             active: true,
         })
     }
