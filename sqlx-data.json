@@ -44,18 +44,6 @@
     },
     "query": "SELECT\n            id, \n            subscription_id, \n            subscription_change_event_date, \n            subscription_change_event_type, \n            subscription\n            FROM subscription_event_history WHERE subscription_id = $1"
   },
-  "1ddd46e16dfaca18cb40f90227bfe250523119c7ca203b568a8eb9694ae3b7c2": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "UPDATE subscriptions\n            SET active = false\n            WHERE id = $1"
-  },
   "2142e2864884599dfcb830aa7a07121c4df6e048ef18b4100dbad54d8b0a6aa6": {
     "describe": {
       "columns": [],
@@ -551,6 +539,19 @@
       }
     },
     "query": "SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers WHERE user_id = $1"
+  },
+  "aed516042c50b2a6a025d5b5dd862e6db1e10c2a9dba5c004e2177df3d6e8e0c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "UPDATE subscriptions\n            SET active = false,\n                subscription_cancelled_on_date = $1\n            WHERE id = $2"
   },
   "bc94521b6940ec0a99805622a95977f73bdeb73517ac7fa9ad4fa9a883df974f": {
     "describe": {
