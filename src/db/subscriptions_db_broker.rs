@@ -244,10 +244,13 @@ pub async fn cancel_subscription_by_subscription_id(
     id: Uuid,
     transaction: &mut Transaction<'_, Postgres>,
 ) -> Result<(), sqlx::Error> {
+    let cancelled_date = Utc::now();
     sqlx::query!(
         r#"UPDATE subscriptions
-            SET active = false
-            WHERE id = $1"#,
+            SET active = false,
+                subscription_cancelled_on_date = $1
+            WHERE id = $2"#,
+        cancelled_date,
         id
     )
     .execute(transaction)
