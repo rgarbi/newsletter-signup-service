@@ -18,7 +18,7 @@ pub struct OverTheWireCreateSubscription {
     pub subscription_type: SubscriptionType,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OverTheWireSubscription {
     pub id: Uuid,
     pub subscriber_id: Uuid,

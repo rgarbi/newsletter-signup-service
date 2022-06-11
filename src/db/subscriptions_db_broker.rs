@@ -263,6 +263,62 @@ pub async fn cancel_subscription_by_subscription_id(
     Ok(())
 }
 
+#[tracing::instrument(name = "Get all subscriptions", skip(pool))]
+pub async fn retrieve_all_subscriptions(
+    pool: &PgPool,
+) -> Result<Vec<OverTheWireSubscription>, sqlx::Error> {
+    let rows = sqlx::query!(
+        r#"SELECT
+            id, 
+            subscriber_id, 
+            subscription_name, 
+            subscription_mailing_address_line_1, 
+            subscription_mailing_address_line_2,
+            subscription_city,
+            subscription_state,
+            subscription_postal_code,
+            subscription_email_address,
+            subscription_creation_date,
+            subscription_cancelled_on_date,
+            subscription_anniversary_day,
+            active,
+            subscription_type,
+            stripe_subscription_id,
+            subscription_anniversary_month
+            FROM subscriptions"#
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    let mut subscriptions: Vec<OverTheWireSubscription> = Vec::new();
+
+    for row in rows {
+        subscriptions.push(OverTheWireSubscription {
+            id: row.id,
+            subscriber_id: row.subscriber_id,
+            subscription_name: row.subscription_name,
+            subscription_email_address: row.subscription_email_address,
+            subscription_mailing_address_line_1: row.subscription_mailing_address_line_1,
+            subscription_mailing_address_line_2: row.subscription_mailing_address_line_2,
+            subscription_city: row.subscription_city,
+            subscription_state: row.subscription_state,
+            subscription_postal_code: row.subscription_postal_code,
+            subscription_creation_date: row.subscription_creation_date,
+            subscription_cancelled_on_date: row.subscription_cancelled_on_date,
+            subscription_anniversary_day: row.subscription_anniversary_day as u32,
+            subscription_type: from_str_to_subscription_type(row.subscription_type),
+            active: row.active,
+            stripe_subscription_id: row.stripe_subscription_id,
+            subscription_anniversary_month: row.subscription_anniversary_month as u32,
+        })
+    }
+    Ok(subscriptions)
+}
+
 pub fn from_str_to_subscription_type(val: String) -> SubscriptionType {
     if val.eq("Digital") {
         return SubscriptionType::Digital;

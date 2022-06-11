@@ -44,6 +44,114 @@
     },
     "query": "SELECT\n            id, \n            subscription_id, \n            subscription_change_event_date, \n            subscription_change_event_type, \n            subscription\n            FROM subscription_event_history WHERE subscription_id = $1"
   },
+  "11b4c92a5d7eb459c828764bc6d96aac45c0c9afe3dcb7396cece12d93316884": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscriber_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "subscription_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_1",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_mailing_address_line_2",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_city",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_state",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_postal_code",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_email_address",
+          "ordinal": 8,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_creation_date",
+          "ordinal": 9,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "subscription_cancelled_on_date",
+          "ordinal": 10,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "subscription_anniversary_day",
+          "ordinal": 11,
+          "type_info": "Int4"
+        },
+        {
+          "name": "active",
+          "ordinal": 12,
+          "type_info": "Bool"
+        },
+        {
+          "name": "subscription_type",
+          "ordinal": 13,
+          "type_info": "Text"
+        },
+        {
+          "name": "stripe_subscription_id",
+          "ordinal": 14,
+          "type_info": "Text"
+        },
+        {
+          "name": "subscription_anniversary_month",
+          "ordinal": 15,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            subscription_cancelled_on_date,\n            subscription_anniversary_day,\n            active,\n            subscription_type,\n            stripe_subscription_id,\n            subscription_anniversary_month\n            FROM subscriptions"
+  },
   "2142e2864884599dfcb830aa7a07121c4df6e048ef18b4100dbad54d8b0a6aa6": {
     "describe": {
       "columns": [],

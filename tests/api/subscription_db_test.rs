@@ -4,7 +4,7 @@ use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
 };
 use newsletter_signup_service::db::subscriptions_db_broker::{
-    insert_subscription, retrieve_subscription_by_subscription_id,
+    insert_subscription, retrieve_all_subscriptions, retrieve_subscription_by_subscription_id,
     update_subscription_by_subscription_id,
 };
 use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
@@ -109,4 +109,76 @@ async fn update_subscription_by_subscription_id_err() {
         update_subscription_by_subscription_id(updates.id.clone(), updates.clone(), &app.db_pool)
             .await;
     assert_err!(update_subscription_result);
+}
+
+#[tokio::test]
+async fn get_all_subscriptions_works() {
+    let app = spawn_app().await;
+
+    let subscriber = generate_over_the_wire_subscriber();
+    let new_subscriber: NewSubscriber = subscriber.clone().try_into().unwrap();
+    let mut transaction = app.db_pool.clone().begin().await.unwrap();
+    let result = insert_subscriber(&new_subscriber, &mut transaction).await;
+    assert_ok!(result);
+    assert_ok!(transaction.commit().await);
+
+    let stored_subscriber =
+        retrieve_subscriber_by_user_id(subscriber.user_id.as_str(), &app.db_pool)
+            .await
+            .unwrap();
+    let expected_number_of_subscriptions = 10;
+    transaction = app.db_pool.clone().begin().await.unwrap();
+
+    for _i in 0..expected_number_of_subscriptions {
+        let subscription = generate_new_subscription(stored_subscriber.id.to_string());
+        let insert_subscription_result =
+            insert_subscription(subscription, Uuid::new_v4().to_string(), &mut transaction).await;
+        assert_ok!(&insert_subscription_result);
+        let _subscription = insert_subscription_result.unwrap();
+    }
+    assert_ok!(transaction.commit().await);
+
+    let get_all_result = retrieve_all_subscriptions(&app.db_pool).await;
+    assert_ok!(&get_all_result);
+    assert_eq!(
+        expected_number_of_subscriptions,
+        get_all_result.unwrap().len()
+    )
+}
+
+#[tokio::test]
+async fn get_all_subscriptions_errors() {
+    let app = spawn_app().await;
+
+    let subscriber = generate_over_the_wire_subscriber();
+    let new_subscriber: NewSubscriber = subscriber.clone().try_into().unwrap();
+    let mut transaction = app.db_pool.clone().begin().await.unwrap();
+    let result = insert_subscriber(&new_subscriber, &mut transaction).await;
+    assert_ok!(result);
+    assert_ok!(transaction.commit().await);
+
+    let stored_subscriber =
+        retrieve_subscriber_by_user_id(subscriber.user_id.as_str(), &app.db_pool)
+            .await
+            .unwrap();
+    let expected_number_of_subscriptions = 10;
+    transaction = app.db_pool.clone().begin().await.unwrap();
+
+    for _i in 0..expected_number_of_subscriptions {
+        let subscription = generate_new_subscription(stored_subscriber.id.to_string());
+        let insert_subscription_result =
+            insert_subscription(subscription, Uuid::new_v4().to_string(), &mut transaction).await;
+        assert_ok!(&insert_subscription_result);
+        let _subscription = insert_subscription_result.unwrap();
+    }
+    assert_ok!(transaction.commit().await);
+
+    // Sabotage the database
+    sqlx::query!("ALTER TABLE subscriptions DROP COLUMN subscription_name;",)
+        .execute(&app.db_pool)
+        .await
+        .unwrap();
+
+    let get_all_result = retrieve_all_subscriptions(&app.db_pool).await;
+    assert_err!(&get_all_result);
 }
