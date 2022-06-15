@@ -50,6 +50,10 @@ services:
         sync: false
       - key: APP__STRIPE_CLIENT__WEBHOOK_KEY
         sync: false
+      - key: APP__STRIPE_CLIENT__DIGITAL_PRICE_LOOKUP_KEY
+        sync: false
+      - key: APP__STRIPE_CLIENT__PAPER_PRICE_LOOKUP_KEY
+        sync: false
     domains:
       - api.gospelmessage.net
   #STAGING API

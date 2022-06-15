@@ -24,3 +24,5 @@ stripe_client:
   api_public_key: ""
   webhook_key: ""
   timeout_milliseconds: 10000
+  digital_price_lookup_key: ""
+  paper_price_lookup_key: ""
