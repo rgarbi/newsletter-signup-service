@@ -18,7 +18,9 @@ use crate::db::subscriptions_db_broker::insert_subscription;
 use crate::domain::checkout_models::{CreateCheckoutSession, CreateStripeSessionRedirect};
 use crate::domain::subscriber_models::OverTheWireSubscriber;
 use crate::domain::subscription_history_models::HistoryEventType;
-use crate::domain::subscription_models::{NewSubscription, OverTheWireCreateSubscription};
+use crate::domain::subscription_models::{
+    NewSubscription, OverTheWireCreateSubscription, SubscriptionType,
+};
 use crate::stripe_client::StripeClient;
 use crate::util::from_string_to_uuid;
 
@@ -333,5 +335,13 @@ async fn get_stripe_customer_id(
         };
     } else {
         Ok(subscriber.stripe_customer_id.clone().unwrap())
+    }
+}
+
+fn get_price_lookup_key(subscription_type: SubscriptionType) -> String {
+    let config = get_configuration().unwrap().stripe_client;
+    match subscription_type {
+        SubscriptionType::Digital => config.digital_price_lookup_key,
+        SubscriptionType::Paper => config.paper_price_lookup_key,
     }
 }
