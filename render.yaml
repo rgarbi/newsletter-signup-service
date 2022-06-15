@@ -88,11 +88,11 @@ services:
           name: staging newsletter-signup-service-db
           property: database
       - key: APP__APPLICATION__WEB_APP_HOST
-        value: https://subscribe.gospelmessage.net
+        value: https://staging-subscribe.gospelmessage.net
       - key: APP__AUTH_CONFIG__AUDIENCE
-        value: https://api.gospelmessage.net
+        value: https://staging-api.gospelmessage.net
       - key: APP__AUTH_CONFIG__ISSUER
-        value: https://api.gospelmessage.net
+        value: https://staging-api.gospelmessage.net
       - key: APP__AUTH_CONFIG__SIGNING_KEY
         generateValue: true
       - key: APP__EMAIL_CLIENT__API_KEY
