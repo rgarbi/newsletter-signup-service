@@ -419,10 +419,11 @@ pub fn generate_over_the_wire_subscriber() -> OverTheWireCreateSubscriber {
 
 pub fn generate_over_the_wire_create_subscription(
     subscriber_id: String,
+    subscription_type: Option<SubscriptionType>,
 ) -> OverTheWireCreateSubscription {
     OverTheWireCreateSubscription {
         subscriber_id,
-        subscription_type: SubscriptionType::Digital,
+        subscription_type: subscription_type.unwrap_or_else(|| SubscriptionType::Digital),
         subscription_state: Uuid::new_v4().to_string(),
         subscription_name: Uuid::new_v4().to_string(),
         subscription_city: Uuid::new_v4().to_string(),

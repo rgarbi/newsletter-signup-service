@@ -4,7 +4,9 @@ use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
-use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
+use newsletter_signup_service::domain::subscription_models::{
+    OverTheWireSubscription, SubscriptionType,
+};
 use newsletter_signup_service::domain::user_models::UserGroup;
 use uuid::Uuid;
 
@@ -21,7 +23,7 @@ use crate::helper::{
 async fn create_checkout_session_not_authorized() {
     let app = spawn_app().await;
 
-    let subscription = generate_over_the_wire_create_subscription(Uuid::new_v4().to_string());
+    let subscription = generate_over_the_wire_create_subscription(Uuid::new_v4().to_string(), None);
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: Uuid::new_v4().to_string(),
         subscription,
@@ -48,7 +50,10 @@ async fn create_checkout_session_subscriber_not_found() {
     let login: LoginResponse = serde_json::from_str(sign_up_response_body.as_str()).unwrap();
 
     let price_lookup_key = Uuid::new_v4().to_string();
-    let subscription = generate_over_the_wire_create_subscription(Uuid::new_v4().to_string());
+    let subscription = generate_over_the_wire_create_subscription(
+        Uuid::new_v4().to_string(),
+        Some(SubscriptionType::Digital),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -79,8 +84,10 @@ async fn create_checkout_session_stripe_customer_blows_up() {
     //SUBSCRIBE!
     mock_stripe_create_customer_returns_a_500(&app.stripe_server, subscriber.email_address.clone())
         .await;
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Paper),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: Uuid::new_v4().to_string(),
         subscription,
@@ -114,8 +121,10 @@ async fn create_checkout_session_cannot_find_prices() {
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup_returns_a_500(&app.stripe_server, price_lookup_key.clone()).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Paper),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -149,8 +158,10 @@ async fn create_checkout_session_fails() {
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_stripe_create_session_returns_a_500(&app.stripe_server).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Digital),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -185,8 +196,10 @@ async fn store_create_checkout_result_fails() {
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Paper),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -302,8 +315,10 @@ async fn create_stripe_portal_session_works() {
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Digital),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
