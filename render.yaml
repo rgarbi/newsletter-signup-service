@@ -51,9 +51,9 @@ services:
       - key: APP__STRIPE_CLIENT__WEBHOOK_KEY
         sync: false
       - key: APP__STRIPE_CLIENT__DIGITAL_PRICE_LOOKUP_KEY
-        sync: false
+        value: gospelmessage-digital
       - key: APP__STRIPE_CLIENT__PAPER_PRICE_LOOKUP_KEY
-        sync: false
+        value: gospelmessage-paper
     domains:
       - api.gospelmessage.net
   #STAGING API
@@ -107,6 +107,10 @@ services:
         sync: false
       - key: APP__STRIPE_CLIENT__WEBHOOK_KEY
         sync: false
+      - key: APP__STRIPE_CLIENT__DIGITAL_PRICE_LOOKUP_KEY
+        value: gospelmessage-digital
+      - key: APP__STRIPE_CLIENT__PAPER_PRICE_LOOKUP_KEY
+        value: gospelmessage-paper
     domains:
       - staging-api.gospelmessage.net
 
