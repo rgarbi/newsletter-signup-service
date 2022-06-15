@@ -345,3 +345,24 @@ fn get_price_lookup_key(subscription_type: SubscriptionType) -> String {
         SubscriptionType::Paper => config.paper_price_lookup_key,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::configuration::get_configuration;
+    use crate::domain::subscription_models::SubscriptionType;
+    use crate::routes::payment::get_price_lookup_key;
+
+    #[test]
+    fn get_price_lookup_key_works() {
+        let config = get_configuration().unwrap().stripe_client;
+
+        assert_eq!(
+            config.paper_price_lookup_key,
+            get_price_lookup_key(SubscriptionType::Paper)
+        );
+        assert_eq!(
+            config.digital_price_lookup_key,
+            get_price_lookup_key(SubscriptionType::Digital)
+        );
+    }
+}
