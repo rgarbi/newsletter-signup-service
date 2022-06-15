@@ -74,7 +74,8 @@ pub async fn create_checkout_session(
         &configuration.application.web_app_host
     );
 
-    let look_up_keys = [create_checkout_session.price_lookup_key.clone()].to_vec();
+    let lookup_key = get_price_lookup_key(new_subscription.clone().subscription_type);
+    let look_up_keys = [lookup_key].to_vec();
     //Get customer
     let stripe_customer_id = match get_stripe_customer_id(&subscriber, &stripe_client).await {
         Ok(id) => id,
