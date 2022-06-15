@@ -1,5 +1,6 @@
 use claim::assert_ok;
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
+use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
@@ -98,6 +99,7 @@ async fn create_checkout_session_stripe_customer_blows_up() {
 #[tokio::test]
 async fn create_checkout_session_cannot_find_prices() {
     let app = spawn_app().await;
+    let config = get_configuration().unwrap().stripe_client;
 
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
@@ -108,7 +110,7 @@ async fn create_checkout_session_cannot_find_prices() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.paper_price_lookup_key;
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup_returns_a_500(&app.stripe_server, price_lookup_key.clone()).await;
 
@@ -132,7 +134,7 @@ async fn create_checkout_session_cannot_find_prices() {
 #[tokio::test]
 async fn create_checkout_session_fails() {
     let app = spawn_app().await;
-
+    let config = get_configuration().unwrap().stripe_client;
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
 
@@ -142,7 +144,7 @@ async fn create_checkout_session_fails() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.digital_price_lookup_key;
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_stripe_create_session_returns_a_500(&app.stripe_server).await;
@@ -167,7 +169,7 @@ async fn create_checkout_session_fails() {
 #[tokio::test]
 async fn store_create_checkout_result_fails() {
     let app = spawn_app().await;
-
+    let config = get_configuration().unwrap().stripe_client;
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
 
@@ -177,7 +179,7 @@ async fn store_create_checkout_result_fails() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.paper_price_lookup_key;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
@@ -282,6 +284,7 @@ async fn complete_session_not_found() {
 #[tokio::test]
 async fn create_stripe_portal_session_works() {
     let app = spawn_app().await;
+    let config = get_configuration().unwrap().stripe_client;
 
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
@@ -292,7 +295,7 @@ async fn create_stripe_portal_session_works() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.digital_price_lookup_key;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
