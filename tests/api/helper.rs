@@ -435,7 +435,7 @@ pub fn generate_over_the_wire_create_subscription(
 }
 
 pub fn generate_new_subscription(subscriber_id: String) -> NewSubscription {
-    generate_over_the_wire_create_subscription(subscriber_id)
+    generate_over_the_wire_create_subscription(subscriber_id, None)
         .try_into()
         .unwrap()
 }
@@ -469,7 +469,8 @@ pub fn generate_checkout_session(stripe_session_id: Option<String>) -> CheckoutS
         created_at: Utc::now(),
         price_lookup_key: Uuid::new_v4().to_string(),
         subscription: json!(generate_over_the_wire_create_subscription(
-            Uuid::new_v4().to_string()
+            Uuid::new_v4().to_string(),
+            None
         )),
         stripe_session_id: stripe_session_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
     }

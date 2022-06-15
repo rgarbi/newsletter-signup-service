@@ -3,9 +3,12 @@ use crate::helper::{
     mock_get_stripe_session, mock_stripe_create_customer, mock_stripe_price_lookup, spawn_app,
 };
 use newsletter_signup_service::auth::token::LoginResponse;
+use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::domain::checkout_models::CreateCheckoutSession;
 use newsletter_signup_service::domain::subscriber_models::OverTheWireSubscriber;
-use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
+use newsletter_signup_service::domain::subscription_models::{
+    OverTheWireSubscription, SubscriptionType,
+};
 use uuid::Uuid;
 
 /*
@@ -16,6 +19,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn end_to_end_subscribe_test() {
     let app = spawn_app().await;
+    let config = get_configuration().unwrap().stripe_client;
 
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
@@ -26,15 +30,17 @@ async fn end_to_end_subscribe_test() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.digital_price_lookup_key;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Digital),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -80,6 +86,7 @@ async fn end_to_end_subscribe_test() {
 #[tokio::test]
 async fn end_to_end_subscribe_test_2x() {
     let app = spawn_app().await;
+    let config = get_configuration().unwrap().stripe_client;
 
     //SIGN UP
     let login: LoginResponse = app.sign_up().await;
@@ -90,15 +97,17 @@ async fn end_to_end_subscribe_test_2x() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = Uuid::new_v4().to_string();
+    let price_lookup_key = config.paper_price_lookup_key;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
     mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
-    let subscription =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Paper),
+    );
     let create_checkout_session = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription,
@@ -130,8 +139,10 @@ async fn end_to_end_subscribe_test_2x() {
     mock_create_checkout_session(&app.stripe_server, stripe_session_id_again.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id_again.clone()).await;
 
-    let subscription_again =
-        generate_over_the_wire_create_subscription(subscriber.id.to_string().clone());
+    let subscription_again = generate_over_the_wire_create_subscription(
+        subscriber.id.to_string().clone(),
+        Some(SubscriptionType::Paper),
+    );
     let create_checkout_session_again = CreateCheckoutSession {
         price_lookup_key: price_lookup_key.clone(),
         subscription: subscription_again,

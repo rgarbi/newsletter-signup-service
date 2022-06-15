@@ -419,8 +419,8 @@ async fn store_subscription(
     subscription: Option<OverTheWireCreateSubscription>,
     app: &TestApp,
 ) -> OverTheWireSubscription {
-    let over_the_wire_create_subscription =
-        subscription.unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id));
+    let over_the_wire_create_subscription = subscription
+        .unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id, None));
 
     let mut transaction_result = app.db_pool.begin().await;
     assert_ok!(&mut transaction_result);
