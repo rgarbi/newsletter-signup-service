@@ -21,6 +21,7 @@ use crate::domain::subscription_history_models::HistoryEventType;
 use crate::domain::subscription_models::{
     NewSubscription, OverTheWireCreateSubscription, SubscriptionType,
 };
+use crate::email_client::EmailClient;
 use crate::stripe_client::StripeClient;
 use crate::util::from_string_to_uuid;
 
@@ -159,7 +160,7 @@ pub async fn create_checkout_session(
 
 #[tracing::instrument(
     name = "Complete Session",
-    skip(params, pool, user, stripe_client),
+    skip(params, pool, user, stripe_client, email_client),
     fields(
         user_id = %params.0,
         session_id = %params.1,
@@ -170,6 +171,7 @@ pub async fn complete_session(
     pool: web::Data<PgPool>,
     user: Claims,
     stripe_client: web::Data<StripeClient>,
+    email_client: web::Data<EmailClient>,
 ) -> impl Responder {
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
@@ -243,6 +245,7 @@ pub async fn complete_session(
                             HistoryEventType::Created,
                             &pool,
                         );
+
                         HttpResponse::Ok().json(json!({}))
                     }
                 }
