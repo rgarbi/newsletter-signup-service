@@ -160,7 +160,7 @@ pub async fn create_checkout_session(
 
 #[tracing::instrument(
     name = "Complete Session",
-    skip(params, pool, user, stripe_client, email_client),
+    skip(params, pool, user, stripe_client, _email_client),
     fields(
         user_id = %params.0,
         session_id = %params.1,
@@ -171,7 +171,7 @@ pub async fn complete_session(
     pool: web::Data<PgPool>,
     user: Claims,
     stripe_client: web::Data<StripeClient>,
-    email_client: web::Data<EmailClient>,
+    _email_client: web::Data<EmailClient>,
 ) -> impl Responder {
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
