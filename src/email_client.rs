@@ -48,11 +48,12 @@ impl EmailClient {
         let auth_header = format!("Bearer {}", self.api_key.expose_secret());
 
         let email_content = SendEmailRequest {
-            personalizations: [Personalization {
-                to: [SendTo {
+            personalizations: Vec::from([Personalization {
+                to: Vec::from([SendTo {
                     email: recipient.to_string(),
-                }; 1],
-            }; 1],
+                    name: "".to_string(),
+                }]),
+            }]),
             from: SendFrom {
                 email: self.sender.to_string(),
             },
