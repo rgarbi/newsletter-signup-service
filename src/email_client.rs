@@ -11,6 +11,7 @@ pub struct EmailClient {
     sender: ValidEmail,
     api_key: Secret<String>,
 }
+
 impl EmailClient {
     pub fn new(
         base_url: String,
@@ -93,7 +94,7 @@ impl EmailClient {
 
 #[derive(Deserialize, Serialize)]
 pub struct SendEmailRequest {
-    pub personalizations: [Personalization; 1],
+    pub personalizations: Vec<Personalization>,
     pub from: SendFrom,
     pub subject: String,
     pub content: [EmailContent; 2],
@@ -101,12 +102,13 @@ pub struct SendEmailRequest {
 
 #[derive(Deserialize, Serialize)]
 pub struct Personalization {
-    pub to: [SendTo; 1],
+    pub to: Vec<SendTo>,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct SendTo {
     pub email: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Serialize)]
