@@ -56,6 +56,7 @@ impl EmailClient {
             }]),
             from: SendFrom {
                 email: self.sender.to_string(),
+                name: String::new(),
             },
             subject: String::from(subject),
             content: [
@@ -115,6 +116,7 @@ pub struct SendTo {
 #[derive(Deserialize, Serialize)]
 pub struct SendFrom {
     pub email: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Serialize)]
