@@ -45,12 +45,6 @@ async fn notify_of_new_subscriber_works() {
     let stored_subscription =
         store_subscription(stored_subscriber.clone().id.to_string(), None, &app).await;
 
-    notify_of_new_subscription(
-        stored_subscription.id.clone(),
-        email_client(app.email_server.uri().clone()),
-        &app.db_pool,
-    );
-
     Mock::given(header_exists("Authorization"))
         .and(header("Content-Type", "application/json"))
         .and(path("v3/mail/send"))
@@ -60,7 +54,13 @@ async fn notify_of_new_subscriber_works() {
         .mount(&app.email_server)
         .await;
 
-    sleep(Duration::from_secs(2));
+    notify_of_new_subscription(
+        stored_subscription.id.clone(),
+        email_client(app.email_server.uri().clone()),
+        &app.db_pool,
+    );
+
+    sleep(Duration::from_secs(5));
 }
 
 fn email_client(base_url: String) -> EmailClient {
