@@ -2,7 +2,9 @@ use chrono::Utc;
 use claim::{assert_err, assert_ok};
 use fake::faker::internet::en::SafeEmail;
 use fake::{Fake, Faker};
-use newsletter_signup_service::background::new_subscription_notifier::notify_of_new_subscription;
+use newsletter_signup_service::background::new_subscription_notifier::{
+    notify_of_new_subscription, notify_subscriber,
+};
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
 };
@@ -54,13 +56,12 @@ async fn notify_of_new_subscriber_works() {
         .mount(&app.email_server)
         .await;
 
-    notify_of_new_subscription(
+    notify_subscriber(
         stored_subscription.id.clone(),
         email_client(app.email_server.uri().clone()),
         &app.db_pool,
-    );
-
-    sleep(Duration::from_secs(5));
+    )
+    .await;
 }
 
 fn email_client(base_url: String) -> EmailClient {
