@@ -9,6 +9,7 @@ mod subscriber_db_test;
 mod subscribers_tests;
 mod subscription_db_test;
 mod subscription_event_history_db_tests;
+mod subscription_notifier_test;
 mod subscriptions_tests;
 mod user_db_test;
 mod users_tests;

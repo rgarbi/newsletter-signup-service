@@ -1,4 +1,5 @@
 use chrono::Utc;
+use claim::assert_ok;
 use once_cell::sync::Lazy;
 use reqwest::Response;
 use serde_json::json;
@@ -10,6 +11,7 @@ use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
+use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use newsletter_signup_service::domain::subscriber_models::{
     OverTheWireCreateSubscriber, OverTheWireSubscriber,
@@ -660,4 +662,29 @@ pub async fn mock_cancel_stripe_subscription(mock_server: &MockServer, subscript
         .expect(1)
         .mount(&mock_server)
         .await;
+}
+
+pub async fn store_subscription(
+    subscriber_id: String,
+    subscription: Option<OverTheWireCreateSubscription>,
+    app: &TestApp,
+) -> OverTheWireSubscription {
+    let over_the_wire_create_subscription = subscription
+        .unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id, None));
+
+    let mut transaction_result = app.db_pool.begin().await;
+    assert_ok!(&mut transaction_result);
+    let mut transaction = transaction_result.unwrap();
+
+    let new_subscription: NewSubscription = over_the_wire_create_subscription.try_into().unwrap();
+
+    let response = insert_subscription(
+        new_subscription,
+        Uuid::new_v4().to_string(),
+        &mut transaction,
+    )
+    .await;
+    assert_ok!(&response);
+    assert_ok!(transaction.commit().await);
+    response.unwrap()
 }

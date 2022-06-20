@@ -9,7 +9,8 @@ use newsletter_signup_service::domain::subscription_models::{
 use newsletter_signup_service::domain::user_models::UserGroup;
 
 use crate::helper::{
-    generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app, TestApp,
+    generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app,
+    store_subscription, TestApp,
 };
 
 #[tokio::test]
@@ -412,29 +413,4 @@ async fn update_subscription_bad_request() {
         )
         .await;
     assert_eq!(400, update_subscription_bad_id_response.status().as_u16());
-}
-
-async fn store_subscription(
-    subscriber_id: String,
-    subscription: Option<OverTheWireCreateSubscription>,
-    app: &TestApp,
-) -> OverTheWireSubscription {
-    let over_the_wire_create_subscription = subscription
-        .unwrap_or_else(|| generate_over_the_wire_create_subscription(subscriber_id, None));
-
-    let mut transaction_result = app.db_pool.begin().await;
-    assert_ok!(&mut transaction_result);
-    let mut transaction = transaction_result.unwrap();
-
-    let new_subscription: NewSubscription = over_the_wire_create_subscription.try_into().unwrap();
-
-    let response = insert_subscription(
-        new_subscription,
-        Uuid::new_v4().to_string(),
-        &mut transaction,
-    )
-    .await;
-    assert_ok!(&response);
-    assert_ok!(transaction.commit().await);
-    response.unwrap()
 }
