@@ -1,7 +1,7 @@
 use chrono::Utc;
 use claim::{assert_err, assert_ok};
-use fake::Faker;
-use secrecy::Secret;
+use fake::faker::internet::en::SafeEmail;
+use fake::{Fake, Faker};
 use newsletter_signup_service::background::new_subscription_notifier::notify_of_new_subscription;
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
@@ -14,8 +14,14 @@ use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
 use newsletter_signup_service::domain::subscription_models::{
     OverTheWireSubscription, SubscriptionType,
 };
-use uuid::Uuid;
+use newsletter_signup_service::domain::valid_email::ValidEmail;
 use newsletter_signup_service::email_client::EmailClient;
+use secrecy::Secret;
+use std::thread::sleep;
+use std::time::Duration;
+use uuid::Uuid;
+use wiremock::matchers::{header, header_exists, method, path};
+use wiremock::{Mock, ResponseTemplate};
 
 use crate::helper::{
     generate_new_subscription, generate_over_the_wire_subscriber, spawn_app, store_subscription,
@@ -24,7 +30,6 @@ use crate::helper::{
 #[tokio::test]
 async fn notify_of_new_subscriber_works() {
     let app = spawn_app().await;
-    let mock_email_client = app.email_server
 
     let subscriber = generate_over_the_wire_subscriber();
     let new_subscriber: NewSubscriber = subscriber.clone().try_into().unwrap();
@@ -37,9 +42,25 @@ async fn notify_of_new_subscriber_works() {
         retrieve_subscriber_by_user_id(subscriber.user_id.as_str(), &app.db_pool)
             .await
             .unwrap();
-    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+    let stored_subscription =
+        store_subscription(stored_subscriber.clone().id.to_string(), None, &app).await;
 
-    notify_of_new_subscription(stored_subscription.id.clone())
+    notify_of_new_subscription(
+        stored_subscription.id.clone(),
+        email_client(app.email_server.uri().clone()),
+        &app.db_pool,
+    );
+
+    Mock::given(header_exists("Authorization"))
+        .and(header("Content-Type", "application/json"))
+        .and(path("v3/mail/send"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    sleep(Duration::from_secs(2));
 }
 
 fn email_client(base_url: String) -> EmailClient {
@@ -49,4 +70,8 @@ fn email_client(base_url: String) -> EmailClient {
         Secret::new(Faker.fake()),
         std::time::Duration::from_millis(200),
     )
+}
+
+fn email() -> ValidEmail {
+    ValidEmail::parse(SafeEmail().fake()).unwrap()
 }
