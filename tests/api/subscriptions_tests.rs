@@ -1,17 +1,10 @@
-use claim::assert_ok;
 use uuid::Uuid;
 
 use newsletter_signup_service::auth::token::generate_token;
-use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
-use newsletter_signup_service::domain::subscription_models::{
-    NewSubscription, OverTheWireCreateSubscription, OverTheWireSubscription,
-};
+use newsletter_signup_service::domain::subscription_models::OverTheWireSubscription;
 use newsletter_signup_service::domain::user_models::UserGroup;
 
-use crate::helper::{
-    generate_over_the_wire_create_subscription, mock_cancel_stripe_subscription, spawn_app,
-    store_subscription, TestApp,
-};
+use crate::helper::{mock_cancel_stripe_subscription, spawn_app, store_subscription};
 
 #[tokio::test]
 async fn subscriptions_returns_a_200_for_valid_form_data() {
