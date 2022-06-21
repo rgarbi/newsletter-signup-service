@@ -5,3 +5,5 @@ database:
 email_client:
   base_url: "https://api.sendgrid.com"
   sender_email: "thegospelmessage61@gmail.com"
+application_feature_settings:
+  subscription_notification_addresses: ["richard.garbi+subscriptiontest1@gmail.com", "richard.garbi+subscriptiontest2@gmail.com"]

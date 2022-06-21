@@ -25,6 +25,10 @@ pub struct ApplicationSettings {
     pub web_app_host: String,
 }
 
+pub struct ApplicationFeatureSettings {
+    pub subscription_notification_addresses: Vec<String>,
+}
+
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
