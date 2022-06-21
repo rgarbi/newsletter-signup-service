@@ -33,10 +33,7 @@ impl EmailClient {
 
     #[tracing::instrument(
         name = "Sending an email",
-        skip(recipient, subject, html_content, text_content),
-        fields(
-            email = %recipient.to_string(),
-        )
+        skip(recipient, subject, html_content, text_content)
     )]
     pub async fn send_email(
         &self,
@@ -49,10 +46,7 @@ impl EmailClient {
 
         let email_content = SendEmailRequest {
             personalizations: Vec::from([Personalization {
-                to: Vec::from([SendTo {
-                    email: recipient.to_string(),
-                    name: "".to_string(),
-                }]),
+                to: from_recipient_to_personalizations(recipient),
             }]),
             from: SendFrom {
                 email: self.sender.to_string(),
