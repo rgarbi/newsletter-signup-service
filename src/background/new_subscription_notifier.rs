@@ -1,3 +1,4 @@
+use crate::configuration::get_configuration;
 use crate::db::subscriptions_db_broker::retrieve_subscription_by_subscription_id;
 use crate::domain::valid_email::ValidEmail;
 use crate::email_client::EmailClient;
@@ -14,11 +15,17 @@ pub fn notify_of_new_subscription(subscription_id: Uuid, email_client: EmailClie
 pub async fn notify_subscriber(subscription_id: Uuid, email_client: EmailClient, pool: &PgPool) {
     if let Ok(subscription) = retrieve_subscription_by_subscription_id(subscription_id, pool).await
     {
+        let recipients = get_configuration()
+            .unwrap()
+            .application_feature_settings
+            .subscription_notification_addresses
+            .iter()
+            .map(|recipient| ValidEmail::parse(recipient.clone()).unwrap())
+            .collect::<Vec<ValidEmail>>();
+
         let _ = email_client
             .send_email(
-                Vec::from([
-                    ValidEmail::parse(String::from("thegospelmessage61@gmail.com")).unwrap(),
-                ]),
+                recipients,
                 "New Subscription",
                 "Something",
                 subscription.to_json().as_str(),

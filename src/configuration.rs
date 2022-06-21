@@ -14,6 +14,7 @@ pub struct Settings {
     pub auth_config: AuthConfig,
     pub email_client: EmailClientSettings,
     pub stripe_client: StripeClientSettings,
+    pub application_feature_settings: ApplicationFeatureSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -25,6 +26,7 @@ pub struct ApplicationSettings {
     pub web_app_host: String,
 }
 
+#[derive(serde::Deserialize, Clone)]
 pub struct ApplicationFeatureSettings {
     pub subscription_notification_addresses: Vec<String>,
 }
