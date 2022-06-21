@@ -40,7 +40,7 @@ impl EmailClient {
     )]
     pub async fn send_email(
         &self,
-        recipient: ValidEmail,
+        recipient: Vec<ValidEmail>,
         subject: &str,
         html_content: &str,
         text_content: &str,
@@ -94,6 +94,16 @@ impl EmailClient {
     }
 }
 
+fn from_recipient_to_personalizations(recipients: Vec<ValidEmail>) -> Vec<SendTo> {
+    recipients
+        .iter()
+        .map(|recipient| SendTo {
+            email: recipient.to_string(),
+            name: "".to_string(),
+        })
+        .collect::<Vec<SendTo>>()
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct SendEmailRequest {
     pub personalizations: Vec<Personalization>,
@@ -144,7 +154,7 @@ mod tests {
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
     use crate::domain::valid_email::ValidEmail;
-    use crate::email_client::{EmailClient, SendEmailRequest};
+    use crate::email_client::{from_recipient_to_personalizations, EmailClient, SendEmailRequest};
 
     struct SendEmailBodyMatcher;
     impl wiremock::Match for SendEmailBodyMatcher {
@@ -240,5 +250,18 @@ mod tests {
             .await;
         // Assert
         assert_err!(outcome);
+    }
+
+    #[tokio::test]
+    async fn from_recipient_to_personalizations_works() {
+        let expected = 100;
+        let mut valid_emails: Vec<ValidEmail> = Vec::new();
+        for _i in 0..expected {
+            valid_emails.push(ValidEmail::parse(SafeEmail().fake()).unwrap())
+        }
+
+        let transformed = from_recipient_to_personalizations(valid_emails);
+
+        assert_eq!(expected, transformed.len());
     }
 }
