@@ -16,7 +16,9 @@ pub async fn notify_subscriber(subscription_id: Uuid, email_client: EmailClient,
     {
         let _ = email_client
             .send_email(
-                ValidEmail::parse(String::from("thegospelmessage61@gmail.com")).unwrap(),
+                Vec::from([
+                    ValidEmail::parse(String::from("thegospelmessage61@gmail.com")).unwrap(),
+                ]),
                 "New Subscription",
                 "Something",
                 subscription.to_json().as_str(),

@@ -312,7 +312,7 @@ pub async fn email_user(
 
     email_client
         .send_email(
-            ValidEmail::parse(email).unwrap(),
+            Vec::from([ValidEmail::parse(email).unwrap()]),
             "Password Reset",
             format!(
                 "Here is a <a href=\"{}\">link</a> that will enable you to reset your password!",
