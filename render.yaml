@@ -112,7 +112,7 @@ services:
       - key: APP__STRIPE_CLIENT__PAPER_PRICE_LOOKUP_KEY
         value: gospelmessage-paper
       - key: APP__APPLICATION_FEATURE_SETTINGS__SUBSCRIPTION_NOTIFICATION_ADDRESSES
-        value: ["richard.garbi+subscriptiontest1@gmail.com", "richard.garbi+subscriptiontest2@gmail.com"]
+        value: "['richard.garbi+subscriptiontest1@gmail.com', 'richard.garbi+subscriptiontest2@gmail.com']"
     domains:
       - staging-api.gospelmessage.net
 
