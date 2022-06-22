@@ -247,7 +247,7 @@ pub async fn complete_session(
                             &pool,
                         );
 
-                        notify_subscriber(subscription.id, email_client, pool).await;
+                        notify_subscriber(subscription.id, email_client.as_ref(), &pool).await;
 
                         HttpResponse::Ok().json(json!({}))
                     }

@@ -43,7 +43,7 @@ async fn notify_of_new_subscriber_works() {
 
     notify_subscriber(
         stored_subscription.id.clone(),
-        email_client(app.email_server.uri().clone()),
+        &email_client(app.email_server.uri().clone()),
         &app.db_pool,
     )
     .await;
