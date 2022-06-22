@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::valid_email::ValidEmail;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EmailClient {
     http_client: Client,
     base_url: String,

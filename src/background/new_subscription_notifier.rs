@@ -6,14 +6,11 @@ use crate::email_client::EmailClient;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub fn notify_of_new_subscription(
-    subscription_id: Uuid,
-    email_client: &EmailClient,
-    pool: &PgPool,
-) {
+pub fn notify_of_new_subscription(subscription_id: Uuid, email_client: EmailClient, pool: &PgPool) {
     let new_pool = pool.clone();
+
     tokio::spawn(async move {
-        notify_subscriber(subscription_id, email_client, &new_pool).await;
+        notify_subscriber(subscription_id, &email_client, &new_pool).await;
     });
 }
 
