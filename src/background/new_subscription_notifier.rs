@@ -29,14 +29,14 @@ pub async fn notify_subscriber(subscription_id: Uuid, email_client: EmailClient,
                 recipients,
                 "New Subscription",
                 "Something",
-                subscription.to_json().as_str(),
+                text_content(&subscription).as_str(),
             )
             .await
             .is_ok();
     }
 }
 
-fn text_content(subscription: OverTheWireSubscription) -> String {
+fn text_content(subscription: &OverTheWireSubscription) -> String {
     format!(
         r#"A new subscription was created. The details are below:
         Subscription Type: {}
@@ -46,7 +46,49 @@ fn text_content(subscription: OverTheWireSubscription) -> String {
         Subscription City: {}
         Subscription State: {},
         Subscription Postal Code: {},
-        SUbscription Date: {}"#,
+        Subscription Date: {}"#,
+        subscription.subscription_type.as_str(),
+        subscription.subscription_name,
+        subscription.subscription_mailing_address_line_1,
+        subscription.subscription_mailing_address_line_2,
+        subscription.subscription_city,
+        subscription.subscription_state,
+        subscription.subscription_postal_code,
+        subscription.subscription_creation_date
+    )
+}
+
+fn html_content(subscription: &OverTheWireSubscription) -> String {
+    format!(
+        r#"<html>
+                <h3>A new subscription was created.</h3>
+                <p>The details are below:</p>
+                <table>
+                    <tr>
+                        <td>Subscription Type: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription Name: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription Address Line 1: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription Address Line 2: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription City: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription State: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription Postal Code: {}</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription Date: {}</td>
+                    </tr>
+                </table>"#,
         subscription.subscription_type.as_str(),
         subscription.subscription_name,
         subscription.subscription_mailing_address_line_1,
@@ -60,14 +102,13 @@ fn text_content(subscription: OverTheWireSubscription) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::background::new_subscription_notifier::text_content;
+    use crate::background::new_subscription_notifier::{html_content, text_content};
     use crate::domain::subscription_models::{OverTheWireSubscription, SubscriptionType};
     use chrono::{Datelike, Utc};
     use uuid::Uuid;
 
-    #[test]
-    fn text_content_works() {
-        let subscription = OverTheWireSubscription {
+    fn get_sub() -> OverTheWireSubscription {
+        OverTheWireSubscription {
             id: Uuid::new_v4(),
             subscriber_id: Uuid::new_v4(),
             subscription_name: "Joe Smith".to_string(),
@@ -84,12 +125,28 @@ mod tests {
             active: true,
             subscription_type: SubscriptionType::Digital,
             stripe_subscription_id: Uuid::new_v4().to_string(),
-        };
+        }
+    }
 
-        let email_text_content = text_content(subscription);
+    #[test]
+    fn text_content_works() {
+        let subscription = get_sub();
+
+        let email_text_content = text_content(&subscription);
         assert_eq!(
             true,
-            email_text_content.contains(subscription.subscription_name.as_str())
+            email_text_content.contains(&subscription.subscription_name.as_str())
+        )
+    }
+
+    #[test]
+    fn html_content_works() {
+        let subscription = get_sub();
+
+        let email_html_content = html_content(&subscription);
+        assert_eq!(
+            true,
+            email_html_content.contains(&subscription.subscription_name.as_str())
         )
     }
 }
