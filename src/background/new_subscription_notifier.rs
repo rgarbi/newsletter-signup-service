@@ -57,3 +57,39 @@ fn text_content(subscription: OverTheWireSubscription) -> String {
         subscription.subscription_creation_date
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::background::new_subscription_notifier::text_content;
+    use crate::domain::subscription_models::{OverTheWireSubscription, SubscriptionType};
+    use chrono::{Datelike, Utc};
+    use uuid::Uuid;
+
+    #[test]
+    fn text_content_works() {
+        let subscription = OverTheWireSubscription {
+            id: Uuid::new_v4(),
+            subscriber_id: Uuid::new_v4(),
+            subscription_name: "Joe Smith".to_string(),
+            subscription_mailing_address_line_1: "123 Main".to_string(),
+            subscription_mailing_address_line_2: "n/a".to_string(),
+            subscription_city: "Kansas City".to_string(),
+            subscription_state: "MO".to_string(),
+            subscription_postal_code: "64105".to_string(),
+            subscription_email_address: "someone@gmail.com".to_string(),
+            subscription_creation_date: Utc::now(),
+            subscription_cancelled_on_date: None,
+            subscription_anniversary_day: Utc::now().day(),
+            subscription_anniversary_month: Utc::now().month(),
+            active: true,
+            subscription_type: SubscriptionType::Digital,
+            stripe_subscription_id: Uuid::new_v4().to_string(),
+        };
+
+        let email_text_content = text_content(subscription);
+        assert_eq!(
+            true,
+            email_text_content.contains(subscription.subscription_name.as_str())
+        )
+    }
+}
