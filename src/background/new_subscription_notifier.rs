@@ -28,7 +28,7 @@ pub async fn notify_subscriber(subscription_id: Uuid, email_client: EmailClient,
             .send_email(
                 recipients,
                 "New Subscription",
-                "Something",
+                html_content(&subscription).as_str(),
                 text_content(&subscription).as_str(),
             )
             .await
