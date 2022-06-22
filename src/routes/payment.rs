@@ -5,6 +5,7 @@ use sqlx::PgPool;
 use tracing::Level;
 
 use crate::auth::token::Claims;
+use crate::background::new_subscription_notifier::notify_subscriber;
 use crate::background::subscription_history_storer::store_subscription_history_event;
 use crate::configuration::get_configuration;
 use crate::db::checkout_session_db_broker::{
@@ -160,7 +161,7 @@ pub async fn create_checkout_session(
 
 #[tracing::instrument(
     name = "Complete Session",
-    skip(params, pool, user, stripe_client, _email_client),
+    skip(params, pool, user, stripe_client, email_client),
     fields(
         user_id = %params.0,
         session_id = %params.1,
@@ -171,7 +172,7 @@ pub async fn complete_session(
     pool: web::Data<PgPool>,
     user: Claims,
     stripe_client: web::Data<StripeClient>,
-    _email_client: web::Data<EmailClient>,
+    email_client: web::Data<EmailClient>,
 ) -> impl Responder {
     let param_tuple: (String, String) = params.into_inner();
     let user_id = param_tuple.clone().0;
@@ -245,6 +246,8 @@ pub async fn complete_session(
                             HistoryEventType::Created,
                             &pool,
                         );
+
+                        notify_subscriber(subscription.id, email_client, pool).await;
 
                         HttpResponse::Ok().json(json!({}))
                     }
