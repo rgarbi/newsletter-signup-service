@@ -159,3 +159,13 @@ impl DatabaseSettings {
             .ssl_mode(ssl_mode)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use claim::assert_ok;
+
+    #[test]
+    fn get_configuration_works() {
+        assert_ok!(get_configuration());
+    }
+}

@@ -178,7 +178,6 @@ pub fn run(
                 "/checkout/{user_id}/manage",
                 web::post().to(routes::create_stripe_portal_session),
             )
-            .route("/webhook", web::post().to(routes::handle_webhook))
             .app_data(connection.clone())
             .app_data(email_client.clone())
             .app_data(stripe_client.clone())
