@@ -170,5 +170,13 @@ mod tests {
     #[test]
     fn get_configuration_works() {
         assert_ok!(get_configuration());
+        assert_ok!(get_configuration());
+    }
+
+    #[test]
+    fn get_configuration_for_application_feature_settings_works() {
+        let config = get_configuration().unwrap().application_feature_settings;
+
+        assert_ok!(get_configuration());
     }
 }

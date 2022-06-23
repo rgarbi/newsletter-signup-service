@@ -27,4 +27,4 @@ stripe_client:
   digital_price_lookup_key: "gospelmessage-digital"
   paper_price_lookup_key: "gospelmessage-paper"
 application_feature_settings:
-  subscription_notification_addresses: "['richard.garbi+subscriptiontest1@gmail.com', 'richard.garbi+subscriptiontest2@gmail.com']"
+  subscription_notification_addresses: "richard.garbi+subscriptiontest1@gmail.com,richard.garbi+subscriptiontest2@gmail.com"
