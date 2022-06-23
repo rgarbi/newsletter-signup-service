@@ -2,6 +2,7 @@ use cached::proc_macro::once;
 use config::Config;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
+use serde_aux::prelude::deserialize_vec_from_string_or_vec;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
 
@@ -28,6 +29,7 @@ pub struct ApplicationSettings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct ApplicationFeatureSettings {
+    #[serde(deserialize_with = "deserialize_vec_from_string_or_vec")]
     pub subscription_notification_addresses: Vec<String>,
 }
 
@@ -162,6 +164,7 @@ impl DatabaseSettings {
 
 #[cfg(test)]
 mod tests {
+    use crate::configuration::get_configuration;
     use claim::assert_ok;
 
     #[test]
