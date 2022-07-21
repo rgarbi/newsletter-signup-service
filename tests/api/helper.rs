@@ -384,7 +384,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to create database.");
     // Migrate database
     let connection_pool = PgPoolOptions::new()
-        .connect_timeout(std::time::Duration::from_secs(30))
+        .acquire_timeout(std::time::Duration::from_secs(30))
         .connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
