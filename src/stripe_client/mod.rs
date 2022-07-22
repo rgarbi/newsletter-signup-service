@@ -240,6 +240,37 @@ impl StripeClient {
         };
     }
 
+    #[tracing::instrument(name = "Get Stripe Price By Lookup Key")]
+    pub async fn get_stripe_price_by_id(&self, id: String) -> Result<StripePriceList, Error> {
+        let address = format!("{}{}/{}", &self.base_url, STRIPE_PRICES_BASE_PATH, id,);
+
+        let get_prices_response = self
+            .http_client
+            .get(address)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .basic_auth(
+                self.api_secret_key.expose_secret().to_string(),
+                Option::Some(String::new()),
+            )
+            .send()
+            .await?
+            .error_for_status();
+
+        return match get_prices_response {
+            Ok(response) => {
+                let response_body = response.text().await.unwrap();
+                tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
+                let stripe_price_list: StripePriceList =
+                    serde_json::from_str(response_body.as_str()).unwrap();
+                Ok(stripe_price_list)
+            }
+            Err(err) => {
+                tracing::event!(Level::ERROR, "Err: {:?}", err);
+                Err(err)
+            }
+        };
+    }
+
     #[tracing::instrument(
         name = "Create a Stripe checkout session",
         skip(price_id, quantity, stripe_customer_id, success_url, cancel_url),
@@ -611,6 +642,79 @@ mod tests {
             .await;
         // Assert
         assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn get_stripe_price_by_id_works() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let stripe_lookup_key = Uuid::new_v4().to_string();
+
+        let price = StripeProductPrice {
+            id: Uuid::new_v4().to_string(),
+            object: "price".to_string(),
+            active: true,
+            billing_scheme: "".to_string(),
+            created: 12341234,
+            currency: "".to_string(),
+            product: "".to_string(),
+            unit_amount: 500,
+            lookup_key: stripe_lookup_key.clone(),
+        };
+
+        let price_list: Vec<StripeProductPrice> = vec![price.clone()];
+
+        let stripe_price_search_list = StripePriceList {
+            object: "list".to_string(),
+            url: "/v1/prices".to_string(),
+            has_more: false,
+            data: price_list,
+        };
+
+        let response =
+            ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(format!(
+                "{}/{}",
+                STRIPE_PRICES_BASE_PATH,
+                price.id.clone()
+            )))
+            .and(method("GET"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client.get_stripe_price_by_id(price.id.clone()).await;
+        // Assert
+        assert_ok!(outcome);
+    }
+
+    #[tokio::test]
+    async fn get_stripe_price_by_id_returns_error() {
+        // Arrange
+        let mock_server = MockServer::start().await;
+        let stripe_client = stripe_client(mock_server.uri());
+
+        let id = Uuid::new_v4().to_string();
+        let response = ResponseTemplate::new(500);
+
+        Mock::given(header_exists("Authorization"))
+            .and(path(format!("{}/{}", STRIPE_PRICES_BASE_PATH, id.clone())))
+            .and(method("GET"))
+            .respond_with(response)
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        // Act
+        let outcome = stripe_client.get_stripe_price_by_id(id.clone()).await;
+        // Assert
+        assert_err!(outcome);
     }
 
     #[tokio::test]
