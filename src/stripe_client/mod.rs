@@ -2,7 +2,7 @@ pub mod stripe_models;
 
 use crate::stripe_client::stripe_models::{
     StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
-    StripeSessionObject,
+    StripeProductPrice, StripeSessionObject,
 };
 use reqwest::{Client, Error};
 use secrecy::{ExposeSecret, Secret};
@@ -241,7 +241,7 @@ impl StripeClient {
     }
 
     #[tracing::instrument(name = "Get Stripe Price By Lookup Key")]
-    pub async fn get_stripe_price_by_id(&self, id: String) -> Result<StripePriceList, Error> {
+    pub async fn get_stripe_price_by_id(&self, id: String) -> Result<StripeProductPrice, Error> {
         let address = format!("{}{}/{}", &self.base_url, STRIPE_PRICES_BASE_PATH, id,);
 
         let get_prices_response = self
@@ -260,9 +260,9 @@ impl StripeClient {
             Ok(response) => {
                 let response_body = response.text().await.unwrap();
                 tracing::event!(Level::INFO, "Got the following back!! {:?}", &response_body);
-                let stripe_price_list: StripePriceList =
+                let stripe_price: StripeProductPrice =
                     serde_json::from_str(response_body.as_str()).unwrap();
-                Ok(stripe_price_list)
+                Ok(stripe_price)
             }
             Err(err) => {
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
@@ -664,17 +664,7 @@ mod tests {
             lookup_key: stripe_lookup_key.clone(),
         };
 
-        let price_list: Vec<StripeProductPrice> = vec![price.clone()];
-
-        let stripe_price_search_list = StripePriceList {
-            object: "list".to_string(),
-            url: "/v1/prices".to_string(),
-            has_more: false,
-            data: price_list,
-        };
-
-        let response =
-            ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
+        let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(price));
 
         Mock::given(header_exists("Authorization"))
             .and(path(format!(

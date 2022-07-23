@@ -76,8 +76,8 @@ pub async fn create_checkout_session(
         &configuration.application.web_app_host
     );
 
-    let lookup_key = get_price_lookup_key(new_subscription.clone().subscription_type);
-    let look_up_keys = [lookup_key].to_vec();
+    let lookup_id = get_price_id(new_subscription.subscription_type.clone());
+
     //Get customer
     let stripe_customer_id = match get_stripe_customer_id(&subscriber, &stripe_client).await {
         Ok(id) => id,
@@ -90,13 +90,11 @@ pub async fn create_checkout_session(
         .await
         .unwrap();
 
-    let list_prices_response = stripe_client
-        .get_stripe_price_by_id(get_price_id(new_subscription.subscription_type.clone()))
-        .await;
-    match list_prices_response {
-        Ok(prices) => {
-            tracing::event!(Level::INFO, "Got prices: {:?}", &prices);
-            let price_id = prices.data[0].id.to_string();
+    let price_response = stripe_client.get_stripe_price_by_id(lookup_id).await;
+    match price_response {
+        Ok(price) => {
+            tracing::event!(Level::INFO, "Got prices: {:?}", &price);
+            let price_id = price.id.to_string();
 
             let checkout_session_response = stripe_client
                 .create_stripe_checkout_session(
