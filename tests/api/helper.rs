@@ -22,8 +22,8 @@ use newsletter_signup_service::domain::subscription_models::{
 use newsletter_signup_service::domain::user_models::{ResetPassword, SignUp, UserGroup};
 use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::stripe_client::stripe_models::{
-    StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
-    StripeProductPrice, StripeSessionObject,
+    StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripeProductPrice,
+    StripeSessionObject,
 };
 use newsletter_signup_service::stripe_client::{
     STRIPE_BILLING_PORTAL_BASE_PATH, STRIPE_CUSTOMERS_BASE_PATH, STRIPE_PRICES_BASE_PATH,
@@ -499,9 +499,9 @@ pub async fn mock_stripe_create_customer(mock_server: &MockServer, customer_emai
         .await;
 }
 
-pub async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_key: String) {
+pub async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_id: String) {
     let price = StripeProductPrice {
-        id: Uuid::new_v4().to_string(),
+        id: stripe_lookup_id.clone(),
         object: "price".to_string(),
         active: true,
         billing_scheme: "".to_string(),
@@ -509,24 +509,17 @@ pub async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_ke
         currency: "".to_string(),
         product: "".to_string(),
         unit_amount: 500,
-        lookup_key: stripe_lookup_key.clone(),
+        lookup_key: Uuid::new_v4().to_string(),
     };
 
-    let price_list: Vec<StripeProductPrice> = vec![price];
-
-    let stripe_price_search_list = StripePriceList {
-        object: "list".to_string(),
-        url: "/v1/prices".to_string(),
-        has_more: false,
-        data: price_list,
-    };
-
-    let response =
-        ResponseTemplate::new(200).set_body_json(serde_json::json!(stripe_price_search_list));
+    let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(price));
 
     Mock::given(header_exists("Authorization"))
-        .and(path(STRIPE_PRICES_BASE_PATH))
-        .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
+        .and(path(format!(
+            "{}/{}",
+            STRIPE_PRICES_BASE_PATH,
+            stripe_lookup_id.clone()
+        )))
         .and(method("GET"))
         .respond_with(response)
         .expect(1)
@@ -594,13 +587,15 @@ pub async fn mock_stripe_create_customer_returns_a_500(
         .await;
 }
 
-pub async fn mock_stripe_price_lookup_returns_a_500(
+pub async fn mock_stripe_price_lookup_by_id_returns_a_500(
     mock_server: &MockServer,
-    stripe_lookup_key: String,
+    stripe_lookup_id: String,
 ) {
     Mock::given(header_exists("Authorization"))
-        .and(path(STRIPE_PRICES_BASE_PATH))
-        .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
+        .and(path(format!(
+            "{}/{}",
+            STRIPE_PRICES_BASE_PATH, stripe_lookup_id
+        )))
         .and(method("GET"))
         .respond_with(ResponseTemplate::new(500))
         .expect(1)

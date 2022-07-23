@@ -30,10 +30,10 @@ async fn end_to_end_subscribe_test() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.digital_price_lookup_key;
+    let price_lookup_id = config.digital_price_id;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
@@ -42,7 +42,7 @@ async fn end_to_end_subscribe_test() {
         Some(SubscriptionType::Digital),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
@@ -97,10 +97,10 @@ async fn end_to_end_subscribe_test_2x() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.paper_price_lookup_key;
+    let price_lookup_id = config.paper_price_id;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
@@ -109,7 +109,7 @@ async fn end_to_end_subscribe_test_2x() {
         Some(SubscriptionType::Paper),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
@@ -135,7 +135,7 @@ async fn end_to_end_subscribe_test_2x() {
     //SUBSCRIBE again!
     let _x = &app.stripe_server.reset().await;
     let stripe_session_id_again = Uuid::new_v4().to_string();
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id_again.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id_again.clone()).await;
 
@@ -144,7 +144,7 @@ async fn end_to_end_subscribe_test_2x() {
         Some(SubscriptionType::Paper),
     );
     let create_checkout_session_again = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription: subscription_again,
     };
 

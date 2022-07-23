@@ -16,7 +16,7 @@ use crate::helper::{
     mock_create_stripe_billing_portal_session, mock_get_stripe_session,
     mock_stripe_create_customer, mock_stripe_create_customer_returns_a_500,
     mock_stripe_create_session_returns_a_500, mock_stripe_price_lookup,
-    mock_stripe_price_lookup_returns_a_500, spawn_app,
+    mock_stripe_price_lookup_by_id_returns_a_500, spawn_app,
 };
 
 #[tokio::test]
@@ -117,16 +117,16 @@ async fn create_checkout_session_cannot_find_prices() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.paper_price_lookup_key;
+    let price_lookup_id = config.paper_price_id;
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup_returns_a_500(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup_by_id_returns_a_500(&app.stripe_server, price_lookup_id.clone()).await;
 
     let subscription = generate_over_the_wire_create_subscription(
         subscriber.id.to_string().clone(),
         Some(SubscriptionType::Paper),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
@@ -153,9 +153,9 @@ async fn create_checkout_session_fails() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.digital_price_lookup_key;
+    let price_lookup_id = config.digital_price_id;
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_stripe_create_session_returns_a_500(&app.stripe_server).await;
 
     let subscription = generate_over_the_wire_create_subscription(
@@ -163,7 +163,7 @@ async fn create_checkout_session_fails() {
         Some(SubscriptionType::Digital),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
@@ -190,10 +190,10 @@ async fn store_create_checkout_result_fails() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.paper_price_lookup_key;
+    let price_lookup_id = config.paper_price_id;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
 
     let subscription = generate_over_the_wire_create_subscription(
@@ -201,7 +201,7 @@ async fn store_create_checkout_result_fails() {
         Some(SubscriptionType::Paper),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
@@ -308,10 +308,10 @@ async fn create_stripe_portal_session_works() {
         .await;
 
     //SUBSCRIBE!
-    let price_lookup_key = config.digital_price_lookup_key;
+    let price_lookup_id = config.digital_price_id;
     let stripe_session_id = Uuid::new_v4().to_string();
     mock_stripe_create_customer(&app.stripe_server, subscriber.email_address.clone()).await;
-    mock_stripe_price_lookup(&app.stripe_server, price_lookup_key.clone()).await;
+    mock_stripe_price_lookup(&app.stripe_server, price_lookup_id.clone()).await;
     mock_create_checkout_session(&app.stripe_server, stripe_session_id.clone()).await;
     mock_get_stripe_session(&app.stripe_server, stripe_session_id.clone()).await;
 
@@ -320,7 +320,7 @@ async fn create_stripe_portal_session_works() {
         Some(SubscriptionType::Digital),
     );
     let create_checkout_session = CreateCheckoutSession {
-        price_lookup_key: price_lookup_key.clone(),
+        price_lookup_key: price_lookup_id.clone(),
         subscription,
     };
 
