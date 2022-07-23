@@ -91,7 +91,7 @@ pub async fn create_checkout_session(
         .unwrap();
 
     let list_prices_response = stripe_client
-        .get_stripe_price_by_lookup_key(look_up_keys)
+        .get_stripe_price_by_id(get_price_id(new_subscription.subscription_type.clone()))
         .await;
     match list_prices_response {
         Ok(prices) => {
@@ -353,11 +353,19 @@ fn get_price_lookup_key(subscription_type: SubscriptionType) -> String {
     }
 }
 
+fn get_price_id(subscription_type: SubscriptionType) -> String {
+    let config = get_configuration().unwrap().stripe_client;
+    match subscription_type {
+        SubscriptionType::Digital => config.digital_price_id,
+        SubscriptionType::Paper => config.paper_price_id,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::configuration::get_configuration;
     use crate::domain::subscription_models::SubscriptionType;
-    use crate::routes::payment::get_price_lookup_key;
+    use crate::routes::payment::{get_price_id, get_price_lookup_key};
 
     #[test]
     fn get_price_lookup_key_works() {
@@ -370,6 +378,17 @@ mod tests {
         assert_eq!(
             config.digital_price_lookup_key,
             get_price_lookup_key(SubscriptionType::Digital)
+        );
+    }
+
+    #[test]
+    fn get_price_id_works() {
+        let config = get_configuration().unwrap().stripe_client;
+
+        assert_eq!(config.paper_price_id, get_price_id(SubscriptionType::Paper));
+        assert_eq!(
+            config.digital_price_id,
+            get_price_id(SubscriptionType::Digital)
         );
     }
 }

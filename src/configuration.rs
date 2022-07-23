@@ -67,7 +67,9 @@ pub struct StripeClientSettings {
     pub webhook_key: Secret<String>,
     pub timeout_milliseconds: u64,
     pub digital_price_lookup_key: String,
+    pub digital_price_id: String,
     pub paper_price_lookup_key: String,
+    pub paper_price_id: String,
 }
 
 impl EmailClientSettings {
