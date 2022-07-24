@@ -108,10 +108,31 @@ async fn count_users() {
     .await;
     assert_ok!(result);
 
+    assert_ok!(transaction.commit().await);
+
     let ok =
         count_users_with_email_address(&Uuid::new_v4().to_string(), &app.db_pool.clone()).await;
     assert_ok!(&ok);
     assert_eq!(0, ok.unwrap());
+
+    let ok_with_one =
+        count_users_with_email_address(&sign_up.email_address, &app.db_pool.clone()).await;
+    assert_ok!(&ok_with_one);
+    assert_eq!(1, ok_with_one.unwrap());
+}
+
+#[tokio::test]
+async fn count_users_fails() {
+    let app = spawn_app().await;
+
+    sqlx::query!("DROP TABLE users CASCADE")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to drop.");
+
+    let err =
+        count_users_with_email_address(&Uuid::new_v4().to_string(), &app.db_pool.clone()).await;
+    assert_err!(&err);
 }
 
 #[tokio::test]
