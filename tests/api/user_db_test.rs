@@ -215,3 +215,17 @@ async fn get_user_by_user_id_test() {
     let saved_user_by_id = get_by_user_id_result.unwrap();
     assert_eq!(saved_user.user_id, saved_user_by_id.user_id)
 }
+
+#[tokio::test]
+async fn get_user_by_user_id_fails() {
+    let app = spawn_app().await;
+
+    sqlx::query!("DROP TABLE users CASCADE")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to drop.");
+
+    let get_by_user_id_result =
+        get_user_by_user_id(Uuid::new_v4().to_string().as_str(), &app.db_pool).await;
+    assert_err!(&get_by_user_id_result);
+}
