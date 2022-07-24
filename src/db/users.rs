@@ -2,7 +2,7 @@ use sqlx::{Error, PgPool, Postgres, Transaction};
 use std::str::FromStr;
 use uuid::Uuid;
 
-use crate::domain::user_models::{User, UserGroup};
+use crate::domain::user_models::{from_str_to_user_group, User, UserGroup};
 
 #[tracing::instrument(name = "Count users with a given username", skip(email_address, pool))]
 pub async fn count_users_with_email_address(
@@ -127,17 +127,4 @@ pub async fn update_password(
     })?;
 
     Ok(())
-}
-
-pub fn from_str_to_user_group(val: String) -> UserGroup {
-    if val.eq("USER") {
-        return UserGroup::USER;
-    }
-
-    if val.eq("ADMIN") {
-        return UserGroup::ADMIN;
-    }
-
-    tracing::error!("Could not map string: {} to the enum UserGroup", val);
-    UserGroup::USER
 }

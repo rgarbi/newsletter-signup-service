@@ -85,9 +85,22 @@ impl ResetPasswordFromForgotPassword {
     }
 }
 
+pub fn from_str_to_user_group(val: String) -> UserGroup {
+    if val.eq("USER") {
+        return UserGroup::USER;
+    }
+
+    if val.eq("ADMIN") {
+        return UserGroup::ADMIN;
+    }
+
+    tracing::error!("Could not map string: {} to the enum UserGroup", val);
+    UserGroup::USER
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::domain::user_models::UserGroup;
+    use crate::domain::user_models::{from_str_to_user_group, UserGroup};
 
     #[test]
     fn user_group_as_str() {
@@ -96,5 +109,21 @@ mod tests {
 
         assert_eq!("USER", user);
         assert_eq!("ADMIN", admin);
+    }
+
+    #[test]
+    fn from_str_to_user_group_test() {
+        assert_eq!(
+            UserGroup::USER,
+            from_str_to_user_group(String::from(UserGroup::USER.as_str()))
+        );
+        assert_eq!(
+            UserGroup::ADMIN,
+            from_str_to_user_group(String::from(UserGroup::ADMIN.as_str()))
+        );
+        assert_eq!(
+            UserGroup::USER,
+            from_str_to_user_group(String::from("not a user group"))
+        );
     }
 }
