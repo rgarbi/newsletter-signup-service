@@ -509,7 +509,7 @@ pub async fn mock_stripe_price_lookup(mock_server: &MockServer, stripe_lookup_id
         currency: "".to_string(),
         product: "".to_string(),
         unit_amount: 500,
-        lookup_key: Uuid::new_v4().to_string(),
+        lookup_key: Some(Uuid::new_v4().to_string()),
     };
 
     let response = ResponseTemplate::new(200).set_body_json(serde_json::json!(price));

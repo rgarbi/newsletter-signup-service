@@ -601,7 +601,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let stripe_client = stripe_client(mock_server.uri());
 
-        let stripe_lookup_key = Uuid::new_v4().to_string();
+        let stripe_lookup_key = Some(Uuid::new_v4().to_string());
 
         let price = StripeProductPrice {
             id: Uuid::new_v4().to_string(),
@@ -629,7 +629,10 @@ mod tests {
 
         Mock::given(header_exists("Authorization"))
             .and(path(STRIPE_PRICES_BASE_PATH))
-            .and(query_param("lookup_keys[]", stripe_lookup_key.clone()))
+            .and(query_param(
+                "lookup_keys[]",
+                stripe_lookup_key.clone().unwrap(),
+            ))
             .and(method("GET"))
             .respond_with(response)
             .expect(1)
@@ -638,7 +641,7 @@ mod tests {
 
         // Act
         let outcome = stripe_client
-            .get_stripe_price_by_lookup_key(vec![stripe_lookup_key])
+            .get_stripe_price_by_lookup_key(vec![stripe_lookup_key.unwrap()])
             .await;
         // Assert
         assert_ok!(outcome);
@@ -650,7 +653,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let stripe_client = stripe_client(mock_server.uri());
 
-        let stripe_lookup_key = Uuid::new_v4().to_string();
+        let stripe_lookup_key = Some(Uuid::new_v4().to_string());
 
         let price = StripeProductPrice {
             id: Uuid::new_v4().to_string(),
