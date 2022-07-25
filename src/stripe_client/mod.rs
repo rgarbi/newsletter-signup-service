@@ -240,7 +240,7 @@ impl StripeClient {
         };
     }
 
-    #[tracing::instrument(name = "Get Stripe Price By Lookup Key")]
+    #[tracing::instrument(name = "Get Stripe Price By ID")]
     pub async fn get_stripe_price_by_id(&self, id: String) -> Result<StripeProductPrice, Error> {
         let address = format!("{}{}/{}", &self.base_url, STRIPE_PRICES_BASE_PATH, id,);
 
