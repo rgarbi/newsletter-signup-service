@@ -44,7 +44,7 @@ pub struct StripeProductPrice {
     pub currency: String,
     pub product: String,
     pub unit_amount: u64,
-    pub lookup_key: String,
+    pub lookup_key: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
