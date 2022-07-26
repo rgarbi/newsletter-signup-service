@@ -21,7 +21,7 @@ DB_NAME="${POSTGRES_DB:=newsletter-signup-service}"
 DB_PORT="${POSTGRES_PORT:=5432}"
 export PGPASSWORD="${DB_PASSWORD}"
 # Launch postgres using Docker
-if [[ -z "${SKIP_DOCKER}" && $(psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q';) ]]
+if [[ -z "${SKIP_DOCKER}" && $(pg_isready -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres";) ]]
 then
   docker system prune --volumes --force
 
