@@ -45,9 +45,10 @@ fn text_content(subscription: &OverTheWireSubscription) -> String {
         Subscription Address Line 1: {}
         Subscription Address Line 2: {}
         Subscription City: {}
-        Subscription State: {},
-        Subscription Postal Code: {},
-        Subscription Date: {}"#,
+        Subscription State: {}
+        Subscription Postal Code: {}
+        Subscription Date: {}
+        Subscription Email: {}"#,
         subscription.subscription_type.as_str(),
         subscription.subscription_name,
         subscription.subscription_mailing_address_line_1,
@@ -55,7 +56,8 @@ fn text_content(subscription: &OverTheWireSubscription) -> String {
         subscription.subscription_city,
         subscription.subscription_state,
         subscription.subscription_postal_code,
-        subscription.subscription_creation_date
+        subscription.subscription_creation_date,
+        subscription.subscription_email_address,
     )
 }
 
@@ -89,6 +91,9 @@ fn html_content(subscription: &OverTheWireSubscription) -> String {
                     <tr>
                         <td>Subscription Date: {}</td>
                     </tr>
+                    <tr>
+                        <td>Subscription Email: {}</td>
+                    </tr>
                 </table>"#,
         subscription.subscription_type.as_str(),
         subscription.subscription_name,
@@ -97,7 +102,8 @@ fn html_content(subscription: &OverTheWireSubscription) -> String {
         subscription.subscription_city,
         subscription.subscription_state,
         subscription.subscription_postal_code,
-        subscription.subscription_creation_date
+        subscription.subscription_creation_date,
+        subscription.subscription_email_address
     )
 }
 
