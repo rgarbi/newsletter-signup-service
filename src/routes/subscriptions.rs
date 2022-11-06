@@ -187,7 +187,7 @@ async fn reject_unauthorized_user(
     user_id: String,
     pool: &PgPool,
 ) -> Result<(), HttpResponse> {
-    return match retrieve_subscriber_by_id(subscriber_id, pool).await {
+    match retrieve_subscriber_by_id(subscriber_id, pool).await {
         Ok(subscriber) => {
             if subscriber.user_id != user_id {
                 return Err(HttpResponse::Unauthorized().finish());
@@ -195,5 +195,5 @@ async fn reject_unauthorized_user(
             Ok(())
         }
         Err(_) => Err(HttpResponse::BadRequest().finish()),
-    };
+    }
 }

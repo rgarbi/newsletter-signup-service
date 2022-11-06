@@ -181,7 +181,7 @@ pub async fn complete_session(
 
     let checkout_session = retrieve_checkout_session_by_stripe_session_id(&session_id, &pool).await;
 
-    return match checkout_session {
+    match checkout_session {
         Ok(checkout) => {
             if checkout.user_id != user_id {
                 return HttpResponse::Unauthorized().finish();
@@ -260,7 +260,7 @@ pub async fn complete_session(
             tracing::event!(Level::ERROR, "Err: {:?}", err);
             HttpResponse::NotFound().finish()
         }
-    };
+    }
 }
 
 #[tracing::instrument(
@@ -300,7 +300,7 @@ pub async fn create_stripe_portal_session(
         .create_billing_portal_session(subscriber.stripe_customer_id.unwrap(), return_url)
         .await;
 
-    return match result {
+    match result {
         Ok(stripe_billing_portal_session) => {
             tracing::event!(
                 Level::INFO,
@@ -320,7 +320,7 @@ pub async fn create_stripe_portal_session(
             );
             HttpResponse::InternalServerError().finish()
         }
-    };
+    }
 }
 
 async fn get_stripe_customer_id(
@@ -328,7 +328,7 @@ async fn get_stripe_customer_id(
     client: &StripeClient,
 ) -> Result<String, HttpResponse> {
     if subscriber.stripe_customer_id.is_none() {
-        return match client
+        match client
             .create_stripe_customer(subscriber.email_address.clone())
             .await
         {
@@ -337,7 +337,7 @@ async fn get_stripe_customer_id(
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(HttpResponse::InternalServerError().finish())
             }
-        };
+        }
     } else {
         Ok(subscriber.stripe_customer_id.clone().unwrap())
     }

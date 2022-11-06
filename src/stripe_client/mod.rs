@@ -40,11 +40,11 @@ impl StripeClient {
     }
 
     #[tracing::instrument(
-        name = "Get Stripe Session By ID",
-        skip(stripe_session_id),
-        fields(
-        stripe_session_id = %stripe_session_id,
-        )
+    name = "Get Stripe Session By ID",
+    skip(stripe_session_id),
+    fields(
+    stripe_session_id = % stripe_session_id,
+    )
     )]
     pub async fn get_stripe_session(
         &self,
@@ -82,11 +82,11 @@ impl StripeClient {
     }
 
     #[tracing::instrument(
-        name = "Cancel Stripe Subscription",
-        skip(subscription_id),
-        fields(
-            subscription_id = %subscription_id,
-        )
+    name = "Cancel Stripe Subscription",
+    skip(subscription_id),
+    fields(
+    subscription_id = % subscription_id,
+    )
     )]
     pub async fn cancel_stripe_subscription(&self, subscription_id: String) -> Result<(), Error> {
         let address = format!(
@@ -104,21 +104,21 @@ impl StripeClient {
             .await?
             .error_for_status();
 
-        return match response {
+        match response {
             Ok(_) => Ok(()),
             Err(err) => {
                 tracing::event!(Level::ERROR, "Err: {:?}", err);
                 Err(err)
             }
-        };
+        }
     }
 
     #[tracing::instrument(
-        name = "Create a billing portal session",
-        skip(stripe_customer_id, return_url),
-        fields(
-        stripe_customer_id = %stripe_customer_id,
-        )
+    name = "Create a billing portal session",
+    skip(stripe_customer_id, return_url),
+    fields(
+    stripe_customer_id = % stripe_customer_id,
+    )
     )]
     pub async fn create_billing_portal_session(
         &self,
@@ -157,11 +157,11 @@ impl StripeClient {
     }
 
     #[tracing::instrument(
-        name = "Create a stripe customer",
-        skip(email),
-        fields(
-            email = %email,
-        )
+    name = "Create a stripe customer",
+    skip(email),
+    fields(
+    email = % email,
+    )
     )]
     pub async fn create_stripe_customer(&self, email: String) -> Result<StripeCustomer, Error> {
         let address = format!(
@@ -272,11 +272,11 @@ impl StripeClient {
     }
 
     #[tracing::instrument(
-        name = "Create a Stripe checkout session",
-        skip(price_id, quantity, stripe_customer_id, success_url, cancel_url),
-        fields(
-            stripe_customer_id = %stripe_customer_id,
-        )
+    name = "Create a Stripe checkout session",
+    skip(price_id, quantity, stripe_customer_id, success_url, cancel_url),
+    fields(
+    stripe_customer_id = % stripe_customer_id,
+    )
     )]
     pub async fn create_stripe_checkout_session(
         &self,
