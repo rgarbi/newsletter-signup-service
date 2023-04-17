@@ -105,7 +105,7 @@ pub fn validate_token(token: String) -> Result<Claims, TokenError> {
         .audience(auth_config.audience)
         .build()
         .unwrap();
-    let result = verifier.verify(&token, &alg);
+    let result = verifier.verify(token, &alg);
     let value: Value = match result {
         Ok(value) => value,
         Err(_) => return Err(TokenError::AuthError),

@@ -20,7 +20,7 @@ pub async fn insert_subscription(
 ) -> Result<OverTheWireSubscription, sqlx::Error> {
     let subscription_to_be_saved = OverTheWireSubscription {
         id: Uuid::new_v4(),
-        subscriber_id: Uuid::from_str(&*subscription.subscriber_id)
+        subscriber_id: Uuid::from_str(&subscription.subscriber_id)
             .expect("Unable to parse the UUID"),
         subscription_name: String::from(subscription.subscription_name.as_ref()),
         subscription_mailing_address_line_1: subscription.subscription_mailing_address_line_1,

@@ -49,7 +49,7 @@ impl Application {
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
-        let listener = TcpListener::bind(&address)?;
+        let listener = TcpListener::bind(address)?;
         let port = listener.local_addr().unwrap().port();
 
         let server = run(listener, connection_pool, email_client, stripe_client)?;
@@ -112,7 +112,7 @@ pub fn run(
     email_client: EmailClient,
     stripe_client: StripeClient,
 ) -> Result<Server, std::io::Error> {
-    let connection = web::Data::new(connection);
+    let connection = Data::new(connection);
     let email_client = Data::new(email_client);
     let stripe_client = Data::new(stripe_client);
     let server = HttpServer::new(move || {
