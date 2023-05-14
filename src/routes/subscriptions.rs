@@ -2,6 +2,7 @@ use crate::auth::token::Claims;
 use crate::background::subscription_history_storer::store_subscription_history_event;
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
 use actix_web::{web, HttpResponse, Responder};
+use chrono::{Datelike, DateTime, NaiveDateTime, Utc};
 use serde_json::json;
 use sqlx::PgPool;
 use tracing::Level;
@@ -20,11 +21,11 @@ use crate::stripe_client::StripeClient;
 use crate::util::from_path_to_uuid;
 
 #[tracing::instrument(
-    name = "Getting subscriptions by subscriber id",
-    skip(id, pool, user),
-    fields(
-        id = %id,
-    )
+name = "Getting subscriptions by subscriber id",
+skip(id, pool, user),
+fields(
+id = % id,
+)
 )]
 pub async fn get_subscriptions_by_subscriber_id(
     id: web::Path<String>,
@@ -47,11 +48,11 @@ pub async fn get_subscriptions_by_subscriber_id(
 }
 
 #[tracing::instrument(
-    name = "Getting subscription by subscription id",
-    skip(id, pool, user),
-    fields(
-        id = %id,
-    )
+name = "Getting subscription by subscription id",
+skip(id, pool, user),
+fields(
+id = % id,
+)
 )]
 pub async fn get_subscription_by_id(
     id: web::Path<String>,
@@ -64,6 +65,7 @@ pub async fn get_subscription_by_id(
                 Ok(_) => {}
                 Err(response) => return response,
             };
+
             HttpResponse::Ok().json(subscription)
         }
         Err(_) => HttpResponse::NotFound().finish(),
@@ -71,11 +73,11 @@ pub async fn get_subscription_by_id(
 }
 
 #[tracing::instrument(
-    name = "Updating subscription",
-    skip(id, subscription, pool, user),
-    fields(
-        id = %id,
-    )
+name = "Updating subscription",
+skip(id, subscription, pool, user),
+fields(
+id = % id,
+)
 )]
 pub async fn update_subscription(
     id: web::Path<String>,
@@ -105,7 +107,7 @@ pub async fn update_subscription(
                 subscription.0,
                 &pool,
             )
-            .await
+                .await
             {
                 Ok(_) => HttpResponse::Ok().json(json!({})),
                 Err(_) => HttpResponse::InternalServerError().finish(),
@@ -116,11 +118,11 @@ pub async fn update_subscription(
 }
 
 #[tracing::instrument(
-    name = "Cancel subscription by subscription id",
-    skip(id, pool, user, stripe_client),
-    fields(
-        id = %id,
-    )
+name = "Cancel subscription by subscription id",
+skip(id, pool, user, stripe_client),
+fields(
+id = % id,
+)
 )]
 pub async fn cancel_subscription_by_id(
     id: web::Path<String>,
@@ -196,4 +198,30 @@ async fn reject_unauthorized_user(
         }
         Err(_) => Err(HttpResponse::BadRequest().finish()),
     }
+}
+
+async fn calculate_renewal_year(renewal_month: u32, renewal_day: u32, subscription_creation_date: DateTime<Utc>) -> u32 {
+    let current_day = Utc::now().day();
+    let current_month = Utc::now().month();
+    let current_year = Utc::now().year();
+
+
+
+    //same day
+    if current_month == current_month && current_day == current_day && current_year == subscription_creation_date.year() {
+        return (current_year + 1) as u32;
+    }
+
+    return if current_month >= renewal_month && current_day > renewal_day {
+        (current_year + 1) as u32
+    } else {
+        current_year as u32
+    };
+
+
+
+    //if the original date was the last day in feb, make sure to display the correct date
+
+
+    2023
 }

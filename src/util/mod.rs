@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use actix_web::{web, HttpResponse};
+use chrono::Datelike;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use uuid::Uuid;
@@ -37,12 +38,48 @@ pub fn generate_random_token() -> String {
         .collect()
 }
 
+trait NaiveDateExt {
+    fn days_in_month(&self) -> i32;
+    fn days_in_year(&self) -> i32;
+    fn is_leap_year(&self) -> bool;
+}
+
+impl NaiveDateExt for chrono::NaiveDate {
+    fn days_in_month(&self) -> i32 {
+        let month = self.month();
+        match month {
+            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+            4 | 6 | 9 | 11 => 30,
+            2 => if self.is_leap_year() { 29 } else { 28 },
+            _ => panic!("Invalid month: {}" , month),
+        }
+    }
+
+    fn days_in_year(&self) -> i32 {
+        if self.is_leap_year() { 366 } else { 365 }
+    }
+
+    fn is_leap_year(&self) -> bool {
+        let year = self.year();
+        return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use actix_web::web::Path;
+    use chrono::NaiveDate;
     use uuid::Uuid;
 
-    use crate::util::{from_path_to_uuid, from_string_to_uuid};
+    use crate::util::{from_path_to_uuid, from_string_to_uuid, generate_random_token, NaiveDateExt};
+
+    #[test]
+    fn native_date_ext_days_in_month_test() {
+        let leap_year_date = NaiveDate::parse_from_str("2004-01-01", "%Y-%m-%d").unwrap();
+        assert_eq!(leap_year_date.is_leap_year(), true);
+
+        
+    }
 
     #[test]
     fn a_uuid_is_valid() {
@@ -54,6 +91,12 @@ mod tests {
         );
 
         assert_eq!(uuid, from_string_to_uuid(&uuid.to_string()).unwrap());
+    }
+
+    #[test]
+    fn generate_random_token_test() {
+        let value = generate_random_token();
+        assert!(value.len() > 0);
     }
 
     #[quickcheck_macros::quickcheck]
