@@ -35,6 +35,7 @@ pub async fn insert_subscription(
         subscription_cancelled_on_date: None,
         subscription_anniversary_day: subscription.subscription_anniversary_day,
         subscription_anniversary_month: subscription.subscription_anniversary_month,
+        subscription_renewal_date: "".to_string(),
         active: true,
         subscription_type: subscription.subscription_type,
         stripe_subscription_id,
@@ -178,6 +179,7 @@ pub async fn retrieve_subscriptions_by_subscriber_id(
             active: row.active,
             stripe_subscription_id: row.stripe_subscription_id,
             subscription_anniversary_month: row.subscription_anniversary_month as u32,
+            subscription_renewal_date: "".to_string(),
         })
     }
     Ok(subscriptions)
@@ -233,6 +235,7 @@ pub async fn retrieve_subscription_by_subscription_id(
         active: result.active,
         stripe_subscription_id: result.stripe_subscription_id,
         subscription_anniversary_month: result.subscription_anniversary_month as u32,
+        subscription_renewal_date: String::new(),
     })
 }
 
@@ -314,6 +317,7 @@ pub async fn retrieve_all_subscriptions(
             active: row.active,
             stripe_subscription_id: row.stripe_subscription_id,
             subscription_anniversary_month: row.subscription_anniversary_month as u32,
+            subscription_renewal_date: "".to_string(),
         })
     }
     Ok(subscriptions)

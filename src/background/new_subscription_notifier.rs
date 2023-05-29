@@ -129,6 +129,7 @@ mod tests {
             subscription_cancelled_on_date: None,
             subscription_anniversary_day: Utc::now().day(),
             subscription_anniversary_month: Utc::now().month(),
+            subscription_renewal_date: "".to_string(),
             active: true,
             subscription_type: SubscriptionType::Digital,
             stripe_subscription_id: Uuid::new_v4().to_string(),

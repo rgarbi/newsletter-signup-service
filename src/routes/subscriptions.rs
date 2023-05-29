@@ -200,14 +200,18 @@ async fn reject_unauthorized_user(
     }
 }
 
+async fn calculate_subscription_renewal_date(renewal_month: u32, renewal_day: u32, subscription_creation_date: DateTime<Utc>) -> String {
+    let renewal_year = calculate_renewal_year(renewal_month.clone(), renewal_day.clone(), subscription_creation_date.clone()).await;
+    let renewal_date = subscription_creation_date.with_year(renewal_year as i32).unwrap().date();
+
+    format!("{}/{}/{}", renewal_date.month(), renewal_date.day(), renewal_date.year())
+}
+
 async fn calculate_renewal_year(renewal_month: u32, renewal_day: u32, subscription_creation_date: DateTime<Utc>) -> u32 {
     let current_day = Utc::now().day();
     let current_month = Utc::now().month();
     let current_year = Utc::now().year();
 
-
-
-    //same day
     if current_month == current_month && current_day == current_day && current_year == subscription_creation_date.year() {
         return (current_year + 1) as u32;
     }
@@ -217,11 +221,23 @@ async fn calculate_renewal_year(renewal_month: u32, renewal_day: u32, subscripti
     } else {
         current_year as u32
     };
+}
 
+#[cfg(test)]
+mod tests {
+    use chrono::{DateTime, NaiveDate, Utc};
+    use crate::routes::subscriptions::{calculate_renewal_year, calculate_subscription_renewal_date};
 
+    #[tokio::test]
+    async fn calculate_renewal_year_test() {
+        let subscription_year = 2023;
+        let year_string = format!("{}-01-01", subscription_year);
+        let subscription_creation_date = DateTime::from_utc(NaiveDate::parse_from_str(year_string.as_str(), "%Y-%m-%d").unwrap().and_hms(0, 0, 0), Utc);
+        assert_eq!(calculate_renewal_year(2, 1, subscription_creation_date).await, subscription_year + 1);
+    }
 
-    //if the original date was the last day in feb, make sure to display the correct date
-
-
-    2023
+    #[tokio::test]
+    async fn calculate_renewal_date_test() {
+        assert_eq!(calculate_subscription_renewal_date(2, 1, DateTime::from_utc(NaiveDate::parse_from_str("2004-01-01", "%Y-%m-%d").unwrap().and_hms(0, 0, 0), Utc)).await, "1/1/2024");
+    }
 }
