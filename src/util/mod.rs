@@ -38,7 +38,7 @@ pub fn generate_random_token() -> String {
         .collect()
 }
 
-trait NaiveDateExt {
+pub trait NaiveDateExt {
     fn days_in_month(&self) -> i32;
     fn days_in_year(&self) -> i32;
     fn is_leap_year(&self) -> bool;
