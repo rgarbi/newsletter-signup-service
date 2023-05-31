@@ -1,5 +1,5 @@
 use chrono::Utc;
-use claim::{assert_err, assert_ok};
+use claims::{assert_err, assert_ok};
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
 };
@@ -54,6 +54,7 @@ async fn update_subscription_by_subscription_id_works() {
         subscription_cancelled_on_date: None,
         subscription_anniversary_day: 0,
         subscription_anniversary_month: 0,
+        subscription_renewal_date: "".to_string(),
         active: false,
         subscription_type: SubscriptionType::Digital,
         stripe_subscription_id: subscription.stripe_subscription_id.clone(),
@@ -94,6 +95,7 @@ async fn update_subscription_by_subscription_id_err() {
         subscription_cancelled_on_date: None,
         subscription_anniversary_day: 0,
         subscription_anniversary_month: 0,
+        subscription_renewal_date: "".to_string(),
         active: false,
         subscription_type: SubscriptionType::Digital,
         stripe_subscription_id: Uuid::new_v4().to_string(),

@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claims::assert_ok;
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::configuration::get_configuration;
 use newsletter_signup_service::db::checkout_session_db_broker::insert_checkout_session;

@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claims::assert_ok;
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id, set_stripe_customer_id,
 };

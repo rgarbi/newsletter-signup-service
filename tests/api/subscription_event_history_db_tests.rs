@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claims::assert_ok;
 
 use newsletter_signup_service::db::subscription_history_db_broker::{
     insert_subscription_history_event, retrieve_subscription_events_by_subscription_id,

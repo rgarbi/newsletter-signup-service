@@ -128,7 +128,7 @@ pub fn get_expires_at(now_in_seconds: Option<u64>) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use claim::{assert_err, assert_ok};
+    use claims::{assert_err, assert_ok};
     use uuid::Uuid;
 
     use crate::auth::token::{generate_token, validate_token};

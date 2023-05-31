@@ -104,7 +104,7 @@ mod tests {
         CheckoutSession, CheckoutSessionState, CreateStripeSessionRedirect,
     };
     use chrono::Utc;
-    use claim::{assert_err, assert_ok};
+    use claims::{assert_err, assert_ok};
     use serde_json::json;
     use std::str::FromStr;
     use uuid::Uuid;

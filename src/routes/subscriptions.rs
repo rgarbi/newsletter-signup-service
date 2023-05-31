@@ -17,7 +17,7 @@ use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
 use crate::stripe_client::StripeClient;
 
-use crate::util::{from_path_to_uuid};
+use crate::util::from_path_to_uuid;
 
 #[tracing::instrument(
 name = "Getting subscriptions by subscriber id",
@@ -106,7 +106,7 @@ pub async fn update_subscription(
                 subscription.0,
                 &pool,
             )
-                .await
+            .await
             {
                 Ok(_) => HttpResponse::Ok().json(json!({})),
                 Err(_) => HttpResponse::InternalServerError().finish(),

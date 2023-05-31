@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claims::assert_ok;
 use uuid::Uuid;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};

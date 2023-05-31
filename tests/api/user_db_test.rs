@@ -1,4 +1,4 @@
-use claim::{assert_err, assert_ok};
+use claims::{assert_err, assert_ok};
 use uuid::Uuid;
 
 use newsletter_signup_service::db::users::{

@@ -61,7 +61,7 @@ impl FromStr for HistoryEventType {
 #[cfg(test)]
 mod tests {
     use crate::domain::subscription_history_models::HistoryEventType;
-    use claim::{assert_err, assert_ok};
+    use claims::{assert_err, assert_ok};
     use std::str::FromStr;
     use uuid::Uuid;
 

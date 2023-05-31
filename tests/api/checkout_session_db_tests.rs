@@ -1,4 +1,4 @@
-use claim::{assert_err, assert_ok};
+use claims::{assert_err, assert_ok};
 use newsletter_signup_service::db::checkout_session_db_broker::{
     cancel_checkout_session_by_stripe_session_id, insert_checkout_session,
     retrieve_checkout_session_by_stripe_session_id,

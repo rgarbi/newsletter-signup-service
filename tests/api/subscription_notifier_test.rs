@@ -1,4 +1,4 @@
-use claim::assert_ok;
+use claims::assert_ok;
 use fake::faker::internet::en::SafeEmail;
 use fake::{Fake, Faker};
 use newsletter_signup_service::background::new_subscription_notifier::notify_subscriber;

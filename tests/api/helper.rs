@@ -1,5 +1,5 @@
 use chrono::Utc;
-use claim::assert_ok;
+use claims::assert_ok;
 use once_cell::sync::Lazy;
 use reqwest::Response;
 use serde_json::json;
@@ -460,6 +460,7 @@ pub fn generate_over_the_wire_subscription() -> OverTheWireSubscription {
         active: false,
         stripe_subscription_id: Uuid::new_v4().to_string(),
         subscription_anniversary_month: 0,
+        subscription_renewal_date: "".to_string(),
     }
 }
 

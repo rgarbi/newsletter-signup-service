@@ -167,7 +167,7 @@ impl DatabaseSettings {
 #[cfg(test)]
 mod tests {
     use crate::configuration::get_configuration;
-    use claim::assert_ok;
+    use claims::assert_ok;
 
     #[test]
     fn get_configuration_works() {

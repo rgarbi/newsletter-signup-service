@@ -331,7 +331,7 @@ impl StripeClient {
 
 #[cfg(test)]
 mod tests {
-    use claim::{assert_err, assert_ok};
+    use claims::{assert_err, assert_ok};
     use fake::{Fake, Faker};
     use secrecy::Secret;
 
