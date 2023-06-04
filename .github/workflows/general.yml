@@ -41,15 +41,18 @@ jobs:
           components: clippy
           toolchain: stable
           override: true
-      - name: Cache dependencies
-        id: cache-dependencies
-        uses: actions/cache@v2
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
