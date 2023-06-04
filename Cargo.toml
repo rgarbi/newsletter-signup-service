@@ -18,7 +18,7 @@ actix-cors = "0.6"
 actix-web-httpauth = "0.8"
 tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
 chrono = { version = "0.4", features = ["serde"] }
-sqlx = { version = "0.6", features = [
+sqlx = { version = "0.6.3", features = [
     "runtime-actix-rustls",
     "macros",
     "postgres",
