@@ -373,7 +373,7 @@ async fn calculate_subscription_renewal_date(
 
     if renewal_month == 2 && local_copy_renewal_day == 29 && !is_renewal_year_a_leap_year {
         local_copy_renewal_day = 28;
-        local_copy_subscription_creation_date = DateTime::from_utc(
+        local_copy_subscription_creation_date = DateTime::from_naive_utc_and_offset(
             NaiveDate::parse_from_str(
                 format!(
                     "{}-{}-{}",
