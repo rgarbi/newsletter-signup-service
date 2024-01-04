@@ -16,16 +16,15 @@ name = "newsletter-signup-service"
 actix-web = "4"
 actix-cors = "0.6"
 actix-web-httpauth = "0.8"
-tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
-sqlx = { version = "0.6.3", features = [
-    "runtime-actix-rustls",
+sqlx = { version = "0.7.3", features = [
+    "runtime-tokio-rustls",
     "macros",
     "postgres",
     "uuid",
     "chrono",
     "migrate",
-    "offline",
     "json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -35,15 +34,15 @@ config = "0.13"
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 tracing-bunyan-formatter = "0.3"
-tracing-log = "0.1"
+tracing-log = "0.2"
 secrecy = { version = "0.8", features = ["serde"] }
-tracing-actix-web = "0.6"
+tracing-actix-web = "0.7"
 unicode-segmentation = "1"
 validator = "0.16"
 base64 = "0.21.0"
 anyhow = "1"
 derive_more = "0.99"
-cached = "0.43"
+cached = "0.47"
 jsonwebtokens = "1"
 argon2 = "0.5"
 rand_core = { version = "0.6", features = ["std"] }
@@ -59,5 +58,5 @@ quickcheck = "1"
 quickcheck_macros = "1"
 rand = "0.8.5"
 wiremock = "0.5"
-linkify = "0.9"
+linkify = "0.10"
 url = "2.2.2"
