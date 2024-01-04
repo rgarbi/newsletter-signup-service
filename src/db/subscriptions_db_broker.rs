@@ -78,7 +78,7 @@ pub async fn insert_subscription(
         subscription_to_be_saved.subscription_anniversary_day as i32,
         subscription_to_be_saved.subscription_anniversary_month as i32
     )
-    .execute(transaction)
+    .execute(&mut **transaction)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
