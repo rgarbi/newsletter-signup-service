@@ -137,7 +137,7 @@ pub async fn set_checkout_session_state_to_success_by_stripe_session_id(
         CheckoutSessionState::CompletedSuccessfully.as_str(),
         stripe_session_id
     )
-    .execute(transaction)
+    .execute(&mut **transaction)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);

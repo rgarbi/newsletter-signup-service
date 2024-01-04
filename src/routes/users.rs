@@ -69,7 +69,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                 &transformed_email,
                 &hashed_password,
                 UserGroup::USER,
-                &mut transaction,
+                transaction,
             )
             .await
             {

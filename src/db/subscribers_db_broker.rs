@@ -20,7 +20,7 @@ pub async fn insert_subscriber(
         subscriber.email_address.as_ref(),
         subscriber.name.as_ref(),
         subscriber.user_id,
-    ).execute(transaction).await.map_err(|e| {
+    ).execute(&mut **transaction).await.map_err(|e| {
         let err = StoreSubscriberError(e);
         tracing::error!("{:?}", err);
         err

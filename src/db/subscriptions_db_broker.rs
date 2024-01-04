@@ -267,7 +267,7 @@ pub async fn cancel_subscription_by_subscription_id(
         cancelled_date,
         id
     )
-    .execute(transaction)
+    .execute(&mut **transaction)
     .await
     .map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);

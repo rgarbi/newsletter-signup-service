@@ -93,7 +93,7 @@ pub async fn insert_user(
         hashed_password,
         user_group.as_str(),
     )
-    .execute(transaction)
+    .execute(&mut **transaction)
     .await
     .map_err(|e: Error| {
         tracing::error!("{:?}", e);
