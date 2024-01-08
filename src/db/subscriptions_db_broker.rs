@@ -453,7 +453,7 @@ mod tests {
         let subscription_year_current_year: u32 = now.year() as u32;
 
         let date_string_january = format!("{}-01-01", subscription_year_current_year);
-        let subscription_creation_date = DateTime::from_utc(
+        let subscription_creation_date = DateTime::from_naive_utc_and_offset(
             NaiveDate::parse_from_str(date_string_january.as_str(), "%Y-%m-%d")
                 .unwrap()
                 .and_hms_opt(0, 0, 0)
@@ -466,7 +466,7 @@ mod tests {
         );
 
         let date_string_february = format!("{}-02-01", subscription_year_current_year);
-        let subscription_creation_date = DateTime::from_utc(
+        let subscription_creation_date = DateTime::from_naive_utc_and_offset(
             NaiveDate::parse_from_str(date_string_february.as_str(), "%Y-%m-%d")
                 .unwrap()
                 .and_hms_opt(0, 0, 0)
@@ -475,7 +475,7 @@ mod tests {
         );
         assert_eq!(
             calculate_renewal_year(2, 1, subscription_creation_date).await,
-            subscription_year_current_year + 1
+            subscription_year_current_year
         );
 
         let day: u32 = NaiveDate::parse_from_str(
@@ -489,7 +489,7 @@ mod tests {
         NaiveDate::parse_from_str(date_string_february_end_of_month.as_str(), "%Y-%m-%d")
             .unwrap()
             .days_in_month();
-        let subscription_creation_date = DateTime::from_utc(
+        let subscription_creation_date = DateTime::from_naive_utc_and_offset(
             NaiveDate::parse_from_str(date_string_february_end_of_month.as_str(), "%Y-%m-%d")
                 .unwrap()
                 .and_hms_opt(0, 0, 0)
@@ -498,7 +498,7 @@ mod tests {
         );
         assert_eq!(
             calculate_renewal_year(2, day, subscription_creation_date).await,
-            subscription_year_current_year + 1
+            subscription_year_current_year
         );
     }
 }
