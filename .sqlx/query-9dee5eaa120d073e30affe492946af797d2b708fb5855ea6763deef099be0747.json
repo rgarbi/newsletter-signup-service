@@ -1,0 +1,112 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            id, \n            subscriber_id, \n            subscription_name, \n            subscription_mailing_address_line_1, \n            subscription_mailing_address_line_2,\n            subscription_city,\n            subscription_state,\n            subscription_postal_code,\n            subscription_email_address,\n            subscription_creation_date,\n            subscription_cancelled_on_date,\n            subscription_anniversary_day,\n            active,\n            subscription_type,\n            stripe_subscription_id,\n            subscription_anniversary_month\n            FROM subscriptions WHERE subscriber_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "subscriber_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "subscription_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "subscription_mailing_address_line_1",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "subscription_mailing_address_line_2",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "subscription_city",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "subscription_state",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "subscription_postal_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "subscription_email_address",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "subscription_creation_date",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "subscription_cancelled_on_date",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "subscription_anniversary_day",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "subscription_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 14,
+        "name": "stripe_subscription_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "subscription_anniversary_month",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9dee5eaa120d073e30affe492946af797d2b708fb5855ea6763deef099be0747"
+}

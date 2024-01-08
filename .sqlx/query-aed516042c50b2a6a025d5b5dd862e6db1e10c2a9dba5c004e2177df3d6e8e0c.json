@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE subscriptions\n            SET active = false,\n                subscription_cancelled_on_date = $1\n            WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "aed516042c50b2a6a025d5b5dd862e6db1e10c2a9dba5c004e2177df3d6e8e0c"
+}

@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO subscription_event_history (\n            id, \n            subscription_id, \n            subscription_change_event_type, \n            subscription_change_event_date, \n            subscription\n            ) VALUES ($1, $2, $3, $4, $5)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9332844c07a604b7cec88d05ee1032db491c79a9016a81b4e1b91234a4622ce3"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE checkout_session\n            SET session_state = $1\n            WHERE stripe_session_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4831a46d37fc42180b43fcdbe0364bd88f2bb5e411b8236d1d4cee85219b6e55"
+}

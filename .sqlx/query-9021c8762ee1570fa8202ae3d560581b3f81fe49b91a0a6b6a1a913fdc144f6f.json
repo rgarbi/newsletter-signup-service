@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE otp\n            SET used = true\n            WHERE one_time_passcode = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9021c8762ee1570fa8202ae3d560581b3f81fe49b91a0a6b6a1a913fdc144f6f"
+}

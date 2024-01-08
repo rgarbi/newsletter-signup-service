@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            id, \n            user_id, \n            session_state, \n            created_at, \n            price_lookup_key,\n            stripe_session_id,\n            subscription\n            FROM checkout_session WHERE stripe_session_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "session_state",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "price_lookup_key",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "stripe_session_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "subscription",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c4c4a86508160552322fc4fa19bab4bbdc352648011bd636545b732e48f62e47"
+}
