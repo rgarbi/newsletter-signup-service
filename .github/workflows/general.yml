@@ -26,7 +26,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      SQLX_VERSION: 0.6.3
+      SQLX_VERSION: 0.7.3
       SQLX_FEATURES: all
     steps:
       - name: Checkout repository
@@ -124,7 +124,7 @@ jobs:
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
-          cargo install --version=0.6.3 sqlx-cli
+          cargo install --version=${{ env.SQLX_VERSION }} sqlx-cli
           SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
