@@ -6,6 +6,8 @@ env:
   CARGO_TERM_COLOR: always
   AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
   AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+  SQLX_VERSION: 0.7.3
+  SQLX_FEATURES: all
 
 jobs:
   build:
@@ -25,9 +27,6 @@ jobs:
           --health-interval 15s
           --health-timeout 5s
           --health-retries 10
-    env:
-      SQLX_VERSION: 0.7.3
-      SQLX_FEATURES: all
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
