@@ -63,6 +63,15 @@ pub struct StripeCheckoutSession {
     pub url: String,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct StripeWebhookEvent {
+    pub id: String,
+    pub data: String,
+    pub created: u64,
+    #[serde(alias = "type")]
+    pub event_type: String
+}
+
 impl StripeSessionObject {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).expect("Was not able to serialize.")
