@@ -13,3 +13,5 @@ mod subscription_notifier_test;
 mod subscriptions_tests;
 mod user_db_test;
 mod users_tests;
+
+mod webhook_db_tests;

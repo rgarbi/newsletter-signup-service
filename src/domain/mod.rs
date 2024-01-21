@@ -7,3 +7,4 @@ pub mod user_models;
 pub mod valid_email;
 pub mod valid_name;
 pub mod valid_string;
+pub mod webhook_event;

@@ -69,7 +69,7 @@ pub struct StripeWebhookEvent {
     pub data: String,
     pub created: u64,
     #[serde(alias = "type")]
-    pub event_type: String
+    pub event_type: String,
 }
 
 impl StripeSessionObject {

@@ -6,7 +6,7 @@ pub use users::*;
 
 pub mod health_check;
 pub mod payment;
+pub mod stripe_webhook;
 pub mod subscribers;
 pub mod subscriptions;
 pub mod users;
-pub mod stripe_webhook;
