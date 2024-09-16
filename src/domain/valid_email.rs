@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-use validator::validate_email;
+
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ValidEmail(String);
 
 impl ValidEmail {
     pub fn parse(s: String) -> Result<ValidEmail, String> {
-        if validate_email(&s) {
+        if  validator::ValidateEmail::validate_email(&s) {
             Ok(Self(s))
         } else {
             Err(format!("{} is not a valid subscriber email.", s))

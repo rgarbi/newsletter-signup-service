@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            id, event_text, sent_on, processed\n            FROM webhook_events\n            WHERE processed = false",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "sent_on",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "processed",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1709714b3fb5d8092629888dbcf7c14cddc26ab01a69dea0fdba444a9751d349"
+}

@@ -21,7 +21,7 @@ pub async fn insert_subscriber(
         subscriber.name.as_ref(),
         subscriber.user_id,
     ).execute(&mut **transaction).await.map_err(|e| {
-        let err = StoreSubscriberError(e);
+        let err = StoreSubscriberError::new(e);
         tracing::error!("{:?}", err);
         err
 
@@ -46,7 +46,7 @@ pub async fn set_stripe_customer_id(
     .execute(pool)
     .await
     .map_err(|e| {
-        let err = StoreSubscriberError(e);
+        let err = StoreSubscriberError::new(e);
         tracing::error!("{:?}", err);
         err
     })?;
@@ -174,13 +174,24 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
 }
 
 #[derive(Debug)]
-pub struct StoreSubscriberError(sqlx::Error);
+pub struct StoreSubscriberError {
+    error: sqlx::Error
+}
+
+impl StoreSubscriberError {
+    pub fn new(error: sqlx::Error) -> StoreSubscriberError {
+        StoreSubscriberError {
+            error
+        }
+    }
+}
 
 impl Display for StoreSubscriberError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "A database error was encountered while trying to store a subscriber."
+            "A database error was encountered while trying to store a subscriber. {:?}",
+            self.error
         )
     }
 }
