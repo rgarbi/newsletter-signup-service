@@ -175,14 +175,12 @@ pub async fn retrieve_subscriber_by_user_id_and_email_address(
 
 #[derive(Debug)]
 pub struct StoreSubscriberError {
-    error: sqlx::Error
+    error: sqlx::Error,
 }
 
 impl StoreSubscriberError {
     pub fn new(error: sqlx::Error) -> StoreSubscriberError {
-        StoreSubscriberError {
-            error
-        }
+        StoreSubscriberError { error }
     }
 }
 

@@ -1,4 +1,4 @@
-use claims::{assert_ok};
+use claims::assert_ok;
 use newsletter_signup_service::db::webhook_event_db_broker::insert_webhook_event;
 use newsletter_signup_service::domain::webhook_event::WebhookEvent;
 
@@ -17,6 +17,4 @@ async fn insert_user_works() {
 
     let result = insert_webhook_event(&webhook_event, &app.db_pool.clone()).await;
     assert_ok!(result);
-
 }
-
