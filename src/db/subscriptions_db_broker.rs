@@ -443,14 +443,16 @@ async fn calculate_renewal_year(
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Add;
     use crate::db::subscriptions_db_broker::calculate_renewal_year;
     use crate::util::NaiveDateExt;
-    use chrono::{DateTime, Datelike, NaiveDate, Utc};
+    use chrono::{DateTime, Datelike, NaiveDate, Utc, TimeDelta};
 
     #[tokio::test]
     async fn calculate_renewal_year_test() {
         let now = Utc::now();
         let subscription_year_current_year: u32 = now.year() as u32;
+        let renewal_month: u32 = now.add(TimeDelta::days(32)).month();
 
         let date_string_january = format!("{}-01-01", subscription_year_current_year);
         let subscription_creation_date = DateTime::from_naive_utc_and_offset(
@@ -474,7 +476,7 @@ mod tests {
             Utc,
         );
         assert_eq!(
-            calculate_renewal_year(2, 1, subscription_creation_date).await,
+            calculate_renewal_year(renewal_month, 1, subscription_creation_date).await,
             subscription_year_current_year
         );
 
@@ -497,7 +499,7 @@ mod tests {
             Utc,
         );
         assert_eq!(
-            calculate_renewal_year(2, day, subscription_creation_date).await,
+            calculate_renewal_year(renewal_month, day, subscription_creation_date).await,
             subscription_year_current_year
         );
     }
