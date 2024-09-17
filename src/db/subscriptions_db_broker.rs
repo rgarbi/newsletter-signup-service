@@ -443,10 +443,10 @@ async fn calculate_renewal_year(
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Add;
     use crate::db::subscriptions_db_broker::calculate_renewal_year;
     use crate::util::NaiveDateExt;
-    use chrono::{DateTime, Datelike, NaiveDate, Utc, TimeDelta};
+    use chrono::{DateTime, Datelike, NaiveDate, TimeDelta, Utc};
+    use std::ops::Add;
 
     #[tokio::test]
     async fn calculate_renewal_year_test() {
