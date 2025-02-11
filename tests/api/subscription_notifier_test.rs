@@ -8,7 +8,7 @@ use newsletter_signup_service::db::subscribers_db_broker::{
 use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
 use newsletter_signup_service::domain::valid_email::ValidEmail;
 use newsletter_signup_service::email_client::EmailClient;
-use secrecy::Secret;
+use secrecy::SecretString;
 use wiremock::matchers::{header, header_exists, method, path};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -53,7 +53,7 @@ fn email_client(base_url: String) -> EmailClient {
     EmailClient::new(
         base_url,
         email(),
-        Secret::new(Faker.fake()),
+        SecretString::new(Faker.fake::<String>().into_boxed_str()),
         std::time::Duration::from_millis(200),
     )
 }

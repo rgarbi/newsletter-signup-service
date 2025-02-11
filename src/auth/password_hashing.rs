@@ -36,15 +36,15 @@ pub async fn validate_password(password: String, hashed_password: String) -> boo
 mod tests {
     use std::time::Instant;
 
-    use rand::distributions::Alphanumeric;
-    use rand::{thread_rng, Rng};
+    use rand::distr::Alphanumeric;
+    use rand::{rng, Rng};
     use uuid::Uuid;
 
     use crate::auth::password_hashing::{hash_password, validate_password};
 
     #[tokio::test]
     async fn given_a_random_password_i_can_hash_it_and_compare_it() {
-        let password: String = thread_rng()
+        let password: String = rng()
             .sample_iter(&Alphanumeric)
             .take(100)
             .map(char::from)

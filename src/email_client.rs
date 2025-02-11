@@ -1,5 +1,5 @@
 use reqwest::Client;
-use secrecy::{ExposeSecret, Secret};
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::valid_email::ValidEmail;
@@ -9,14 +9,14 @@ pub struct EmailClient {
     http_client: Client,
     base_url: String,
     sender: ValidEmail,
-    api_key: Secret<String>,
+    api_key: SecretString,
 }
 
 impl EmailClient {
     pub fn new(
         base_url: String,
         sender: ValidEmail,
-        api_key: Secret<String>,
+        api_key: SecretString,
         timeout: std::time::Duration,
     ) -> Self {
         Self {
@@ -143,7 +143,7 @@ mod tests {
     use fake::faker::internet::en::SafeEmail;
     use fake::faker::lorem::en::{Paragraph, Sentence};
     use fake::{Fake, Faker};
-    use secrecy::Secret;
+    use secrecy::SecretString;
     use wiremock::matchers::{any, header, header_exists, method, path};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
@@ -180,7 +180,7 @@ mod tests {
         EmailClient::new(
             base_url,
             email(),
-            Secret::new(Faker.fake()),
+            SecretString::new(Faker.fake::<String>().into_boxed_str()),
             std::time::Duration::from_millis(200),
         )
     }

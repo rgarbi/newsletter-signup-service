@@ -1,6 +1,6 @@
 use cached::proc_macro::once;
 use config::Config;
-use secrecy::{ExposeSecret, Secret};
+use secrecy::{ExposeSecret, SecretString};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use serde_aux::prelude::deserialize_vec_from_string_or_vec;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
@@ -36,7 +36,7 @@ pub struct ApplicationFeatureSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
-    pub password: Secret<String>,
+    pub password: SecretString,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
@@ -48,23 +48,23 @@ pub struct DatabaseSettings {
 pub struct AuthConfig {
     pub audience: String,
     pub issuer: String,
-    pub signing_key: Secret<String>,
+    pub signing_key: SecretString,
 }
 
 #[derive(serde::Deserialize, Clone)]
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
-    pub api_key: Secret<String>,
+    pub api_key: SecretString,
     pub timeout_milliseconds: u64,
 }
 
 #[derive(serde::Deserialize, Clone)]
 pub struct StripeClientSettings {
     pub base_url: String,
-    pub api_secret_key: Secret<String>,
-    pub api_public_key: Secret<String>,
-    pub webhook_key: Secret<String>,
+    pub api_secret_key: SecretString,
+    pub api_public_key: SecretString,
+    pub webhook_key: SecretString,
     pub timeout_milliseconds: u64,
     pub digital_price_lookup_key: String,
     pub digital_price_id: String,

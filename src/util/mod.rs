@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use actix_web::{web, HttpResponse};
 use chrono::Datelike;
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use rand::distr::Alphanumeric;
+use rand::{rng, Rng};
 use uuid::Uuid;
 
 pub fn from_path_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
@@ -31,7 +31,7 @@ pub fn standardize_email(email: &str) -> String {
 }
 
 pub fn generate_random_token() -> String {
-    let mut rng = thread_rng();
+    let mut rng = rng();
     std::iter::repeat_with(|| rng.sample(Alphanumeric))
         .map(char::from)
         .take(50)

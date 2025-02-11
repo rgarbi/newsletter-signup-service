@@ -5,7 +5,7 @@ use crate::stripe_client::stripe_models::{
     StripeProductPrice, StripeSessionObject,
 };
 use reqwest::{Client, Error};
-use secrecy::{ExposeSecret, Secret};
+use secrecy::{ExposeSecret, SecretString};
 use tracing::Level;
 use urlencoding::encode;
 
@@ -19,13 +19,13 @@ pub const STRIPE_PRICES_BASE_PATH: &str = "/v1/prices";
 pub struct StripeClient {
     http_client: Client,
     base_url: String,
-    api_secret_key: Secret<String>,
+    api_secret_key: SecretString,
 }
 
 impl StripeClient {
     pub fn new(
         base_url: String,
-        api_secret_key: Secret<String>,
+        api_secret_key: SecretString,
         timeout: std::time::Duration,
     ) -> Self {
         Self {
@@ -333,7 +333,7 @@ impl StripeClient {
 mod tests {
     use claims::{assert_err, assert_ok};
     use fake::{Fake, Faker};
-    use secrecy::Secret;
+    use secrecy::SecretString;
 
     use crate::stripe_client::stripe_models::{
         StripeBillingPortalSession, StripeCheckoutSession, StripeCustomer, StripePriceList,
@@ -351,7 +351,7 @@ mod tests {
     fn stripe_client(base_url: String) -> StripeClient {
         StripeClient::new(
             base_url,
-            Secret::new(Faker.fake()),
+            SecretString::new(Faker.fake::<String>().into_boxed_str()),
             std::time::Duration::from_millis(200),
         )
     }
