@@ -35,7 +35,11 @@ async fn notify_of_new_subscriber_works() {
     Mock::given(header_exists("Api-Token"))
         .and(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(1)
         .mount(&app.email_server)
         .await;

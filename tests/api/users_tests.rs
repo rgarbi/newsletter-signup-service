@@ -1,4 +1,5 @@
 use claims::assert_ok;
+use mailtrap_rs::types::response::SendEmailResponse;
 use uuid::Uuid;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
@@ -21,7 +22,11 @@ async fn valid_users_can_create_an_account() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .mount(&app.email_server)
         .await;
 
@@ -228,7 +233,11 @@ async fn forgot_password_works() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(1)
         .mount(&app.email_server)
         .await;
@@ -263,7 +272,11 @@ async fn forgot_password_many_times_works() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(2)
         .mount(&app.email_server)
         .await;
@@ -289,7 +302,11 @@ async fn forgot_password_sends_a_confirmation_email_with_a_link() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(1)
         .mount(&app.email_server)
         .await;
@@ -329,7 +346,11 @@ async fn forgot_password_given_when_then() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(1)
         .mount(&app.email_server)
         .await;
@@ -379,7 +400,11 @@ async fn forgot_password_reset_password_given_when_then() {
 
     Mock::given(path("api/send"))
         .and(method("POST"))
-        .respond_with(ResponseTemplate::new(200))
+        .respond_with(ResponseTemplate::new(200).set_body_json(SendEmailResponse {
+            success: true,
+            message_ids: vec!["test-id".to_string()],
+            errors: vec![],
+        }))
         .expect(1)
         .mount(&app.email_server)
         .await;
