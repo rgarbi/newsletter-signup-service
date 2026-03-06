@@ -10,7 +10,7 @@ pub fn from_path_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {
     match Uuid::from_str(id.as_str()) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
-            tracing::error!("Got a malformed UUID");
+            tracing::debug!("Got a malformed UUID");
             Err(HttpResponse::BadRequest().finish())
         }
     }
@@ -20,7 +20,7 @@ pub fn from_string_to_uuid(id: &str) -> Result<Uuid, HttpResponse> {
     match Uuid::from_str(id) {
         Ok(uuid) => Ok(uuid),
         Err(_) => {
-            tracing::error!("Got a malformed UUID");
+            tracing::debug!("Got a malformed UUID");
             Err(HttpResponse::BadRequest().finish())
         }
     }
