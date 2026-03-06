@@ -1,6 +1,6 @@
 [package]
 name = "newsletter-signup-service"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2021"
 
 [lib]
@@ -28,7 +28,7 @@ mailtrap-rs = "0.1.1"
 log = "0.4.29"
 rand = { version = "0.10.0", features = ["std_rng"] }
 rand_core = "0.10.0"
-reqwest = { version = "0.13.2", default-features = false, features = ["json", "multipart"] }
+reqwest = { version = "0.13.2", default-features = false, features = ["json", "multipart", "rustls"] }
 secrecy = { version = "0.10.3", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde-aux = "4"
