@@ -32,9 +32,8 @@ async fn notify_of_new_subscriber_works() {
     let stored_subscription =
         store_subscription(stored_subscriber.clone().id.to_string(), None, &app).await;
 
-    Mock::given(header_exists("Authorization"))
-        .and(header("Content-Type", "application/json"))
-        .and(path("v3/mail/send"))
+    Mock::given(header_exists("Api-Token"))
+        .and(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(1)
@@ -50,12 +49,20 @@ async fn notify_of_new_subscriber_works() {
 }
 
 fn email_client(base_url: String) -> EmailClient {
-    EmailClient::new(
-        base_url,
-        email(),
-        SecretString::new(Faker.fake::<String>().into_boxed_str()),
-        std::time::Duration::from_millis(200),
-    )
+    let base_url_with_slash = if base_url.ends_with('/') {
+        base_url
+    } else {
+        format!("{}/", base_url)
+    };
+    EmailClient::new(newsletter_signup_service::configuration::EmailClientSettings {
+        base_url: base_url_with_slash,
+        sender_email: email().to_string(),
+        sender_name: "Test".to_string(),
+        reply_to_email: email().to_string(),
+        reply_to_name: "Test".to_string(),
+        api_key: SecretString::new(Faker.fake::<String>().into_boxed_str()),
+        timeout_milliseconds: 200,
+    })
 }
 
 fn email() -> ValidEmail {

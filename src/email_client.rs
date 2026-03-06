@@ -1,7 +1,11 @@
-use mailtrap_rs::{client::MailtrapClient, types::email::EmailAddress};
-use secrecy::{ExposeSecret, SecretString};
+use mailtrap_rs::{
+    client::MailtrapClient,
+    types::email::{Body, EmailAddress},
+};
+use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
 
+use crate::configuration::EmailClientSettings;
 use crate::domain::valid_email::ValidEmail;
 
 #[derive(Clone)]
@@ -15,22 +19,27 @@ impl EmailClient {
     pub fn new(email_settings: EmailClientSettings) -> Self {
         Self {
             mailtrap_client: MailtrapClient::new(
-                email_settings.base_url,
-                email_settings.api_key.expose_secret(),
-                email_settings.timeout_milliseconds,
+                &email_settings.base_url,
+                email_settings.api_key.expose_secret().to_string(),
+                std::time::Duration::from_millis(email_settings.timeout_milliseconds),
             )
             .expect("Invalid Mailtrap client configuration"),
-            from_email: EmailAddress::new(email_settings.sender_email, email_settings.sender_name),
+            from_email: EmailAddress::new(
+                email_settings.sender_email,
+                Some(email_settings.sender_name),
+            )
+            .expect("Invalid from email address"),
             reply_to_email: EmailAddress::new(
                 email_settings.reply_to_email,
-                email_settings.reply_to_name,
-            ),
+                Some(email_settings.reply_to_name),
+            )
+            .expect("Invalid reply to email address"),
         }
     }
 
     #[tracing::instrument(
         name = "Sending an email",
-        skip(recipient, subject, html_content, text_content)
+        skip(self, recipient, subject, html_content, text_content)
     )]
     pub async fn send_email(
         &self,
@@ -38,50 +47,33 @@ impl EmailClient {
         subject: &str,
         html_content: &str,
         text_content: &str,
-    ) -> Result<(), reqwest::Error> {
-        let auth_header = format!("Bearer {}", self.api_key.expose_secret());
+    ) -> Result<(), anyhow::Error> {
+        let to_addresses: Vec<EmailAddress> = recipient
+            .iter()
+            .map(|r| {
+                EmailAddress::new(r.to_string(), None).expect("ValidEmail should produce valid email")
+            })
+            .collect();
 
-        let email_content = SendEmailRequest {
-            personalizations: Vec::from([Personalization {
-                to: from_recipient_to_personalizations(recipient),
-            }]),
-            from: SendFrom {
-                email: self.sender.to_string(),
-                name: String::new(),
+        let message = mailtrap_rs::types::email::Message::new(
+            self.from_email.clone(),
+            subject.to_string(),
+            Body::TextAndHtml {
+                text: text_content.to_string(),
+                html: html_content.to_string(),
             },
-            subject: String::from(subject),
-            content: [
-                EmailContent {
-                    content_type: "text/plain".to_string(),
-                    value: text_content.to_string(),
-                },
-                EmailContent {
-                    content_type: "text/html".to_string(),
-                    value: html_content.to_string(),
-                },
-            ],
-        };
+        )
+        .reply_to(self.reply_to_email.clone());
 
-        let address = format!("{}/v3/mail/send", &self.base_url);
-        let body = email_content.to_json();
+        let message = to_addresses
+            .into_iter()
+            .fold(message, |msg, addr| msg.to(addr));
 
-        let result = self
-            .http_client
-            .post(address)
-            .header("Authorization", auth_header)
-            .header("Content-Type", "application/json")
-            .body(body)
-            .send()
-            .await?
-            .error_for_status();
-
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => {
-                tracing::error!("Error sending email: {:?}", err);
-                Err(err)
-            }
-        }
+        self.mailtrap_client
+            .send_email(message)
+            .await
+            .map_err(|e| anyhow::anyhow!("{}", e))?;
+        Ok(())
     }
 }
 
@@ -141,25 +133,12 @@ mod tests {
     use fake::faker::lorem::en::{Paragraph, Sentence};
     use fake::{Fake, Faker};
     use secrecy::SecretString;
-    use wiremock::matchers::{any, header, header_exists, method, path};
-    use wiremock::{Mock, MockServer, Request, ResponseTemplate};
+    use wiremock::matchers::{any, header_exists, method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
+    use crate::configuration::EmailClientSettings;
     use crate::domain::valid_email::ValidEmail;
-    use crate::email_client::{from_recipient_to_personalizations, EmailClient, SendEmailRequest};
-
-    struct SendEmailBodyMatcher;
-    impl wiremock::Match for SendEmailBodyMatcher {
-        fn matches(&self, request: &Request) -> bool {
-            let body = request.body.clone();
-            let email_request: SendEmailRequest =
-                serde_json::from_str(String::from_utf8(body).unwrap().as_str()).unwrap();
-
-            let size_is_one: bool = email_request.personalizations.len() == 1;
-            let has_subject: bool = !email_request.subject.is_empty();
-            let has_content: bool = email_request.content.len() == 2;
-            size_is_one && has_subject && has_content
-        }
-    }
+    use crate::email_client::{from_recipient_to_personalizations, EmailClient};
 
     fn subject() -> String {
         Sentence(1..2).fake()
@@ -174,12 +153,20 @@ mod tests {
     }
 
     fn email_client(base_url: String) -> EmailClient {
-        EmailClient::new(
-            base_url,
-            email(),
-            SecretString::new(Faker.fake::<String>().into_boxed_str()),
-            std::time::Duration::from_millis(200),
-        )
+        let base_url_with_slash = if base_url.ends_with('/') {
+            base_url
+        } else {
+            format!("{}/", base_url)
+        };
+        EmailClient::new(EmailClientSettings {
+            base_url: base_url_with_slash,
+            sender_email: email().to_string(),
+            sender_name: "Test".to_string(),
+            reply_to_email: email().to_string(),
+            reply_to_name: "Test".to_string(),
+            api_key: SecretString::new(Faker.fake::<String>().into_boxed_str()),
+            timeout_milliseconds: 200,
+        })
     }
 
     #[tokio::test]
@@ -187,12 +174,13 @@ mod tests {
         // Arrange
         let mock_server = MockServer::start().await;
         let email_client = email_client(mock_server.uri());
-        Mock::given(header_exists("Authorization"))
-            .and(header("Content-Type", "application/json"))
-            .and(path("v3/mail/send"))
+        Mock::given(header_exists("Api-Token"))
+            .and(path("api/send"))
             .and(method("POST"))
-            .and(SendEmailBodyMatcher)
-            .respond_with(ResponseTemplate::new(200))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(
+                r#"{"success":true,"message_ids":["test-id"],"errors":[]}"#,
+                "application/json",
+            ))
             .expect(1)
             .mount(&mock_server)
             .await;

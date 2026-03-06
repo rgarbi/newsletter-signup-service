@@ -2,7 +2,6 @@ use crate::auth::authorization::is_authorized_admin_only;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{Duration, Utc};
-use reqwest::Error;
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -306,7 +305,7 @@ pub async fn email_user(
     email: String,
     passcode: String,
     email_client: Data<EmailClient>,
-) -> Result<(), Error> {
+) -> Result<(), anyhow::Error> {
     let web_app_hostname = get_configuration().unwrap().application.web_app_host;
     let link = format!("{}/reset-password?otp={}", web_app_hostname, passcode);
 

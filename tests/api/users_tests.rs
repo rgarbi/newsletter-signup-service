@@ -8,7 +8,6 @@ use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::user_models::{
     ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
-use newsletter_signup_service::email_client::SendEmailRequest;
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
 
@@ -20,7 +19,7 @@ async fn valid_users_can_create_an_account() {
     let response = app.user_signup(signup.to_json()).await;
     assert_eq!(200, response.status().as_u16());
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .mount(&app.email_server)
@@ -227,7 +226,7 @@ async fn forgot_password_works() {
         email_address: signup.email_address,
     };
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(1)
@@ -262,7 +261,7 @@ async fn forgot_password_many_times_works() {
         email_address: signup.email_address,
     };
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(2)
@@ -288,7 +287,7 @@ async fn forgot_password_sends_a_confirmation_email_with_a_link() {
         email_address: signup.email_address,
     };
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(1)
@@ -300,9 +299,9 @@ async fn forgot_password_sends_a_confirmation_email_with_a_link() {
 
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
 
-    let body: SendEmailRequest = serde_json::from_slice(&email_request.body).unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&email_request.body).unwrap();
+    let text_content = body["text"].as_str().unwrap();
 
-    // Extract the link from one of the request fields.
     let get_link = |s: &str| {
         let links: Vec<_> = linkify::LinkFinder::new()
             .links(s)
@@ -312,7 +311,7 @@ async fn forgot_password_sends_a_confirmation_email_with_a_link() {
         links[0].as_str().to_owned()
     };
 
-    let text_link = get_link(body.content[0].value.as_str());
+    let text_link = get_link(text_content);
     assert_eq!(false, text_link.is_empty());
 }
 
@@ -328,7 +327,7 @@ async fn forgot_password_given_when_then() {
         email_address: signup.email_address,
     };
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(1)
@@ -340,7 +339,8 @@ async fn forgot_password_given_when_then() {
 
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
 
-    let body: SendEmailRequest = serde_json::from_slice(&email_request.body).unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&email_request.body).unwrap();
+    let text_content = body["text"].as_str().unwrap();
 
     let get_link = |s: &str| {
         let links: Vec<_> = linkify::LinkFinder::new()
@@ -352,7 +352,7 @@ async fn forgot_password_given_when_then() {
     };
 
     //WHEN: The user gets the email it contains a link.
-    let text_link = get_link(body.content[0].value.as_str());
+    let text_link = get_link(text_content);
     assert_eq!(false, text_link.is_empty());
 
     //THEN: The user can pass that link to the server and get back a token
@@ -377,7 +377,7 @@ async fn forgot_password_reset_password_given_when_then() {
         email_address: signup.clone().email_address,
     };
 
-    Mock::given(path("/v3/mail/send"))
+    Mock::given(path("api/send"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
         .expect(1)
@@ -389,7 +389,8 @@ async fn forgot_password_reset_password_given_when_then() {
 
     let email_request = &app.email_server.received_requests().await.unwrap()[0];
 
-    let body: SendEmailRequest = serde_json::from_slice(&email_request.body).unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&email_request.body).unwrap();
+    let text_content = body["text"].as_str().unwrap();
 
     let get_link = |s: &str| {
         let links: Vec<_> = linkify::LinkFinder::new()
@@ -401,7 +402,7 @@ async fn forgot_password_reset_password_given_when_then() {
     };
 
     //WHEN: The user gets the email it contains a link.
-    let text_link = get_link(body.content[0].value.as_str());
+    let text_link = get_link(text_content);
     assert_eq!(false, text_link.is_empty());
 
     //THEN: The user can pass that link to the server and get back a token which can be used to reset their password

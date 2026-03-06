@@ -26,17 +26,7 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
-        let email_client_timeout = configuration.email_client.timeout();
-        let sender_email = configuration
-            .email_client
-            .sender()
-            .expect("Invalid sender email address.");
-        let email_client = EmailClient::new(
-            configuration.email_client.base_url,
-            sender_email,
-            configuration.email_client.api_key,
-            email_client_timeout,
-        );
+        let email_client = EmailClient::new(configuration.email_client.clone());
 
         let stripe_client_timeout = configuration.stripe_client.timeout();
         let stripe_client = StripeClient::new(
