@@ -78,16 +78,6 @@ impl EmailClient {
     }
 }
 
-fn from_recipient_to_personalizations(recipients: Vec<ValidEmail>) -> Vec<SendTo> {
-    recipients
-        .iter()
-        .map(|recipient| SendTo {
-            email: recipient.to_string(),
-            name: "".to_string(),
-        })
-        .collect::<Vec<SendTo>>()
-}
-
 #[derive(Deserialize, Serialize)]
 pub struct SendEmailRequest {
     pub personalizations: Vec<Personalization>,

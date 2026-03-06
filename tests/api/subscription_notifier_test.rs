@@ -1,6 +1,7 @@
 use claims::assert_ok;
 use fake::faker::internet::en::SafeEmail;
 use fake::{Fake, Faker};
+use mailtrap_rs::types::response::SendEmailResponse;
 use newsletter_signup_service::background::new_subscription_notifier::notify_subscriber;
 use newsletter_signup_service::db::subscribers_db_broker::{
     insert_subscriber, retrieve_subscriber_by_user_id,
@@ -9,7 +10,7 @@ use newsletter_signup_service::domain::subscriber_models::NewSubscriber;
 use newsletter_signup_service::domain::valid_email::ValidEmail;
 use newsletter_signup_service::email_client::EmailClient;
 use secrecy::SecretString;
-use wiremock::matchers::{header, header_exists, method, path};
+use wiremock::matchers::{header_exists, method, path};
 use wiremock::{Mock, ResponseTemplate};
 
 use crate::helper::{generate_over_the_wire_subscriber, spawn_app, store_subscription};
