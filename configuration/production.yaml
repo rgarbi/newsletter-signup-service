@@ -3,7 +3,7 @@ application:
 database:
   require_ssl: true
 email_client:
-  base_url: "https://api.sendgrid.com"
-  sender_email: "thegospelmessage61@gmail.com"
+  base_url: "https://send.api.mailtrap.io"
+  sender_email: "noreply@gospelmessage.net"
 application_feature_settings:
   subscription_notification_addresses: "twadsquad@earthlink.net,thegospelmessage61@gmail.com"

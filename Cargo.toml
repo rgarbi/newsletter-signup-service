@@ -24,6 +24,7 @@ chrono = { version = "0.4.44", default-features = false, features = ["serde"] }
 config = "0.15.19"
 derive_more = { version = "2.1.1", features = ["full"] }
 jsonwebtokens = "1"
+mailtrap-rs = "0.1.1"
 log = "0.4.29"
 rand = { version = "0.10.0", features = ["std_rng"] }
 rand_core = "0.10.0"

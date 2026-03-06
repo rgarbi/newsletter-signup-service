@@ -1,7 +1,6 @@
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 
-
 pub fn get_argon() -> Argon2<'static> {
     Argon2::default()
 }

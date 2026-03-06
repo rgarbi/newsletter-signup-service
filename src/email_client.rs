@@ -1,33 +1,30 @@
-use reqwest::Client;
+use mailtrap_rs::{client::MailtrapClient, types::email::EmailAddress};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::valid_email::ValidEmail;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct EmailClient {
-    http_client: Client,
-    base_url: String,
-    sender: ValidEmail,
-    api_key: SecretString,
+    mailtrap_client: MailtrapClient,
+    from_email: EmailAddress,
+    reply_to_email: EmailAddress,
 }
 
 impl EmailClient {
-    pub fn new(
-        base_url: String,
-        sender: ValidEmail,
-        api_key: SecretString,
-        timeout: std::time::Duration,
-    ) -> Self {
+    pub fn new(email_settings: EmailClientSettings) -> Self {
         Self {
-            http_client: Client::builder()
-                .timeout(timeout)
-                .connection_verbose(true)
-                .build()
-                .unwrap(),
-            base_url,
-            sender,
-            api_key,
+            mailtrap_client: MailtrapClient::new(
+                email_settings.base_url,
+                email_settings.api_key.expose_secret(),
+                email_settings.timeout_milliseconds,
+            )
+            .expect("Invalid Mailtrap client configuration"),
+            from_email: EmailAddress::new(email_settings.sender_email, email_settings.sender_name),
+            reply_to_email: EmailAddress::new(
+                email_settings.reply_to_email,
+                email_settings.reply_to_name,
+            ),
         }
     }
 

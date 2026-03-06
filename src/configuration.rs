@@ -55,6 +55,9 @@ pub struct AuthConfig {
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
+    pub sender_name: String,
+    pub reply_to_email: String,
+    pub reply_to_name: String,
     pub api_key: SecretString,
     pub timeout_milliseconds: u64,
 }

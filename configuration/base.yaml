@@ -14,8 +14,11 @@ auth_config:
   issuer: "http://localhost:8000"
   signing_key: "pazskj75p3PMrLWOU7tB2q8KczjAKabZyhuHEfbdsUM9od5VP6b9oqccsMLqTH"
 email_client:
-  base_url: "https://api.sendgrid.com"
-  sender_email: "thegospelmessage61@gmail.com"
+  base_url: "https://send.api.mailtrap.io"
+  sender_email: "noreply@gospelmessage.net"
+  sender_name: "The Gospel Message"
+  reply_to_email: "thegospelmessage61@gmail.com"
+  reply_to_name: "The Gospel Message"
   api_key: "something"
   timeout_milliseconds: 10000
 stripe_client:
