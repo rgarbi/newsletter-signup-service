@@ -54,15 +54,17 @@ fn email_client(base_url: String) -> EmailClient {
     } else {
         format!("{}/", base_url)
     };
-    EmailClient::new(newsletter_signup_service::configuration::EmailClientSettings {
-        base_url: base_url_with_slash,
-        sender_email: email().to_string(),
-        sender_name: "Test".to_string(),
-        reply_to_email: email().to_string(),
-        reply_to_name: "Test".to_string(),
-        api_key: SecretString::new(Faker.fake::<String>().into_boxed_str()),
-        timeout_milliseconds: 200,
-    })
+    EmailClient::new(
+        newsletter_signup_service::configuration::EmailClientSettings {
+            base_url: base_url_with_slash,
+            sender_email: email().to_string(),
+            sender_name: "Test".to_string(),
+            reply_to_email: email().to_string(),
+            reply_to_name: "Test".to_string(),
+            api_key: SecretString::new(Faker.fake::<String>().into_boxed_str()),
+            timeout_milliseconds: 200,
+        },
+    )
 }
 
 fn email() -> ValidEmail {

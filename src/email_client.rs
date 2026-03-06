@@ -51,7 +51,8 @@ impl EmailClient {
         let to_addresses: Vec<EmailAddress> = recipient
             .iter()
             .map(|r| {
-                EmailAddress::new(r.to_string(), None).expect("ValidEmail should produce valid email")
+                EmailAddress::new(r.to_string(), None)
+                    .expect("ValidEmail should produce valid email")
             })
             .collect();
 
