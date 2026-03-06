@@ -7,12 +7,9 @@ use actix_web::dev::Payload;
 use actix_web::http::StatusCode;
 use actix_web::{FromRequest, HttpRequest, ResponseError};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
-use jsonwebtokens as jwt;
-use jsonwebtokens::encode;
-use jwt::{Algorithm, AlgorithmID, Verifier};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use secrecy::ExposeSecret;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
 
 use crate::configuration::get_configuration;
 use crate::domain::user_models::UserGroup;
@@ -74,44 +71,29 @@ impl FromRequest for Claims {
 pub fn generate_token(user_id: String, user_group: UserGroup) -> String {
     let auth_config = get_configuration().unwrap().auth_config;
     let now = get_now_in_seconds();
-    let claims: Claims = Claims {
+    let claims = Claims {
         user_id: user_id.clone(),
         group: user_group,
-        iss: auth_config.issuer,
-        aud: auth_config.audience,
+        iss: auth_config.issuer.clone(),
+        aud: auth_config.audience.clone(),
         sub: user_id,
         iat: now,
         exp: get_expires_at(Option::Some(now)),
     };
-    let alg = Algorithm::new_hmac(
-        AlgorithmID::HS512,
-        auth_config.signing_key.expose_secret().as_bytes(),
-    )
-    .unwrap();
-    let header = json!({ "alg": alg.name() });
-    let claims = serde_json::to_value(claims).unwrap();
-    encode(&header, &claims, &alg).unwrap()
+    let header = Header::new(Algorithm::HS512);
+    let key = EncodingKey::from_secret(auth_config.signing_key.expose_secret().as_bytes());
+    encode(&header, &claims, &key).unwrap()
 }
 
 pub fn validate_token(token: String) -> Result<Claims, TokenError> {
     let auth_config = get_configuration().unwrap().auth_config;
-    let alg = Algorithm::new_hmac(
-        AlgorithmID::HS512,
-        auth_config.signing_key.expose_secret().as_bytes(),
-    )
-    .unwrap();
-    let verifier = Verifier::create()
-        .issuer(auth_config.issuer)
-        .audience(auth_config.audience)
-        .build()
-        .unwrap();
-    let result = verifier.verify(token, &alg);
-    let value: Value = match result {
-        Ok(value) => value,
-        Err(_) => return Err(TokenError::AuthError),
-    };
-    let claims: Claims = serde_json::from_value(value).unwrap();
-    Ok(claims)
+    let mut validation = Validation::new(Algorithm::HS512);
+    validation.set_issuer(&[auth_config.issuer.as_str()]);
+    validation.set_audience(&[auth_config.audience.as_str()]);
+    let key = DecodingKey::from_secret(auth_config.signing_key.expose_secret().as_bytes());
+    let token_data =
+        decode::<Claims>(&token, &key, &validation).map_err(|_| TokenError::AuthError)?;
+    Ok(token_data.claims)
 }
 
 pub fn get_now_in_seconds() -> u64 {
