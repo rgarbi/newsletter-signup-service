@@ -26,6 +26,11 @@ impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
 
+        sqlx::migrate!("./migrations")
+            .run(&connection_pool)
+            .await
+            .expect("Failed to run database migrations");
+
         let email_client = EmailClient::new(configuration.email_client.clone());
 
         let stripe_client_timeout = configuration.stripe_client.timeout();

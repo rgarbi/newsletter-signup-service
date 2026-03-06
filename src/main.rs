@@ -6,7 +6,7 @@ use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 async fn main() -> std::io::Result<()> {
     let subscriber = get_subscriber(
         "newsletter-signup-service".into(),
-        "info".into(),
+        "error".into(),
         std::io::stdout,
     );
     init_subscriber(subscriber);
