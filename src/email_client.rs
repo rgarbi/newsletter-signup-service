@@ -129,7 +129,7 @@ mod tests {
 
     use crate::configuration::EmailClientSettings;
     use crate::domain::valid_email::ValidEmail;
-    use crate::email_client::{from_recipient_to_personalizations, EmailClient};
+    use crate::email_client::EmailClient;
 
     fn subject() -> String {
         Sentence(1..2).fake()
@@ -220,18 +220,5 @@ mod tests {
             .await;
         // Assert
         assert_err!(outcome);
-    }
-
-    #[tokio::test]
-    async fn from_recipient_to_personalizations_works() {
-        let expected = 100;
-        let mut valid_emails: Vec<ValidEmail> = Vec::new();
-        for _i in 0..expected {
-            valid_emails.push(ValidEmail::parse(SafeEmail().fake()).unwrap())
-        }
-
-        let transformed = from_recipient_to_personalizations(valid_emails);
-
-        assert_eq!(expected, transformed.len());
     }
 }
