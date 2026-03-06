@@ -108,7 +108,7 @@ jobs:
           components: llvm-tools-preview
 
       - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --force
 
       - name: Migrate database
         run: |
