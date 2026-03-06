@@ -3,7 +3,7 @@ use std::str::FromStr;
 use actix_web::{web, HttpResponse};
 use chrono::Datelike;
 use rand::distr::Alphanumeric;
-use rand::{rng, Rng};
+use rand::{rng, RngExt};
 use uuid::Uuid;
 
 pub fn from_path_to_uuid(id: &web::Path<String>) -> Result<Uuid, HttpResponse> {

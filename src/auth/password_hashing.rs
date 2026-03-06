@@ -1,6 +1,6 @@
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use rand_core::OsRng;
+
 
 pub fn get_argon() -> Argon2<'static> {
     Argon2::default()
@@ -8,7 +8,9 @@ pub fn get_argon() -> Argon2<'static> {
 
 pub async fn hash_password(password: String) -> String {
     tokio::task::spawn_blocking(move || {
-        let salt = SaltString::generate(&mut OsRng);
+        let mut salt_bytes = [0u8; 16];
+        getrandom::getrandom(&mut salt_bytes).unwrap();
+        let salt = SaltString::encode_b64(&salt_bytes).unwrap();
 
         let argon2 = get_argon();
         let hash = argon2
@@ -37,7 +39,7 @@ mod tests {
     use std::time::Instant;
 
     use rand::distr::Alphanumeric;
-    use rand::{rng, Rng};
+    use rand::{rng, RngExt};
     use uuid::Uuid;
 
     use crate::auth::password_hashing::{hash_password, validate_password};
@@ -45,7 +47,7 @@ mod tests {
     #[tokio::test]
     async fn given_a_random_password_i_can_hash_it_and_compare_it() {
         let password: String = rng()
-            .sample_iter(&Alphanumeric)
+            .sample_iter(Alphanumeric)
             .take(100)
             .map(char::from)
             .collect();
