@@ -9,6 +9,23 @@ pub struct User {
     pub user_group: UserGroup,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct OverTheWireUser {
+    pub user_id: Uuid,
+    pub email_address: String,
+    pub user_group: String,
+}
+
+impl From<User> for OverTheWireUser {
+    fn from(user: User) -> Self {
+        Self {
+            user_id: user.user_id,
+            email_address: user.email_address,
+            user_group: user.user_group.as_str().to_string(),
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SignUp {
     pub email_address: String,

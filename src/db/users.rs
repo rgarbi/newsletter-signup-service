@@ -73,6 +73,30 @@ pub async fn get_user_by_user_id(user_id: &str, pool: &PgPool) -> Result<User, E
     })
 }
 
+#[tracing::instrument(name = "Get all users from the database", skip(pool))]
+pub async fn get_all_users(pool: &PgPool) -> Result<Vec<User>, Error> {
+    let rows = sqlx::query!(
+        r#"SELECT user_id, email_address, password, user_group
+            FROM users"#,
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("{:?}", e);
+        e
+    })?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| User {
+            user_id: row.user_id,
+            email_address: row.email_address,
+            password: row.password,
+            user_group: from_str_to_user_group(row.user_group),
+        })
+        .collect())
+}
+
 #[tracing::instrument(
     name = "Saving new user in the database",
     skip(email_address, hashed_password, user_group, transaction)

@@ -7,7 +7,7 @@ use wiremock::{Mock, ResponseTemplate};
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::user_models::{
-    ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp, UserGroup,
+    ForgotPassword, LogIn, OverTheWireUser, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
 
 use crate::helper::{generate_reset_password, generate_signup, spawn_app};
@@ -557,4 +557,70 @@ async fn check_admin_token_does_not_work() {
         .status()
         .as_u16()
     );
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_200_with_users_without_password_field() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, list_response.status().as_u16());
+    let body = list_response.text().await.unwrap();
+    let users: Vec<OverTheWireUser> = serde_json::from_str(body.as_str()).unwrap();
+    assert_eq!(1, users.len());
+    assert_eq!(signup.email_address, users[0].email_address);
+    assert_eq!("USER", users[0].user_group.as_str());
+    assert!(
+        !body.contains("password"),
+        "response must not include password hash"
+    );
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_401_for_non_admin() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .get_all_users_admin(
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_empty_list_when_no_users() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert!(users.is_empty());
 }

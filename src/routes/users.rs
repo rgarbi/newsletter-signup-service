@@ -12,13 +12,14 @@ use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers_db_broker::insert_subscriber;
 use crate::db::users::{
-    count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
-    update_password,
+    count_users_with_email_address, get_all_users, get_user_by_email_address, get_user_by_user_id,
+    insert_user, update_password,
 };
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::subscriber_models::NewSubscriber;
 use crate::domain::user_models::{
-    ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp, UserGroup,
+    ForgotPassword, LogIn, OverTheWireUser, ResetPassword, ResetPasswordFromForgotPassword, SignUp,
+    UserGroup,
 };
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
@@ -156,6 +157,29 @@ pub async fn check_admin_token(user_id: web::Path<String>, user: Claims) -> impl
     }
 
     HttpResponse::Unauthorized().finish()
+}
+
+#[tracing::instrument(
+    name = "Getting all users (admin only)",
+    skip(admin_user_id, pool, user),
+    fields(admin_user_id = %admin_user_id)
+)]
+pub async fn get_all_users_admin(
+    admin_user_id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    if !is_authorized_admin_only(admin_user_id.into_inner(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    match get_all_users(&pool).await {
+        Ok(users) => {
+            let wire: Vec<OverTheWireUser> = users.into_iter().map(OverTheWireUser::from).collect();
+            HttpResponse::Ok().json(wire)
+        }
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
 }
 
 #[tracing::instrument(
