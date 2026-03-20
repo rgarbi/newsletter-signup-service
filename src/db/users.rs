@@ -152,3 +152,22 @@ pub async fn update_password(
 
     Ok(())
 }
+
+#[tracing::instrument(name = "Promote user to admin", skip(user_id, pool))]
+pub async fn promote_user_to_admin(user_id: Uuid, pool: &PgPool) -> Result<(), Error> {
+    sqlx::query!(
+        r#"UPDATE users
+            SET user_group = $1
+            WHERE user_id = $2"#,
+        UserGroup::ADMIN.as_str(),
+        user_id,
+    )
+    .execute(pool)
+    .await
+    .map_err(|e: Error| {
+        tracing::error!("{:?}", e);
+        e
+    })?;
+
+    Ok(())
+}
