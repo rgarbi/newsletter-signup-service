@@ -13,7 +13,7 @@ use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers_db_broker::insert_subscriber;
 use crate::db::users::{
     count_users_with_email_address, get_all_users, get_user_by_email_address, get_user_by_user_id,
-    insert_user, update_password,
+    insert_user, promote_user_to_admin, update_password,
 };
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::subscriber_models::NewSubscriber;
@@ -178,6 +178,32 @@ pub async fn get_all_users_admin(
             let wire: Vec<OverTheWireUser> = users.into_iter().map(OverTheWireUser::from).collect();
             HttpResponse::Ok().json(wire)
         }
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Promote user to admin (admin only)",
+    skip(path, pool, user),
+)]
+pub async fn admin_promote_user(
+    path: web::Path<(String, String)>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    let (admin_user_id, target_user_id_str) = path.into_inner();
+    if !is_authorized_admin_only(admin_user_id.clone(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+    if admin_user_id == target_user_id_str {
+        return HttpResponse::BadRequest().finish();
+    }
+    let target_user_id = match Uuid::parse_str(&target_user_id_str) {
+        Ok(id) => id,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    match promote_user_to_admin(target_user_id, &pool).await {
+        Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }

@@ -624,3 +624,110 @@ async fn get_all_users_admin_returns_empty_list_when_no_users() {
         serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
     assert!(users.is_empty());
 }
+
+#[tokio::test]
+async fn admin_promote_user_returns_200_and_sets_target_to_admin() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let promote_response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, promote_response.status().as_u16());
+
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, list_response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(list_response.text().await.unwrap().as_str()).unwrap();
+    let promoted = users
+        .iter()
+        .find(|u| u.user_id.to_string() == login.user_id)
+        .expect("promoted user in list");
+    assert_eq!("ADMIN", promoted.user_group.as_str());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_401_for_non_admin_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .admin_promote_user(
+            login.user_id.clone(),
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_401_when_path_admin_id_does_not_match_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_400_when_promoting_self() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_400_for_invalid_target_user_id() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            "not-a-uuid".to_string(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}

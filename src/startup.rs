@@ -174,6 +174,10 @@ pub fn run(
                 web::get().to(routes::get_all_users_admin),
             )
             .route(
+                "/admin/users/{admin_user_id}/promote/{target_user_id}",
+                web::post().to(routes::admin_promote_user),
+            )
+            .route(
                 "/checkout/{user_id}",
                 web::post().to(routes::create_checkout_session),
             )
