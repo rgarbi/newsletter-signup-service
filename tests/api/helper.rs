@@ -1,3 +1,5 @@
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine;
 use chrono::Utc;
 use claims::assert_ok;
 use once_cell::sync::Lazy;
@@ -30,6 +32,28 @@ use newsletter_signup_service::stripe_client::{
     STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
 };
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
+
+/// Returns the same JWT header and signature as `token`, but with the payload JSON modified so
+/// the `group` claim is `"ADMIN"`. The signature is no longer valid for the new payload, so the
+/// server must reject the token.
+pub fn jwt_with_payload_group_claim_tampered_to_admin(token: &str) -> String {
+    let parts: Vec<&str> = token.split('.').collect();
+    assert_eq!(parts.len(), 3, "expected JWT with three segments");
+    let payload_bytes = URL_SAFE_NO_PAD
+        .decode(parts[1])
+        .expect("JWT payload should be valid base64url");
+    let mut value: serde_json::Value =
+        serde_json::from_slice(&payload_bytes).expect("JWT payload should be JSON");
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert(
+            "group".to_string(),
+            serde_json::Value::String("ADMIN".to_string()),
+        );
+    }
+    let new_payload = serde_json::to_vec(&value).unwrap();
+    let b64 = URL_SAFE_NO_PAD.encode(&new_payload);
+    format!("{}.{}.{}", parts[0], b64, parts[2])
+}
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
     let default_filter_level = "info".to_string();

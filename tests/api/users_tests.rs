@@ -10,7 +10,10 @@ use newsletter_signup_service::domain::user_models::{
     ForgotPassword, LogIn, OverTheWireUser, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
 
-use crate::helper::{generate_reset_password, generate_signup, spawn_app};
+use crate::helper::{
+    generate_reset_password, generate_signup, jwt_with_payload_group_claim_tampered_to_admin,
+    spawn_app,
+};
 
 #[tokio::test]
 async fn valid_users_can_create_an_account() {
@@ -602,6 +605,30 @@ async fn get_all_users_admin_returns_401_for_non_admin() {
             login.user_id.clone(),
             generate_token(login.user_id, UserGroup::USER),
         )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn login_then_tampered_jwt_payload_group_admin_fails_admin_route_with_401() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+
+    let login_response = app.login(signup.to_json()).await;
+    assert_eq!(200, login_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(login_response.text().await.unwrap().as_str()).unwrap();
+
+    assert_eq!(UserGroup::USER, login.group);
+
+    let tampered_token = jwt_with_payload_group_claim_tampered_to_admin(&login.token);
+
+    let response = app
+        .get_all_users_admin(login.user_id.clone(), tampered_token)
         .await;
 
     assert_eq!(401, response.status().as_u16());
