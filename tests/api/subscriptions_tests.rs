@@ -407,3 +407,61 @@ async fn update_subscription_bad_request() {
         .await;
     assert_eq!(400, update_subscription_bad_id_response.status().as_u16());
 }
+
+#[tokio::test]
+async fn get_all_subscriptions_admin_returns_200_with_subscriptions() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let _ = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_subscriptions_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let subscriptions: Vec<OverTheWireSubscription> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert_eq!(1, subscriptions.len());
+}
+
+#[tokio::test]
+async fn get_all_subscriptions_admin_returns_401_for_non_admin() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let _ = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    let response = app
+        .get_all_subscriptions_admin(
+            subscriber.user_id.clone(),
+            generate_token(subscriber.user_id, UserGroup::USER),
+        )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_all_subscriptions_admin_returns_empty_list_when_no_subscriptions() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_subscriptions_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let subscriptions: Vec<OverTheWireSubscription> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert!(subscriptions.is_empty());
+}

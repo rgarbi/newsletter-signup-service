@@ -1,3 +1,4 @@
+use crate::auth::authorization::is_authorized_admin_only;
 use crate::auth::token::Claims;
 use crate::background::subscription_history_storer::store_subscription_history_event;
 use crate::db::subscribers_db_broker::retrieve_subscriber_by_id;
@@ -8,8 +9,9 @@ use tracing::Level;
 use uuid::Uuid;
 
 use crate::db::subscriptions_db_broker::{
-    cancel_subscription_by_subscription_id, retrieve_subscription_by_subscription_id,
-    retrieve_subscriptions_by_subscriber_id, update_subscription_by_subscription_id,
+    cancel_subscription_by_subscription_id, retrieve_all_subscriptions,
+    retrieve_subscription_by_subscription_id, retrieve_subscriptions_by_subscriber_id,
+    update_subscription_by_subscription_id,
 };
 use crate::domain::subscription_history_models::HistoryEventType;
 use crate::domain::subscription_models::OverTheWireSubscription;
@@ -18,6 +20,26 @@ use crate::domain::valid_name::ValidName;
 use crate::stripe_client::StripeClient;
 
 use crate::util::from_path_to_uuid;
+
+#[tracing::instrument(
+    name = "Getting all subscriptions (admin only)",
+    skip(user_id, pool, user),
+    fields(user_id = %user_id)
+)]
+pub async fn get_all_subscriptions_admin(
+    user_id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    if !is_authorized_admin_only(user_id.into_inner(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    match retrieve_all_subscriptions(&pool).await {
+        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
 
 #[tracing::instrument(
 name = "Getting subscriptions by subscriber id",
