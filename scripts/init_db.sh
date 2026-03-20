@@ -19,13 +19,15 @@ DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 DB_NAME="${POSTGRES_DB:=newsletter-signup-service}"
 DB_PORT="${POSTGRES_PORT:=5432}"
+POSTGRES_CONTAINER_NAME="newsletter-signup-postgres"
 export PGPASSWORD="${DB_PASSWORD}"
 # Launch postgres using Docker
 if [[ -z "${SKIP_DOCKER}" && $(pg_isready -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres";) ]]
 then
-  docker system prune --volumes --force
+  docker rm -f "${POSTGRES_CONTAINER_NAME}" 2>/dev/null || true
 
   docker run \
+    --name "${POSTGRES_CONTAINER_NAME}" \
     -e POSTGRES_USER=${DB_USER} \
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
     -e POSTGRES_DB=${DB_NAME} \

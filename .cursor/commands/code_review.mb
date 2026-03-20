@@ -1,0 +1,26 @@
+# Rust Code Review Command
+
+## Goal
+Perform a comprehensive code review of the current changes.
+
+## Rust-Specific Instructions
+*   **Safety & Correctness**: Check for any potential `unsafe` code issues, race conditions in concurrent code (using `Arc<Mutex<T>>` or channels correctly), and appropriate error handling with `Result` and `Option`.
+*   **Performance**: Identify unnecessary data cloning (prefer references or `Borrow` where possible), potential N+1 performance issues, and inefficient use of standard library data structures.
+*   **Idiomatic Rust**: Ensure adherence to idiomatic Rust patterns.
+    *   Use `cargo clippy` suggestions as a guide for best practices.
+    *   Validate proper use of `async`/`await` for asynchronous programming.
+    *   Ensure effective use of traits and generics.
+*   **Readability & Maintainability**:
+    *   Check for clear variable naming and code structure.
+    *   Ensure comprehensive documentation, especially for public APIs (`///` comments).
+    *   Look for opportunities to reduce code duplication.
+*   **Testing**: Suggest missing unit or integration tests and review existing tests for thoroughness.
+
+## Code Review Process
+* Follow data flow from endpoints to the db and back.
+* Make sure all queries have appropriate indexes defined in the sqlx ./migrations
+* Make sure endpoints are protected with appropriate authentication and authorization. (A user should only be able to see their data, admins should be able to see anything)
+* Make sure there are appropriate tests. Prefer integration style tests that exercise a full end to end code path.
+
+## Output Format
+Provide a prioritized list of issues, categorized by severity (Critical, Major, Minor, Enhancement), followed by actionable suggestions for improvement.

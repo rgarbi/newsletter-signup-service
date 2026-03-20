@@ -299,6 +299,62 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
 }
 
 #[tokio::test]
+async fn get_all_subscribers_admin_returns_200_with_subscribers() {
+    let app = spawn_app().await;
+
+    let _subscriber = app.store_subscriber(Option::None).await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_subscribers_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let subscribers: Vec<OverTheWireSubscriber> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert_eq!(1, subscribers.len());
+}
+
+#[tokio::test]
+async fn get_all_subscribers_admin_returns_401_for_non_admin() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(Option::None).await;
+
+    let response = app
+        .get_all_subscribers_admin(
+            subscriber.user_id.clone(),
+            generate_token(subscriber.user_id, UserGroup::USER),
+        )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_all_subscribers_admin_returns_empty_list_when_no_subscribers() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_subscribers_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let subscribers: Vec<OverTheWireSubscriber> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert!(subscribers.is_empty());
+}
+
+#[tokio::test]
 async fn requests_missing_authorization_are_rejected() {
     // Arrange
     let app = spawn_app().await;

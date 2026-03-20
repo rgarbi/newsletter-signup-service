@@ -7,10 +7,13 @@ use wiremock::{Mock, ResponseTemplate};
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
 use newsletter_signup_service::db::users::count_users_with_email_address;
 use newsletter_signup_service::domain::user_models::{
-    ForgotPassword, LogIn, ResetPasswordFromForgotPassword, SignUp, UserGroup,
+    ForgotPassword, LogIn, OverTheWireUser, ResetPasswordFromForgotPassword, SignUp, UserGroup,
 };
 
-use crate::helper::{generate_reset_password, generate_signup, spawn_app};
+use crate::helper::{
+    generate_reset_password, generate_signup, jwt_with_payload_group_claim_tampered_to_admin,
+    spawn_app,
+};
 
 #[tokio::test]
 async fn valid_users_can_create_an_account() {
@@ -557,4 +560,321 @@ async fn check_admin_token_does_not_work() {
         .status()
         .as_u16()
     );
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_200_with_users_without_password_field() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, response.status().as_u16());
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, list_response.status().as_u16());
+    let body = list_response.text().await.unwrap();
+    let users: Vec<OverTheWireUser> = serde_json::from_str(body.as_str()).unwrap();
+    assert_eq!(1, users.len());
+    assert_eq!(signup.email_address, users[0].email_address);
+    assert_eq!("USER", users[0].user_group.as_str());
+    assert!(
+        !body.contains("password"),
+        "response must not include password hash"
+    );
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_401_for_non_admin() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .get_all_users_admin(
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn login_then_tampered_jwt_payload_group_admin_fails_admin_route_with_401() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+
+    let login_response = app.login(signup.to_json()).await;
+    assert_eq!(200, login_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(login_response.text().await.unwrap().as_str()).unwrap();
+
+    assert_eq!(UserGroup::USER, login.group);
+
+    let tampered_token = jwt_with_payload_group_claim_tampered_to_admin(&login.token);
+
+    let response = app
+        .get_all_users_admin(login.user_id.clone(), tampered_token)
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn get_all_users_admin_returns_empty_list_when_no_users() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
+    assert!(users.is_empty());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_200_and_sets_target_to_admin() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let promote_response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, promote_response.status().as_u16());
+
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, list_response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(list_response.text().await.unwrap().as_str()).unwrap();
+    let promoted = users
+        .iter()
+        .find(|u| u.user_id.to_string() == login.user_id)
+        .expect("promoted user in list");
+    assert_eq!("ADMIN", promoted.user_group.as_str());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_401_for_non_admin_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .admin_promote_user(
+            login.user_id.clone(),
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_401_when_path_admin_id_does_not_match_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_400_when_promoting_self() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            admin_user_id.clone(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_promote_user_returns_400_for_invalid_target_user_id() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_promote_user(
+            admin_user_id.clone(),
+            "not-a-uuid".to_string(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_200_and_sets_target_to_user() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let admin_token = generate_token(admin_user_id.clone(), UserGroup::ADMIN);
+    assert_eq!(
+        200,
+        app.admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            admin_token.clone(),
+        )
+        .await
+        .status()
+        .as_u16()
+    );
+
+    let demote_response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            admin_token.clone(),
+        )
+        .await;
+    assert_eq!(200, demote_response.status().as_u16());
+
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, list_response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(list_response.text().await.unwrap().as_str()).unwrap();
+    let demoted = users
+        .iter()
+        .find(|u| u.user_id.to_string() == login.user_id)
+        .expect("demoted user in list");
+    assert_eq!("USER", demoted.user_group.as_str());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_401_for_non_admin_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .admin_demote_user(
+            login.user_id.clone(),
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_401_when_path_admin_id_does_not_match_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_400_for_invalid_target_user_id() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            "not-a-uuid".to_string(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_allows_self_demotion() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, response.status().as_u16());
 }

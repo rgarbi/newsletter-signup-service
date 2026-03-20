@@ -96,10 +96,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
 
-    let environment: Environment = std::env::var("APP_ENVIRONMENT")
-        .unwrap_or_else(|_| "local".into())
-        .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");
+    let environment: Environment = current_environment();
 
     let settings = Config::builder()
         .add_source(config::File::from(configuration_directory.join("base")))
@@ -143,13 +140,23 @@ impl TryFrom<String> for Environment {
     }
 }
 
+/// Matches `APP_ENVIRONMENT` parsing used by [`get_configuration`].
+pub fn current_environment() -> Environment {
+    std::env::var("APP_ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .expect("Failed to parse APP_ENVIRONMENT.")
+}
+
 impl DatabaseSettings {
-    pub fn with_db(&self) -> PgConnectOptions {
-        let options = self.without_db().database(&self.database_name);
-        options
-            .clone()
-            .log_statements(tracing::log::LevelFilter::Trace);
-        options
+    pub fn with_db(&self, environment: &Environment) -> PgConnectOptions {
+        let statement_level = match environment {
+            Environment::Local => tracing::log::LevelFilter::Trace,
+            Environment::Production => tracing::log::LevelFilter::Off,
+        };
+        self.without_db()
+            .database(&self.database_name)
+            .log_statements(statement_level)
     }
 
     pub fn without_db(&self) -> PgConnectOptions {

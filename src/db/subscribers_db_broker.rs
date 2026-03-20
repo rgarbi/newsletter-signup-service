@@ -143,6 +143,23 @@ pub async fn retrieve_subscriber_by_user_id(
     })
 }
 
+#[tracing::instrument(name = "Retrieving all subscribers from the database", skip(pool))]
+pub async fn retrieve_all_subscribers(
+    pool: &PgPool,
+) -> Result<Vec<OverTheWireSubscriber>, sqlx::Error> {
+    let rows = sqlx::query_as::<_, OverTheWireSubscriber>(
+        r#"SELECT id, name, email_address, user_id, stripe_customer_id FROM subscribers"#,
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(rows)
+}
+
 #[tracing::instrument(
     name = "Retrieving a subscriber by user id and email address from the database",
     skip(user_id, email_address, pool)

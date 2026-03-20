@@ -10,7 +10,7 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tracing_actix_web::TracingLogger;
 
-use crate::configuration::{DatabaseSettings, Settings};
+use crate::configuration::{current_environment, DatabaseSettings, Environment, Settings};
 use crate::email_client::EmailClient;
 use crate::routes;
 use crate::stripe_client::StripeClient;
@@ -24,7 +24,12 @@ impl Application {
     // We have converted the `build` function into a constructor for
     // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
-        let connection_pool = get_connection_pool(&configuration.database);
+        let connection_pool = get_connection_pool(&configuration.database, &current_environment());
+
+        sqlx::migrate!("./migrations")
+            .run(&connection_pool)
+            .await
+            .expect("Failed to run database migrations");
 
         let email_client = EmailClient::new(configuration.email_client.clone());
 
@@ -54,10 +59,10 @@ impl Application {
     }
 }
 
-pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
+pub fn get_connection_pool(configuration: &DatabaseSettings, environment: &Environment) -> PgPool {
     PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy_with(configuration.with_db())
+        .connect_lazy_with(configuration.with_db(environment))
 }
 
 pub fn security_headers() -> DefaultHeaders {
@@ -155,6 +160,26 @@ pub fn run(
             .route(
                 "/subscribers/{id}/subscriptions",
                 web::get().to(routes::get_subscriptions_by_subscriber_id),
+            )
+            .route(
+                "/admin/subscribers/{user_id}",
+                web::get().to(routes::get_all_subscribers_admin),
+            )
+            .route(
+                "/admin/subscriptions/{user_id}",
+                web::get().to(routes::get_all_subscriptions_admin),
+            )
+            .route(
+                "/admin/users/{user_id}",
+                web::get().to(routes::get_all_users_admin),
+            )
+            .route(
+                "/admin/users/{admin_user_id}/promote/{target_user_id}",
+                web::post().to(routes::admin_promote_user),
+            )
+            .route(
+                "/admin/users/{admin_user_id}/demote/{target_user_id}",
+                web::post().to(routes::admin_demote_user),
             )
             .route(
                 "/checkout/{user_id}",

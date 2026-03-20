@@ -5,10 +5,12 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 
+use crate::auth::authorization::is_authorized_admin_only;
 use crate::auth::token::Claims;
 use crate::db::subscribers_db_broker::{
-    insert_subscriber, retrieve_subscriber_by_email, retrieve_subscriber_by_id,
-    retrieve_subscriber_by_user_id, retrieve_subscriber_by_user_id_and_email_address,
+    insert_subscriber, retrieve_all_subscribers, retrieve_subscriber_by_email,
+    retrieve_subscriber_by_id, retrieve_subscriber_by_user_id,
+    retrieve_subscriber_by_user_id_and_email_address,
 };
 use crate::domain::subscriber_models::{
     NewSubscriber, OverTheWireCreateSubscriber, OverTheWireSubscriber,
@@ -181,6 +183,26 @@ async fn get_subscriber_by_email_and_user_id(
     {
         Ok(subscriber) => check_user_is_the_owner_of_this_record(user, subscriber),
         Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Getting all subscribers (admin only)",
+    skip(user_id, pool, user),
+    fields(user_id = %user_id)
+)]
+pub async fn get_all_subscribers_admin(
+    user_id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    if !is_authorized_admin_only(user_id.into_inner(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    match retrieve_all_subscribers(&pool).await {
+        Ok(subscribers) => HttpResponse::Ok().json(subscribers),
+        Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }
 

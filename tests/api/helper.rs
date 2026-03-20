@@ -1,3 +1,5 @@
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine;
 use chrono::Utc;
 use claims::assert_ok;
 use once_cell::sync::Lazy;
@@ -10,7 +12,7 @@ use wiremock::matchers::{header_exists, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
-use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
+use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings, Environment};
 use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use newsletter_signup_service::domain::subscriber_models::{
@@ -30,6 +32,28 @@ use newsletter_signup_service::stripe_client::{
     STRIPE_SESSIONS_BASE_PATH, STRIPE_SUBSCRIPTIONS_BASE_PATH,
 };
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
+
+/// Returns the same JWT header and signature as `token`, but with the payload JSON modified so
+/// the `group` claim is `"ADMIN"`. The signature is no longer valid for the new payload, so the
+/// server must reject the token.
+pub fn jwt_with_payload_group_claim_tampered_to_admin(token: &str) -> String {
+    let parts: Vec<&str> = token.split('.').collect();
+    assert_eq!(parts.len(), 3, "expected JWT with three segments");
+    let payload_bytes = URL_SAFE_NO_PAD
+        .decode(parts[1])
+        .expect("JWT payload should be valid base64url");
+    let mut value: serde_json::Value =
+        serde_json::from_slice(&payload_bytes).expect("JWT payload should be JSON");
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert(
+            "group".to_string(),
+            serde_json::Value::String("ADMIN".to_string()),
+        );
+    }
+    let new_payload = serde_json::to_vec(&value).unwrap();
+    let b64 = URL_SAFE_NO_PAD.encode(&new_payload);
+    format!("{}.{}.{}", parts[0], b64, parts[2])
+}
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
     let default_filter_level = "info".to_string();
@@ -86,6 +110,70 @@ impl TestApp {
         reqwest::Client::new()
             .post(&format!("{}/check_admin_token/{}", &self.address, user_id))
             .header("Content-Type", "application/json")
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_all_subscribers_admin(&self, user_id: String, token: String) -> Response {
+        reqwest::Client::new()
+            .get(&format!("{}/admin/subscribers/{}", &self.address, user_id))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_all_subscriptions_admin(&self, user_id: String, token: String) -> Response {
+        reqwest::Client::new()
+            .get(&format!(
+                "{}/admin/subscriptions/{}",
+                &self.address, user_id
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_all_users_admin(&self, user_id: String, token: String) -> Response {
+        reqwest::Client::new()
+            .get(&format!("{}/admin/users/{}", &self.address, user_id))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn admin_promote_user(
+        &self,
+        admin_user_id: String,
+        target_user_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .post(&format!(
+                "{}/admin/users/{}/promote/{}",
+                &self.address, admin_user_id, target_user_id
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn admin_demote_user(
+        &self,
+        admin_user_id: String,
+        target_user_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .post(&format!(
+                "{}/admin/users/{}/demote/{}",
+                &self.address, admin_user_id, target_user_id
+            ))
             .bearer_auth(token)
             .send()
             .await
@@ -385,7 +473,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Migrate database
     let connection_pool = PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(30))
-        .connect_with(config.with_db())
+        .connect_with(config.with_db(&Environment::Local))
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")

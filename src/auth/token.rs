@@ -30,6 +30,7 @@ pub struct LoginResponse {
     pub user_id: String,
     pub token: String,
     pub expires_on: u64,
+    pub group: UserGroup,
 }
 
 #[derive(Debug, Clone)]

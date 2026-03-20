@@ -1,0 +1,4 @@
+# Normalize absolute CI paths so coverage maps to Git tree (Codecov "fixing paths").
+# https://docs.codecov.com/docs/fixing-paths
+fixes:
+  - "/home/runner/work/newsletter-signup-service/newsletter-signup-service/::"

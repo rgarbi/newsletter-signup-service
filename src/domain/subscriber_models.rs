@@ -17,7 +17,7 @@ impl OverTheWireCreateSubscriber {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, sqlx::FromRow)]
 pub struct OverTheWireSubscriber {
     pub id: Uuid,
     pub name: String,

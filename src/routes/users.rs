@@ -12,13 +12,14 @@ use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers_db_broker::insert_subscriber;
 use crate::db::users::{
-    count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
-    update_password,
+    count_users_with_email_address, demote_admin_to_user, get_all_users, get_user_by_email_address,
+    get_user_by_user_id, insert_user, promote_user_to_admin, update_password,
 };
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::subscriber_models::NewSubscriber;
 use crate::domain::user_models::{
-    ForgotPassword, LogIn, ResetPassword, ResetPasswordFromForgotPassword, SignUp, UserGroup,
+    ForgotPassword, LogIn, OverTheWireUser, ResetPassword, ResetPasswordFromForgotPassword, SignUp,
+    UserGroup,
 };
 use crate::domain::valid_email::ValidEmail;
 use crate::domain::valid_name::ValidName;
@@ -76,6 +77,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                     user_id: user_id.clone(),
                     token: generate_token(user_id, UserGroup::USER),
                     expires_on: get_expires_at(Option::None),
+                    group: UserGroup::USER,
                 },
                 Err(_) => {
                     transaction.rollback().await.unwrap();
@@ -120,8 +122,9 @@ pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Re
 
             HttpResponse::Ok().json(LoginResponse {
                 user_id: user.user_id.to_string(),
-                token: generate_token(user.user_id.to_string(), UserGroup::USER),
+                token: generate_token(user.user_id.to_string(), user.user_group.clone()),
                 expires_on: get_expires_at(Option::None),
+                group: user.user_group.clone(),
             })
         }
         Err(_) => HttpResponse::BadRequest().finish(),
@@ -156,6 +159,72 @@ pub async fn check_admin_token(user_id: web::Path<String>, user: Claims) -> impl
     }
 
     HttpResponse::Unauthorized().finish()
+}
+
+#[tracing::instrument(
+    name = "Getting all users (admin only)",
+    skip(admin_user_id, pool, user),
+    fields(admin_user_id = %admin_user_id)
+)]
+pub async fn get_all_users_admin(
+    admin_user_id: web::Path<String>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    if !is_authorized_admin_only(admin_user_id.into_inner(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    match get_all_users(&pool).await {
+        Ok(users) => {
+            let wire: Vec<OverTheWireUser> = users.into_iter().map(OverTheWireUser::from).collect();
+            HttpResponse::Ok().json(wire)
+        }
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[tracing::instrument(name = "Promote user to admin (admin only)", skip(path, pool, user))]
+pub async fn admin_promote_user(
+    path: web::Path<(String, String)>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    let (admin_user_id, target_user_id_str) = path.into_inner();
+    if !is_authorized_admin_only(admin_user_id.clone(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+    if admin_user_id == target_user_id_str {
+        return HttpResponse::BadRequest().finish();
+    }
+    let target_user_id = match Uuid::parse_str(&target_user_id_str) {
+        Ok(id) => id,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    match promote_user_to_admin(target_user_id, &pool).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[tracing::instrument(name = "Demote admin to user (admin only)", skip(path, pool, user))]
+pub async fn admin_demote_user(
+    path: web::Path<(String, String)>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+) -> impl Responder {
+    let (admin_user_id, target_user_id_str) = path.into_inner();
+    if !is_authorized_admin_only(admin_user_id.clone(), user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+    let target_user_id = match Uuid::parse_str(&target_user_id_str) {
+        Ok(id) => id,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    match demote_admin_to_user(target_user_id, &pool).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
 }
 
 #[tracing::instrument(
@@ -257,11 +326,15 @@ pub async fn forgot_password_login(
 
             //set it to used
             match set_to_used_by_otp(passcode.one_time_passcode.as_str(), &pool).await {
-                Ok(_) => HttpResponse::Ok().json(LoginResponse {
-                    user_id: passcode.user_id.clone(),
-                    token: generate_token(passcode.user_id.clone(), UserGroup::USER),
-                    expires_on: get_expires_at(Option::None),
-                }),
+                Ok(_) => match get_user_by_user_id(&passcode.user_id, &pool).await {
+                    Ok(user) => HttpResponse::Ok().json(LoginResponse {
+                        user_id: passcode.user_id.clone(),
+                        token: generate_token(passcode.user_id.clone(), user.user_group.clone()),
+                        expires_on: get_expires_at(Option::None),
+                        group: user.user_group,
+                    }),
+                    Err(_) => HttpResponse::InternalServerError().finish(),
+                },
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }

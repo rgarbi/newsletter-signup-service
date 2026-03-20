@@ -8,7 +8,7 @@ pub fn get_argon() -> Argon2<'static> {
 pub async fn hash_password(password: String) -> String {
     tokio::task::spawn_blocking(move || {
         let mut salt_bytes = [0u8; 16];
-        getrandom::getrandom(&mut salt_bytes).unwrap();
+        getrandom::fill(&mut salt_bytes).unwrap();
         let salt = SaltString::encode_b64(&salt_bytes).unwrap();
 
         let argon2 = get_argon();
