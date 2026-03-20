@@ -148,7 +148,7 @@ pub async fn retrieve_all_subscribers(
     pool: &PgPool,
 ) -> Result<Vec<OverTheWireSubscriber>, sqlx::Error> {
     let rows = sqlx::query_as::<_, OverTheWireSubscriber>(
-        r#"SELECT id, email_address, name, user_id, stripe_customer_id FROM subscribers"#,
+        r#"SELECT id, name, email_address, user_id, stripe_customer_id FROM subscribers"#,
     )
     .fetch_all(pool)
     .await

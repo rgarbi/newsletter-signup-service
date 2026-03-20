@@ -10,7 +10,7 @@ use wiremock::matchers::{header_exists, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use newsletter_signup_service::auth::token::{generate_token, LoginResponse};
-use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings};
+use newsletter_signup_service::configuration::{get_configuration, DatabaseSettings, Environment};
 use newsletter_signup_service::db::subscriptions_db_broker::insert_subscription;
 use newsletter_signup_service::domain::checkout_models::{CheckoutSession, CheckoutSessionState};
 use newsletter_signup_service::domain::subscriber_models::{
@@ -394,7 +394,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Migrate database
     let connection_pool = PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(30))
-        .connect_with(config.with_db())
+        .connect_with(config.with_db(&Environment::Local))
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")
