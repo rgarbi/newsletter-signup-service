@@ -746,15 +746,14 @@ async fn admin_demote_user_returns_200_and_sets_target_to_user() {
     let admin_token = generate_token(admin_user_id.clone(), UserGroup::ADMIN);
     assert_eq!(
         200,
-        app
-            .admin_promote_user(
-                admin_user_id.clone(),
-                login.user_id.clone(),
-                admin_token.clone(),
-            )
-            .await
-            .status()
-            .as_u16()
+        app.admin_promote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            admin_token.clone(),
+        )
+        .await
+        .status()
+        .as_u16()
     );
 
     let demote_response = app

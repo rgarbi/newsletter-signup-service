@@ -12,9 +12,8 @@ use crate::configuration::get_configuration;
 use crate::db::otp_db_broker::{get_otp_by_otp, insert_otp, set_to_used_by_otp};
 use crate::db::subscribers_db_broker::insert_subscriber;
 use crate::db::users::{
-    count_users_with_email_address, demote_admin_to_user, get_all_users,
-    get_user_by_email_address, get_user_by_user_id, insert_user, promote_user_to_admin,
-    update_password,
+    count_users_with_email_address, demote_admin_to_user, get_all_users, get_user_by_email_address,
+    get_user_by_user_id, insert_user, promote_user_to_admin, update_password,
 };
 use crate::domain::otp_models::OneTimePasscode;
 use crate::domain::subscriber_models::NewSubscriber;
@@ -183,10 +182,7 @@ pub async fn get_all_users_admin(
     }
 }
 
-#[tracing::instrument(
-    name = "Promote user to admin (admin only)",
-    skip(path, pool, user),
-)]
+#[tracing::instrument(name = "Promote user to admin (admin only)", skip(path, pool, user))]
 pub async fn admin_promote_user(
     path: web::Path<(String, String)>,
     pool: web::Data<PgPool>,
@@ -209,10 +205,7 @@ pub async fn admin_promote_user(
     }
 }
 
-#[tracing::instrument(
-    name = "Demote admin to user (admin only)",
-    skip(path, pool, user),
-)]
+#[tracing::instrument(name = "Demote admin to user (admin only)", skip(path, pool, user))]
 pub async fn admin_demote_user(
     path: web::Path<(String, String)>,
     pool: web::Data<PgPool>,
