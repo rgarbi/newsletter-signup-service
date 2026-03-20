@@ -1,6 +1,6 @@
 [package]
 name = "newsletter-signup-service"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 
 [lib]
@@ -24,7 +24,7 @@ chrono = { version = "0.4.44", default-features = false, features = ["serde"] }
 config = "0.15.22"
 derive_more = { version = "2.1.1", features = ["full"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-mailtrap-rs = "0.1.1"
+mailtrap-rs = "0.2.0"
 log = "0.4.29"
 rand = { version = "0.10.0", features = ["std_rng"] }
 rand_core = "0.10.0"
