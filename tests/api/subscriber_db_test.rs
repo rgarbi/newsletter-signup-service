@@ -61,7 +61,10 @@ async fn retrieve_all_subscribers_returns_multiple_subscribers() {
     let subscribers = result.unwrap();
     assert_eq!(subscribers.len(), 2);
 
-    let emails: Vec<_> = subscribers.iter().map(|s| s.email_address.as_str()).collect();
+    let emails: Vec<_> = subscribers
+        .iter()
+        .map(|s| s.email_address.as_str())
+        .collect();
     assert!(emails.contains(&subscriber1.email_address.as_str()));
     assert!(emails.contains(&subscriber2.email_address.as_str()));
 }

@@ -154,7 +154,10 @@ async fn retrieve_all_subscriptions_returns_single_subscription() {
     let subscriptions = result.unwrap();
     assert_eq!(subscriptions.len(), 1);
     assert_eq!(subscriptions[0].subscription_name, subscription_name);
-    assert_eq!(subscriptions[0].subscription_email_address, subscription_email);
+    assert_eq!(
+        subscriptions[0].subscription_email_address,
+        subscription_email
+    );
     assert_eq!(subscriptions[0].subscriber_id, stored_subscriber.id);
 }
 
@@ -177,12 +180,9 @@ async fn retrieve_all_subscriptions_returns_multiple_subscriptions() {
     transaction = app.db_pool.clone().begin().await.unwrap();
     for _ in 0..expected_count {
         let subscription = generate_new_subscription(stored_subscriber.id.to_string());
-        assert_ok!(insert_subscription(
-            subscription,
-            Uuid::new_v4().to_string(),
-            &mut transaction
-        )
-        .await);
+        assert_ok!(
+            insert_subscription(subscription, Uuid::new_v4().to_string(), &mut transaction).await
+        );
     }
     assert_ok!(transaction.commit().await);
 
