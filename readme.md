@@ -1,4 +1,4 @@
-![example workflow](https://github.com/rgarbi/newsletter-signup-service/actions/workflows/general.yml/badge.svg)
+[![Build](https://github.com/rgarbi/newsletter-signup-service/actions/workflows/general.yml/badge.svg)](https://github.com/rgarbi/newsletter-signup-service/actions/workflows/general.yml) [![codecov](https://codecov.io/gh/rgarbi/newsletter-signup-service/graph/badge.svg)](https://codecov.io/gh/rgarbi/newsletter-signup-service)
 
 # News Letter Sign Up Service
 
