@@ -23,7 +23,7 @@ cached = "0.58.0"
 chrono = { version = "0.4.44", default-features = false, features = ["serde"] }
 config = "0.15.22"
 derive_more = { version = "2.1.1", features = ["full"] }
-jsonwebtoken = "10"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 mailtrap-rs = "0.1.1"
 log = "0.4.29"
 rand = { version = "0.10.0", features = ["std_rng"] }
