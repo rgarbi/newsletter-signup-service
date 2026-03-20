@@ -24,8 +24,7 @@ impl Application {
     // We have converted the `build` function into a constructor for
     // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
-        let connection_pool =
-            get_connection_pool(&configuration.database, &current_environment());
+        let connection_pool = get_connection_pool(&configuration.database, &current_environment());
 
         sqlx::migrate!("./migrations")
             .run(&connection_pool)

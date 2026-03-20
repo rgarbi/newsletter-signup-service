@@ -1,4 +1,6 @@
-use newsletter_signup_service::configuration::{current_environment, get_configuration, Environment};
+use newsletter_signup_service::configuration::{
+    current_environment, get_configuration, Environment,
+};
 use newsletter_signup_service::startup::Application;
 use newsletter_signup_service::telemetry::{get_subscriber, init_subscriber};
 
