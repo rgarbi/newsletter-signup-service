@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use newsletter_signup_service::db::users::{
     count_users_with_email_address, get_user_by_email_address, get_user_by_user_id, insert_user,
-    update_password,
+    promote_user_to_admin, update_password,
 };
 use newsletter_signup_service::domain::user_models::{SignUp, UserGroup};
 
@@ -275,4 +275,51 @@ async fn update_password_failed() {
     )
     .await;
     assert_err!(update_result);
+}
+
+#[tokio::test]
+async fn promote_user_to_admin_test() {
+    let app = spawn_app().await;
+
+    let sign_up = SignUp {
+        email_address: Uuid::new_v4().to_string(),
+        password: Uuid::new_v4().to_string(),
+        name: Uuid::new_v4().to_string(),
+    };
+
+    let mut transaction = app.db_pool.clone().begin().await.unwrap();
+    let result = insert_user(
+        &sign_up.email_address,
+        &sign_up.password,
+        UserGroup::USER,
+        &mut transaction,
+    )
+    .await;
+    assert_ok!(result);
+    assert_ok!(transaction.commit().await);
+
+    let user = get_user_by_email_address(&sign_up.email_address, &app.db_pool)
+        .await
+        .unwrap();
+    assert_eq!(UserGroup::USER, user.user_group);
+
+    assert_ok!(promote_user_to_admin(user.user_id, &app.db_pool).await);
+
+    let promoted = get_user_by_user_id(user.user_id.to_string().as_str(), &app.db_pool)
+        .await
+        .unwrap();
+    assert_eq!(UserGroup::ADMIN, promoted.user_group);
+}
+
+#[tokio::test]
+async fn promote_user_to_admin_failed() {
+    let app = spawn_app().await;
+
+    sqlx::query!("DROP TABLE users CASCADE")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to drop.");
+
+    let promote_result = promote_user_to_admin(Uuid::new_v4(), &app.db_pool).await;
+    assert_err!(promote_result);
 }
