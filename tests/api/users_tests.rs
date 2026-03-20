@@ -731,3 +731,124 @@ async fn admin_promote_user_returns_400_for_invalid_target_user_id() {
         .await;
     assert_eq!(400, response.status().as_u16());
 }
+
+#[tokio::test]
+async fn admin_demote_user_returns_200_and_sets_target_to_user() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let admin_token = generate_token(admin_user_id.clone(), UserGroup::ADMIN);
+    assert_eq!(
+        200,
+        app
+            .admin_promote_user(
+                admin_user_id.clone(),
+                login.user_id.clone(),
+                admin_token.clone(),
+            )
+            .await
+            .status()
+            .as_u16()
+    );
+
+    let demote_response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            admin_token.clone(),
+        )
+        .await;
+    assert_eq!(200, demote_response.status().as_u16());
+
+    let list_response = app
+        .get_all_users_admin(
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, list_response.status().as_u16());
+    let users: Vec<OverTheWireUser> =
+        serde_json::from_str(list_response.text().await.unwrap().as_str()).unwrap();
+    let demoted = users
+        .iter()
+        .find(|u| u.user_id.to_string() == login.user_id)
+        .expect("demoted user in list");
+    assert_eq!("USER", demoted.user_group.as_str());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_401_for_non_admin_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let response = app
+        .admin_demote_user(
+            login.user_id.clone(),
+            login.user_id.clone(),
+            generate_token(login.user_id, UserGroup::USER),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_401_when_path_admin_id_does_not_match_token() {
+    let app = spawn_app().await;
+
+    let signup = generate_signup();
+    let signup_response = app.user_signup(signup.to_json()).await;
+    assert_eq!(200, signup_response.status().as_u16());
+    let login: LoginResponse =
+        serde_json::from_str(signup_response.text().await.unwrap().as_str()).unwrap();
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            login.user_id.clone(),
+            generate_token(Uuid::new_v4().to_string(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_returns_400_for_invalid_target_user_id() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            "not-a-uuid".to_string(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(400, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn admin_demote_user_allows_self_demotion() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .admin_demote_user(
+            admin_user_id.clone(),
+            admin_user_id.clone(),
+            generate_token(admin_user_id.clone(), UserGroup::ADMIN),
+        )
+        .await;
+    assert_eq!(200, response.status().as_u16());
+}

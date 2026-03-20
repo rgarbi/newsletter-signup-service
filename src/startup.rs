@@ -178,6 +178,10 @@ pub fn run(
                 web::post().to(routes::admin_promote_user),
             )
             .route(
+                "/admin/users/{admin_user_id}/demote/{target_user_id}",
+                web::post().to(routes::admin_demote_user),
+            )
+            .route(
                 "/checkout/{user_id}",
                 web::post().to(routes::create_checkout_session),
             )

@@ -139,6 +139,23 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn admin_demote_user(
+        &self,
+        admin_user_id: String,
+        target_user_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .post(&format!(
+                "{}/admin/users/{}/demote/{}",
+                &self.address, admin_user_id, target_user_id
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn reset_password(&self, body: String, token: String) -> Response {
         reqwest::Client::new()
             .post(&format!("{}/reset_password", &self.address))
