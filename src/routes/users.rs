@@ -77,6 +77,7 @@ pub async fn sign_up(sign_up: web::Json<SignUp>, pool: web::Data<PgPool>) -> imp
                     user_id: user_id.clone(),
                     token: generate_token(user_id, UserGroup::USER),
                     expires_on: get_expires_at(Option::None),
+                    group: UserGroup::USER,
                 },
                 Err(_) => {
                     transaction.rollback().await.unwrap();
@@ -121,8 +122,9 @@ pub async fn login(log_in: web::Json<LogIn>, pool: web::Data<PgPool>) -> impl Re
 
             HttpResponse::Ok().json(LoginResponse {
                 user_id: user.user_id.to_string(),
-                token: generate_token(user.user_id.to_string(), UserGroup::USER),
+                token: generate_token(user.user_id.to_string(), user.user_group.clone()),
                 expires_on: get_expires_at(Option::None),
+                group: user.user_group.clone(),
             })
         }
         Err(_) => HttpResponse::BadRequest().finish(),
@@ -324,11 +326,18 @@ pub async fn forgot_password_login(
 
             //set it to used
             match set_to_used_by_otp(passcode.one_time_passcode.as_str(), &pool).await {
-                Ok(_) => HttpResponse::Ok().json(LoginResponse {
-                    user_id: passcode.user_id.clone(),
-                    token: generate_token(passcode.user_id.clone(), UserGroup::USER),
-                    expires_on: get_expires_at(Option::None),
-                }),
+                Ok(_) => match get_user_by_user_id(&passcode.user_id, &pool).await {
+                    Ok(user) => HttpResponse::Ok().json(LoginResponse {
+                        user_id: passcode.user_id.clone(),
+                        token: generate_token(
+                            passcode.user_id.clone(),
+                            user.user_group.clone(),
+                        ),
+                        expires_on: get_expires_at(Option::None),
+                        group: user.user_group,
+                    }),
+                    Err(_) => HttpResponse::InternalServerError().finish(),
+                },
                 Err(_) => HttpResponse::InternalServerError().finish(),
             }
         }

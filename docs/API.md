@@ -31,7 +31,7 @@ Tokens are **HS512** JWTs. Successful **`POST /sign_up`**, **`POST /login`**, an
 | Claim / field | Meaning |
 |---------------|---------|
 | `user_id` | Authenticated user id (string). |
-| `group` | `"USER"` or `"ADMIN"`. |
+| `group` | `"USER"` or `"ADMIN"` (JWT claim and `LoginResponse` field). |
 
 Token lifetime is **1 hour** (`exp` ≈ `iat` + 3600 seconds). Invalid or missing tokens yield **`401 Unauthorized`** on routes that extract `Claims`.
 
@@ -349,11 +349,12 @@ Demotes an admin to user.
 {
   "user_id": "<string>",
   "token": "<jwt>",
-  "expires_on": 1234567890
+  "expires_on": 1234567890,
+  "group": "USER"
 }
 ```
 
-`expires_on` is a Unix timestamp (seconds).
+`expires_on` is a Unix timestamp (seconds). `group` is `"USER"` or `"ADMIN"` (same meaning as the JWT `group` claim).
 
 ---
 
