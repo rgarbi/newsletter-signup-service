@@ -329,10 +329,7 @@ pub async fn forgot_password_login(
                 Ok(_) => match get_user_by_user_id(&passcode.user_id, &pool).await {
                     Ok(user) => HttpResponse::Ok().json(LoginResponse {
                         user_id: passcode.user_id.clone(),
-                        token: generate_token(
-                            passcode.user_id.clone(),
-                            user.user_group.clone(),
-                        ),
+                        token: generate_token(passcode.user_id.clone(), user.user_group.clone()),
                         expires_on: get_expires_at(Option::None),
                         group: user.user_group,
                     }),
