@@ -162,6 +162,10 @@ pub fn run(
                 web::get().to(routes::get_subscriptions_by_subscriber_id),
             )
             .route(
+                "/admin/subscribers/{user_id}",
+                web::get().to(routes::get_all_subscribers_admin),
+            )
+            .route(
                 "/checkout/{user_id}",
                 web::post().to(routes::create_checkout_session),
             )
