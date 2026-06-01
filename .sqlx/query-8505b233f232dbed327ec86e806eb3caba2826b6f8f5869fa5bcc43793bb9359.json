@@ -6,82 +6,178 @@
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Uuid"
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "id"
+          }
+        }
       },
       {
         "ordinal": 1,
         "name": "subscriber_id",
-        "type_info": "Uuid"
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscriber_id"
+          }
+        }
       },
       {
         "ordinal": 2,
         "name": "subscription_name",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_name"
+          }
+        }
       },
       {
         "ordinal": 3,
         "name": "subscription_mailing_address_line_1",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_mailing_address_line_1"
+          }
+        }
       },
       {
         "ordinal": 4,
         "name": "subscription_mailing_address_line_2",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_mailing_address_line_2"
+          }
+        }
       },
       {
         "ordinal": 5,
         "name": "subscription_city",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_city"
+          }
+        }
       },
       {
         "ordinal": 6,
         "name": "subscription_state",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_state"
+          }
+        }
       },
       {
         "ordinal": 7,
         "name": "subscription_postal_code",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_postal_code"
+          }
+        }
       },
       {
         "ordinal": 8,
         "name": "subscription_email_address",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_email_address"
+          }
+        }
       },
       {
         "ordinal": 9,
         "name": "subscription_creation_date",
-        "type_info": "Timestamptz"
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_creation_date"
+          }
+        }
       },
       {
         "ordinal": 10,
         "name": "subscription_cancelled_on_date",
-        "type_info": "Timestamptz"
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_cancelled_on_date"
+          }
+        }
       },
       {
         "ordinal": 11,
         "name": "subscription_anniversary_day",
-        "type_info": "Int4"
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_anniversary_day"
+          }
+        }
       },
       {
         "ordinal": 12,
         "name": "active",
-        "type_info": "Bool"
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "active"
+          }
+        }
       },
       {
         "ordinal": 13,
         "name": "subscription_type",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_type"
+          }
+        }
       },
       {
         "ordinal": 14,
         "name": "stripe_subscription_id",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "stripe_subscription_id"
+          }
+        }
       },
       {
         "ordinal": 15,
         "name": "subscription_anniversary_month",
-        "type_info": "Int4"
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "subscriptions",
+            "name": "subscription_anniversary_month"
+          }
+        }
       }
     ],
     "parameters": {

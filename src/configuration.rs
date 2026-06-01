@@ -1,4 +1,4 @@
-use cached::proc_macro::once;
+use cached::once;
 use config::Config;
 use secrecy::{ExposeSecret, SecretString};
 use serde_aux::field_attributes::deserialize_number_from_string;
