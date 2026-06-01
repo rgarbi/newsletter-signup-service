@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use reqwest::Response;
 use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{Connection, Executor, PgConnection, PgPool};
+use sqlx::{AssertSqlSafe, Connection, PgConnection, PgPool};
 use uuid::Uuid;
 use wiremock::matchers::{header_exists, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -483,8 +483,9 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     let mut connection = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to Postgres");
-    connection
-        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database_name).as_str())
+    let create_db = format!(r#"CREATE DATABASE "{}";"#, config.database_name);
+    sqlx::raw_sql(AssertSqlSafe(create_db))
+        .execute(&mut connection)
         .await
         .expect("Failed to create database.");
     // Migrate database
