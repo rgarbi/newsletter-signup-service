@@ -170,6 +170,10 @@ pub fn run(
                 web::get().to(routes::get_all_subscriptions_admin),
             )
             .route(
+                "/admin/subscriptions/{admin_user_id}/{subscription_id}",
+                web::delete().to(routes::cancel_subscription_admin),
+            )
+            .route(
                 "/admin/users/{user_id}",
                 web::get().to(routes::get_all_users_admin),
             )

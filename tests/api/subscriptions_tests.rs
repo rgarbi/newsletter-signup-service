@@ -465,3 +465,134 @@ async fn get_all_subscriptions_admin_returns_empty_list_when_no_subscriptions() 
         serde_json::from_str(response.text().await.unwrap().as_str()).unwrap();
     assert!(subscriptions.is_empty());
 }
+
+#[tokio::test]
+async fn cancel_subscription_admin_returns_200() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    mock_cancel_stripe_subscription(
+        &app.stripe_server,
+        stored_subscription.stripe_subscription_id.clone(),
+    )
+    .await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .cancel_subscription_admin(
+            admin_user_id.clone(),
+            stored_subscription.id.to_string(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn cancel_subscription_admin_cancels_another_users_subscription() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    mock_cancel_stripe_subscription(
+        &app.stripe_server,
+        stored_subscription.stripe_subscription_id.clone(),
+    )
+    .await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .cancel_subscription_admin(
+            admin_user_id.clone(),
+            stored_subscription.id.to_string(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(200, response.status().as_u16());
+
+    let subscription_response = app
+        .get_subscription_by_id(
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id.clone(), UserGroup::USER),
+        )
+        .await;
+    assert_eq!(200, subscription_response.status().as_u16());
+
+    let subscription: OverTheWireSubscription =
+        serde_json::from_str(subscription_response.text().await.unwrap().as_str()).unwrap();
+    assert!(!subscription.active);
+}
+
+#[tokio::test]
+async fn cancel_subscription_admin_returns_401_for_non_admin() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    let response = app
+        .cancel_subscription_admin(
+            subscriber.user_id.clone(),
+            stored_subscription.id.to_string(),
+            generate_token(subscriber.user_id, UserGroup::USER),
+        )
+        .await;
+
+    assert_eq!(401, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn cancel_subscription_admin_returns_404_not_found() {
+    let app = spawn_app().await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let response = app
+        .cancel_subscription_admin(
+            admin_user_id.clone(),
+            Uuid::new_v4().to_string(),
+            generate_token(admin_user_id, UserGroup::ADMIN),
+        )
+        .await;
+
+    assert_eq!(404, response.status().as_u16());
+}
+
+#[tokio::test]
+async fn cancel_subscription_admin_is_idempotent() {
+    let app = spawn_app().await;
+
+    let subscriber = app.store_subscriber(None).await;
+    let stored_subscription = store_subscription(subscriber.id.to_string(), None, &app).await;
+
+    mock_cancel_stripe_subscription(
+        &app.stripe_server,
+        stored_subscription.stripe_subscription_id.clone(),
+    )
+    .await;
+
+    let admin_user_id = Uuid::new_v4().to_string();
+    let admin_token = generate_token(admin_user_id.clone(), UserGroup::ADMIN);
+
+    let response = app
+        .cancel_subscription_admin(
+            admin_user_id.clone(),
+            stored_subscription.id.to_string(),
+            admin_token.clone(),
+        )
+        .await;
+    assert_eq!(200, response.status().as_u16());
+
+    let response = app
+        .cancel_subscription_admin(
+            admin_user_id,
+            stored_subscription.id.to_string(),
+            admin_token,
+        )
+        .await;
+    assert_eq!(200, response.status().as_u16());
+}

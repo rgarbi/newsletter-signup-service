@@ -159,49 +159,82 @@ pub async fn cancel_subscription_by_id(
                 Err(response) => return response,
             };
 
-            if !subscription.active {
-                tracing::event!(Level::INFO, "This subscription has already been cancelled!");
-                return HttpResponse::Ok().json(json!({}));
-            }
-
-            let mut transaction = match pool.begin().await {
-                Ok(transaction) => transaction,
-                Err(_) => return HttpResponse::InternalServerError().finish(),
-            };
-
-            //Set it to active = false
-            match cancel_subscription_by_subscription_id(subscription_id, &mut transaction).await {
-                Ok(_) => {}
-                Err(_) => {
-                    transaction.rollback().await.unwrap();
-                    return HttpResponse::InternalServerError().finish();
-                }
-            }
-
-            //Call stripe to cancel the subscription
-            match stripe_client
-                .cancel_stripe_subscription(subscription.stripe_subscription_id)
-                .await
-            {
-                Ok(_) => {
-                    if transaction.commit().await.is_err() {
-                        HttpResponse::InternalServerError().finish();
-                    }
-                    //Add a history object....
-                    store_subscription_history_event(
-                        subscription.id,
-                        HistoryEventType::Cancelled,
-                        &pool,
-                    );
-                    HttpResponse::Ok().json(json!({}))
-                }
-                Err(_) => {
-                    transaction.rollback().await.unwrap();
-                    HttpResponse::InternalServerError().finish()
-                }
-            }
+            perform_subscription_cancellation(subscription, &pool, &stripe_client).await
         }
         Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[tracing::instrument(
+    name = "Cancel subscription by subscription id (admin only)",
+    skip(path, pool, user, stripe_client),
+    fields(
+        admin_user_id = %path.0,
+        subscription_id = %path.1,
+    )
+)]
+pub async fn cancel_subscription_admin(
+    path: web::Path<(String, String)>,
+    pool: web::Data<PgPool>,
+    user: Claims,
+    stripe_client: web::Data<StripeClient>,
+) -> impl Responder {
+    let (admin_user_id, subscription_id_str) = path.into_inner();
+    if !is_authorized_admin_only(admin_user_id, user) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    let subscription_id = match Uuid::parse_str(&subscription_id_str) {
+        Ok(id) => id,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+
+    match retrieve_subscription_by_subscription_id(subscription_id, &pool).await {
+        Ok(subscription) => {
+            perform_subscription_cancellation(subscription, &pool, &stripe_client).await
+        }
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+async fn perform_subscription_cancellation(
+    subscription: OverTheWireSubscription,
+    pool: &PgPool,
+    stripe_client: &StripeClient,
+) -> HttpResponse {
+    if !subscription.active {
+        tracing::event!(Level::INFO, "This subscription has already been cancelled!");
+        return HttpResponse::Ok().json(json!({}));
+    }
+
+    let mut transaction = match pool.begin().await {
+        Ok(transaction) => transaction,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    match cancel_subscription_by_subscription_id(subscription.id, &mut transaction).await {
+        Ok(_) => {}
+        Err(_) => {
+            transaction.rollback().await.unwrap();
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+
+    match stripe_client
+        .cancel_stripe_subscription(subscription.stripe_subscription_id)
+        .await
+    {
+        Ok(_) => {
+            if transaction.commit().await.is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            store_subscription_history_event(subscription.id, HistoryEventType::Cancelled, pool);
+            HttpResponse::Ok().json(json!({}))
+        }
+        Err(_) => {
+            transaction.rollback().await.unwrap();
+            HttpResponse::InternalServerError().finish()
+        }
     }
 }
 

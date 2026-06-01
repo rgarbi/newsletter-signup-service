@@ -137,6 +137,23 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn cancel_subscription_admin(
+        &self,
+        admin_user_id: String,
+        subscription_id: String,
+        token: String,
+    ) -> Response {
+        reqwest::Client::new()
+            .delete(&format!(
+                "{}/admin/subscriptions/{}/{}",
+                &self.address, admin_user_id, subscription_id
+            ))
+            .bearer_auth(token)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn get_all_users_admin(&self, user_id: String, token: String) -> Response {
         reqwest::Client::new()
             .get(&format!("{}/admin/users/{}", &self.address, user_id))
