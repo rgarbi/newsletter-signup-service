@@ -311,6 +311,7 @@ Opens Stripe Customer/Billing Portal. Requires subscriber to have a **`stripe_cu
 
 ---
 
+<<<<<<< HEAD
 ### `DELETE /admin/subscriptions/{admin_user_id}/{subscription_id}`
 
 Cancels any subscription (DB + Stripe). Path `admin_user_id` must match JWT and caller must be **ADMIN**. Idempotent for already-cancelled subscriptions: returns `200` + `{}`.
@@ -319,6 +320,8 @@ Cancels any subscription (DB + Stripe). Path `admin_user_id` must match JWT and 
 
 ---
 
+=======
+>>>>>>> main
 ### `GET /admin/users/{user_id}`
 
 **Response:** `200` + **`OverTheWireUser[]`**
